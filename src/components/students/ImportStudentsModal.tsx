@@ -71,11 +71,15 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       for (let i = 0; i < data.length; i++) {
         const row = data[i];
         try {
-          // Find course by title
+          // Find course by title and get its fee
           let courseId = null;
+          let courseFee = 0;
           if (row.course_title) {
             const course = courses.find(c => c.title.toLowerCase() === row.course_title.toLowerCase());
-            courseId = course?.id || null;
+            if (course) {
+              courseId = course.id;
+              courseFee = course.fee; // Automatically set course fee from selected course
+            }
           }
 
           // Generate student ID
@@ -94,7 +98,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             join_date: parseDateFromExcel(row.join_date),
             class_start_date: row.class_start_date ? parseDateFromExcel(row.class_start_date) : null,
             status: row.status || 'enrolled',
-            total_course_fee: row.total_course_fee,
+            total_course_fee: courseFee, // Use course fee from selected course
             advance_payment: row.advance_payment || 0,
             installments: row.installments || 1,
           };
@@ -109,7 +113,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             continue;
           }
 
-          // Process payments
+          // Process payments - only if payment amount exists and is greater than 0
           const payments = [];
           
           // Advance payment
@@ -156,7 +160,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             });
           }
 
-          // Insert payments
+          // Insert payments only if there are valid payments
           if (payments.length > 0) {
             const { error: paymentError } = await supabase
               .from('payments')
@@ -264,10 +268,11 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               <strong>Important Notes:</strong>
               <ul className="mt-2 space-y-1 text-sm">
                 <li>• Use DD-MM-YYYY format for all dates</li>
-                <li>• If payment mode is not specified, it will default to "Bank Transfer"</li>
+                <li>• Course fee will be automatically set based on the selected course</li>
                 <li>• If payment amount is empty or 0, no payment record will be created for that stage</li>
-                <li>• Course title must match exactly with existing courses</li>
-                <li>• All required fields (name, email, phone, course fee) must be filled</li>
+                <li>• If payment mode is not specified, it will default to "Bank Transfer"</li>
+                <li>• Course title must match exactly with existing courses in the system</li>
+                <li>• All required fields (name, email, phone, course title) must be filled</li>
               </ul>
             </AlertDescription>
           </Alert>

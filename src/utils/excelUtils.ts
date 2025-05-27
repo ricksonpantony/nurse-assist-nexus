@@ -14,7 +14,6 @@ export interface StudentImportData {
   join_date: string;
   class_start_date?: string;
   status: string;
-  total_course_fee: number;
   advance_payment?: number;
   installments?: number;
   // Payment stages
@@ -45,7 +44,6 @@ export const generateSampleExcel = () => {
       join_date: "15-01-2024",
       class_start_date: "01-02-2024",
       status: "enrolled",
-      total_course_fee: 5000,
       advance_payment: 1000,
       installments: 4,
       advance_payment_amount: 1000,
@@ -61,7 +59,7 @@ export const generateSampleExcel = () => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Students");
   
-  // Set column widths
+  // Set column widths (removed total_course_fee column)
   const colWidths = [
     { wch: 20 }, // full_name
     { wch: 25 }, // email
@@ -73,7 +71,6 @@ export const generateSampleExcel = () => {
     { wch: 12 }, // join_date
     { wch: 15 }, // class_start_date
     { wch: 15 }, // status
-    { wch: 15 }, // total_course_fee
     { wch: 15 }, // advance_payment
     { wch: 12 }, // installments
     { wch: 20 }, // advance_payment_amount
