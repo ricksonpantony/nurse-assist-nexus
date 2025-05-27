@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -268,7 +267,7 @@ export const PaymentReports = () => {
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Months</SelectItem>
+                  <SelectItem value="all">All Months</SelectItem>
                   <SelectItem value="1">January</SelectItem>
                   <SelectItem value="2">February</SelectItem>
                   <SelectItem value="3">March</SelectItem>
@@ -303,7 +302,7 @@ export const PaymentReports = () => {
                   <SelectValue placeholder="All stages" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stages</SelectItem>
+                  <SelectItem value="all">All Stages</SelectItem>
                   {paymentStages.map(stage => (
                     <SelectItem key={stage} value={stage}>{stage}</SelectItem>
                   ))}
@@ -319,7 +318,7 @@ export const PaymentReports = () => {
                   <SelectValue placeholder="All modes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Modes</SelectItem>
+                  <SelectItem value="all">All Modes</SelectItem>
                   {paymentModes.map(mode => (
                     <SelectItem key={mode} value={mode}>{mode}</SelectItem>
                   ))}
@@ -335,7 +334,7 @@ export const PaymentReports = () => {
                   <SelectValue placeholder="All students" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Students</SelectItem>
+                  <SelectItem value="all">All Students</SelectItem>
                   {students.map(student => (
                     <SelectItem key={student.id} value={student.id}>
                       {student.full_name} ({student.id})
