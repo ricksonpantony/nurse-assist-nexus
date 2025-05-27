@@ -2,28 +2,12 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye,
-  DollarSign,
-  Clock,
-  Users,
-  BookOpen,
-  Star,
-  Calendar
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { CourseCard } from "@/components/courses/CourseCard";
 import { CreateCourseForm } from "@/components/courses/CreateCourseForm";
 
-// Sample course data
+// Simplified course data structure
 const sampleCourses = [
   {
     id: "OBA-2024-001",
@@ -31,14 +15,7 @@ const sampleCourses = [
     description: "Comprehensive behavioral assessment training for nursing professionals focusing on patient interaction and clinical decision-making skills.",
     fee: 1850,
     periodMonths: 6,
-    category: "Assessment",
-    level: "Intermediate",
-    students: 245,
-    rating: 4.8,
-    instructor: "Dr. Sarah Martinez",
-    image: "/placeholder.svg",
-    status: "active",
-    features: ["Clinical Simulations", "Behavioral Analysis", "Case Studies", "Peer Review"]
+    category: "Assessment"
   },
   {
     id: "OSCE-2024-002", 
@@ -46,14 +23,7 @@ const sampleCourses = [
     description: "Intensive preparation for OSCE examinations with hands-on clinical skills assessment and structured practice sessions.",
     fee: 2200,
     periodMonths: 8,
-    category: "Clinical Skills",
-    level: "Advanced",
-    students: 189,
-    rating: 4.9,
-    instructor: "Dr. Michael Chen",
-    image: "/placeholder.svg",
-    status: "active",
-    features: ["Clinical Stations", "Skills Assessment", "Mock Exams", "Performance Feedback"]
+    category: "Clinical Skills"
   },
   {
     id: "NCLEX-2024-003",
@@ -61,14 +31,7 @@ const sampleCourses = [
     description: "Advanced preparation for the Next Generation NCLEX-RN examination with updated question formats and clinical judgment assessment.",
     fee: 2750,
     periodMonths: 12,
-    category: "License Preparation",
-    level: "Advanced",
-    students: 312,
-    rating: 4.7,
-    instructor: "Dr. Emily Rodriguez",
-    image: "/placeholder.svg",
-    status: "active",
-    features: ["NGN Questions", "Clinical Judgment", "Case Analysis", "Adaptive Testing"]
+    category: "License Preparation"
   }
 ];
 
@@ -80,10 +43,7 @@ const Courses = () => {
   const handleCreateCourse = (courseData: any) => {
     const newCourse = {
       ...courseData,
-      id: `${courseData.title.substring(0, 3).toUpperCase()}-2024-${String(courses.length + 1).padStart(3, '0')}`,
-      students: 0,
-      rating: 0,
-      status: 'draft'
+      id: `${courseData.title.substring(0, 3).toUpperCase()}-2024-${String(courses.length + 1).padStart(3, '0')}`
     };
     setCourses([...courses, newCourse]);
     setShowCreateForm(false);
@@ -126,58 +86,7 @@ const Courses = () => {
             </Button>
           </header>
 
-          <main className="flex-1 p-6 space-y-6">
-            {/* Course Statistics */}
-            <div className="grid gap-6 md:grid-cols-4">
-              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-blue-100 text-sm font-medium">Total Courses</p>
-                      <p className="text-3xl font-bold">{courses.length}</p>
-                    </div>
-                    <BookOpen className="h-8 w-8 text-blue-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-emerald-100 text-sm font-medium">Total Students</p>
-                      <p className="text-3xl font-bold">{courses.reduce((sum, course) => sum + course.students, 0)}</p>
-                    </div>
-                    <Users className="h-8 w-8 text-emerald-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-amber-100 text-sm font-medium">Total Revenue</p>
-                      <p className="text-3xl font-bold">${courses.reduce((sum, course) => sum + (course.fee * course.students), 0).toLocaleString()}</p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-amber-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100 text-sm font-medium">Avg Rating</p>
-                      <p className="text-3xl font-bold">{(courses.reduce((sum, course) => sum + course.rating, 0) / courses.length).toFixed(1)}</p>
-                    </div>
-                    <Star className="h-8 w-8 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+          <main className="flex-1 p-6">
             {/* Course Cards Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {courses.map((course) => (
