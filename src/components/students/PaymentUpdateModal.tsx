@@ -24,17 +24,17 @@ interface PaymentUpdateModalProps {
 
 export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }: PaymentUpdateModalProps) => {
   const [amount, setAmount] = useState("");
-  const [stage, setStage] = useState("");
-  const [paymentMode, setPaymentMode] = useState("");
+  const [stage, setStage] = useState("unselected");
+  const [paymentMode, setPaymentMode] = useState("unselected");
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [updateCourseStatus, setUpdateCourseStatus] = useState(false);
-  const [newCourseStatus, setNewCourseStatus] = useState("");
+  const [newCourseStatus, setNewCourseStatus] = useState("unselected");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !stage || !paymentMode || !paymentDate) {
+    if (!amount || stage === "unselected" || paymentMode === "unselected" || !paymentDate) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -43,7 +43,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
       return;
     }
 
-    if (updateCourseStatus && !newCourseStatus) {
+    if (updateCourseStatus && newCourseStatus === "unselected") {
       toast({
         title: "Error",
         description: "Please select a course status",
@@ -68,7 +68,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
       if (paymentError) throw paymentError;
 
       // Update course status if requested
-      if (updateCourseStatus && newCourseStatus) {
+      if (updateCourseStatus && newCourseStatus !== "unselected") {
         const { error: statusError } = await supabase
           .from('students')
           .update({ status: newCourseStatus })
@@ -86,11 +86,11 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
 
       // Reset form
       setAmount("");
-      setStage("");
-      setPaymentMode("");
+      setStage("unselected");
+      setPaymentMode("unselected");
       setPaymentDate(new Date());
       setUpdateCourseStatus(false);
-      setNewCourseStatus("");
+      setNewCourseStatus("unselected");
       onClose();
       onPaymentAdded();
     } catch (error) {
@@ -107,11 +107,11 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
 
   const handleClose = () => {
     setAmount("");
-    setStage("");
-    setPaymentMode("");
+    setStage("unselected");
+    setPaymentMode("unselected");
     setPaymentDate(new Date());
     setUpdateCourseStatus(false);
-    setNewCourseStatus("");
+    setNewCourseStatus("unselected");
     onClose();
   };
 
@@ -152,6 +152,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                   <SelectValue placeholder="Select stage" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="unselected">Select stage</SelectItem>
                   <SelectItem value="Advance">Advance Payment</SelectItem>
                   <SelectItem value="Second">Second Payment</SelectItem>
                   <SelectItem value="Third">Third Payment</SelectItem>
@@ -170,6 +171,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                   <SelectValue placeholder="Select payment mode" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="unselected">Select payment mode</SelectItem>
                   <SelectItem value="Credit Card">Credit Card</SelectItem>
                   <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                   <SelectItem value="Cash">Cash</SelectItem>
@@ -214,7 +216,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                 checked={updateCourseStatus}
                 onCheckedChange={(checked) => {
                   setUpdateCourseStatus(checked as boolean);
-                  if (!checked) setNewCourseStatus("");
+                  if (!checked) setNewCourseStatus("unselected");
                 }}
               />
               <Label htmlFor="updateStatus" className="text-sm font-medium">
@@ -230,6 +232,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                     <SelectValue placeholder="Select new status" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="unselected">Select new status</SelectItem>
                     <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
                     <SelectItem value="enrolled">Enrolled</SelectItem>
                     <SelectItem value="online">Online</SelectItem>
