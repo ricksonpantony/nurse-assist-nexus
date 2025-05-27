@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useLocation } from "react-router-dom";
 
 const menuItems = [
   {
@@ -61,6 +62,8 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
+  const location = useLocation();
+
   return (
     <Sidebar className="border-r-0 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900">
       <SidebarHeader className="border-b border-blue-700/30 p-6 bg-gradient-to-r from-blue-800 to-blue-700">
@@ -83,7 +86,11 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="w-full justify-start gap-3 rounded-xl px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white hover:shadow-lg hover:scale-105 transition-all duration-200 data-[active=true]:bg-gradient-to-r data-[active=true]:from-white/20 data-[active=true]:to-white/10 data-[active=true]:text-white data-[active=true]:font-semibold data-[active=true]:shadow-lg backdrop-blur-sm"
+                    className={`w-full justify-start gap-3 rounded-xl px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white hover:shadow-lg hover:scale-105 transition-all duration-200 backdrop-blur-sm ${
+                      location.pathname === item.url 
+                        ? 'bg-gradient-to-r from-white/20 to-white/10 text-white font-semibold shadow-lg' 
+                        : ''
+                    }`}
                   >
                     <a href={item.url} className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
