@@ -12,7 +12,7 @@ import { useStudents } from "@/hooks/useStudents";
 
 const Students = () => {
   const { courses } = useCourses();
-  const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments } = useStudents();
+  const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments, refetch } = useStudents();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
@@ -56,6 +56,15 @@ const Students = () => {
     const payments = await fetchStudentPayments(student.id);
     setStudentPayments(payments);
     setShowDetailsView(true);
+  };
+
+  const handleRefreshStudentDetails = async () => {
+    if (selectedStudent) {
+      const payments = await fetchStudentPayments(selectedStudent.id);
+      setStudentPayments(payments);
+      // Also refresh the students list to get updated data
+      refetch();
+    }
   };
 
   if (loading) {
@@ -144,6 +153,7 @@ const Students = () => {
             setSelectedStudent(null);
             setStudentPayments([]);
           }}
+          onRefresh={handleRefreshStudentDetails}
         />
       )}
     </SidebarProvider>
