@@ -21,9 +21,24 @@ interface Payment {
   stage: string;
   amount: number;
   payment_mode: string;
-  student_name?: string;
-  student_email?: string;
-  course_title?: string;
+}
+
+interface PaymentBreakdown {
+  sl_number: number;
+  student_id: string;
+  student_name: string;
+  course_title: string;
+  stage: string;
+  course_fee: number;
+  advance_payment: number;
+  advance_date: string;
+  second_payment: number;
+  second_date: string;
+  other_payments: number;
+  other_dates: string;
+  final_payment: number;
+  final_date: string;
+  balance_fee: number;
 }
 
 export const PaymentReports = () => {
@@ -45,7 +60,7 @@ export const PaymentReports = () => {
   const [sortBy, setSortBy] = useState('payment_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Fetch payments with student details
+  // Fetch payments
   useEffect(() => {
     const fetchPayments = async () => {
       try {
@@ -56,21 +71,7 @@ export const PaymentReports = () => {
           .order('payment_date', { ascending: false });
 
         if (error) throw error;
-
-        // Enrich payments with student and course details
-        const enrichedPayments = data?.map(payment => {
-          const student = students.find(s => s.id === payment.student_id);
-          const course = student ? courses.find(c => c.id === student.course_id) : null;
-          
-          return {
-            ...payment,
-            student_name: student?.full_name || 'Unknown Student',
-            student_email: student?.email || 'N/A',
-            course_title: course?.title || 'No Course Assigned',
-          };
-        }) || [];
-
-        setPayments(enrichedPayments);
+        setPayments(data || []);
       } catch (error) {
         console.error('Error fetching payments:', error);
       } finally {
@@ -78,140 +79,127 @@ export const PaymentReports = () => {
       }
     };
 
-    if (students.length > 0) {
-      fetchPayments();
-    }
-  }, [students, courses]);
+    fetchPayments();
+  }, []);
 
-  // Filter and sort payments
-  const filteredPayments = useMemo(() => {
-    let filtered = [...payments];
+  // Create payment breakdown for each student
+  const paymentBreakdown = useMemo(() => {
+    const breakdown: PaymentBreakdown[] = [];
+    
+    students.forEach((student, index) => {
+      const studentPayments = payments.filter(p => p.student_id === student.id);
+      const course = courses.find(c => c.id === student.course_id);
+      
+      // Organize payments by stage
+      const advancePayment = studentPayments.find(p => p.stage === 'Advance');
+      const secondPayment = studentPayments.find(p => p.stage === 'Second');
+      const finalPayment = studentPayments.find(p => p.stage === 'Final');
+      const otherPayments = studentPayments.filter(p => !['Advance', 'Second', 'Final'].includes(p.stage));
+      
+      const totalPaid = studentPayments.reduce((sum, p) => sum + p.amount, 0);
+      const balanceFee = student.total_course_fee - totalPaid;
+      
+      breakdown.push({
+        sl_number: index + 1,
+        student_id: student.id,
+        student_name: student.full_name,
+        course_title: course?.title || 'No Course Assigned',
+        stage: filters.stage === 'all' ? 'All' : filters.stage,
+        course_fee: student.total_course_fee,
+        advance_payment: advancePayment?.amount || 0,
+        advance_date: advancePayment?.payment_date || '',
+        second_payment: secondPayment?.amount || 0,
+        second_date: secondPayment?.payment_date || '',
+        other_payments: otherPayments.reduce((sum, p) => sum + p.amount, 0),
+        other_dates: otherPayments.map(p => formatDateForExcel(p.payment_date)).join(', '),
+        final_payment: finalPayment?.amount || 0,
+        final_date: finalPayment?.payment_date || '',
+        balance_fee: balanceFee,
+      });
+    });
+    
+    return breakdown;
+  }, [students, courses, payments, filters.stage]);
 
-    // Filter by date range
+  // Filter breakdown based on criteria
+  const filteredBreakdown = useMemo(() => {
+    let filtered = [...paymentBreakdown];
+
+    // Filter by date range (using advance payment date as reference)
     if (filters.dateFrom) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.payment_date) >= new Date(filters.dateFrom)
+      filtered = filtered.filter(item => 
+        item.advance_date && new Date(item.advance_date) >= new Date(filters.dateFrom)
       );
     }
     if (filters.dateTo) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.payment_date) <= new Date(filters.dateTo)
+      filtered = filtered.filter(item => 
+        item.advance_date && new Date(item.advance_date) <= new Date(filters.dateTo)
       );
     }
 
     // Filter by specific month/year
     if (filters.month && filters.month !== 'all' && filters.year) {
-      filtered = filtered.filter(payment => {
-        const paymentDate = new Date(payment.payment_date);
+      filtered = filtered.filter(item => {
+        if (!item.advance_date) return false;
+        const paymentDate = new Date(item.advance_date);
         return paymentDate.getMonth() === parseInt(filters.month) - 1 && 
                paymentDate.getFullYear() === parseInt(filters.year);
       });
     }
 
-    // Filter by stage
-    if (filters.stage && filters.stage !== 'all') {
-      filtered = filtered.filter(payment => payment.stage === filters.stage);
-    }
-
-    // Filter by payment mode
-    if (filters.paymentMode && filters.paymentMode !== 'all') {
-      filtered = filtered.filter(payment => payment.payment_mode === filters.paymentMode);
-    }
-
     // Filter by student
     if (filters.student && filters.student !== 'all') {
-      filtered = filtered.filter(payment => payment.student_id === filters.student);
+      filtered = filtered.filter(item => item.student_id === filters.student);
     }
 
-    // Sort payments
-    filtered.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortBy) {
-        case 'payment_date':
-          aValue = new Date(a.payment_date);
-          bValue = new Date(b.payment_date);
-          break;
-        case 'amount':
-          aValue = a.amount;
-          bValue = b.amount;
-          break;
-        case 'student_name':
-          aValue = a.student_name?.toLowerCase() || '';
-          bValue = b.student_name?.toLowerCase() || '';
-          break;
-        default:
-          aValue = a[sortBy as keyof typeof a];
-          bValue = b[sortBy as keyof typeof b];
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
+    // If specific stage is selected, filter to show only students with that payment stage
+    if (filters.stage && filters.stage !== 'all') {
+      const relevantPayments = payments.filter(p => p.stage === filters.stage);
+      const studentIdsWithStage = [...new Set(relevantPayments.map(p => p.student_id))];
+      filtered = filtered.filter(item => studentIdsWithStage.includes(item.student_id));
+    }
 
     return filtered;
-  }, [payments, filters, sortBy, sortOrder]);
+  }, [paymentBreakdown, filters, payments]);
 
   // Calculate totals
-  const totalPayments = filteredPayments.length;
-  const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalStudents = filteredBreakdown.length;
+  const totalCourseFees = filteredBreakdown.reduce((sum, item) => sum + item.course_fee, 0);
+  const totalAdvancePayments = filteredBreakdown.reduce((sum, item) => sum + item.advance_payment, 0);
+  const totalSecondPayments = filteredBreakdown.reduce((sum, item) => sum + item.second_payment, 0);
+  const totalOtherPayments = filteredBreakdown.reduce((sum, item) => sum + item.other_payments, 0);
+  const totalFinalPayments = filteredBreakdown.reduce((sum, item) => sum + item.final_payment, 0);
+  const totalBalanceFee = filteredBreakdown.reduce((sum, item) => sum + item.balance_fee, 0);
 
-  // Get unique payment stages and modes, filter out empty/null values
-  const paymentStages = [...new Set(payments.map(p => p.stage))]
-    .filter(stage => stage && stage.trim() !== '');
-  const paymentModes = [...new Set(payments.map(p => p.payment_mode))]
-    .filter(mode => mode && mode.trim() !== '');
-
-  const getStageBadge = (stage: string) => {
-    const colors = {
-      'Advance': 'bg-blue-100 text-blue-800',
-      'Second': 'bg-green-100 text-green-800',
-      'Third': 'bg-purple-100 text-purple-800',
-      'Final': 'bg-orange-100 text-orange-800',
-      'Other': 'bg-gray-100 text-gray-800',
-    };
-    return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getModeBadge = (mode: string) => {
-    const colors = {
-      'Credit Card': 'bg-indigo-100 text-indigo-800',
-      'Bank Transfer': 'bg-green-100 text-green-800',
-      'Cash': 'bg-yellow-100 text-yellow-800',
-      'Check': 'bg-purple-100 text-purple-800',
-      'Online Payment': 'bg-blue-100 text-blue-800',
-    };
-    return colors[mode as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
+  // Get unique payment stages and modes
+  const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
+  const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
 
   const handleExport = () => {
-    const exportData = filteredPayments.map((payment, index) => ({
-      serial_number: index + 1,
-      student_id: payment.student_id,
-      student_name: payment.student_name,
-      student_email: payment.student_email,
-      course_title: payment.course_title,
-      payment_date: formatDateForExcel(payment.payment_date),
-      stage: payment.stage,
-      amount: payment.amount,
-      payment_mode: payment.payment_mode,
+    const exportData = filteredBreakdown.map((item) => ({
+      sl_number: item.sl_number,
+      student_id: item.student_id,
+      student_name: item.student_name,
+      course_title: item.course_title,
+      stage: item.stage,
+      course_fee: item.course_fee,
+      advance_payment: item.advance_payment,
+      advance_date: item.advance_date ? formatDateForExcel(item.advance_date) : '',
+      second_payment: item.second_payment,
+      second_date: item.second_date ? formatDateForExcel(item.second_date) : '',
+      other_payments: item.other_payments,
+      other_dates: item.other_dates,
+      final_payment: item.final_payment,
+      final_date: item.final_date ? formatDateForExcel(item.final_date) : '',
+      balance_fee: item.balance_fee,
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Payment Report");
 
-    // Add totals row
-    const totalRow = [
-      { serial_number: '', student_id: '', student_name: '', student_email: '', course_title: '', payment_date: '', stage: 'TOTAL:', amount: totalAmount, payment_mode: `${totalPayments} payments` }
-    ];
-    XLSX.utils.sheet_add_json(ws, totalRow, { origin: -1, skipHeader: true });
-
     const currentDate = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `payment_report_${currentDate}.xlsx`);
+    XLSX.writeFile(wb, `payment_breakdown_report_${currentDate}.xlsx`);
   };
 
   const handlePrint = () => {
@@ -315,22 +303,6 @@ export const PaymentReports = () => {
               </Select>
             </div>
 
-            {/* Payment Mode Filter */}
-            <div className="space-y-2">
-              <Label>Payment Mode</Label>
-              <Select value={filters.paymentMode} onValueChange={(value) => setFilters(prev => ({ ...prev, paymentMode: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All modes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Modes</SelectItem>
-                  {paymentModes.map(mode => (
-                    <SelectItem key={mode} value={mode}>{mode}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Student Filter */}
             <div className="space-y-2">
               <Label>Student</Label>
@@ -348,22 +320,6 @@ export const PaymentReports = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Sort Options */}
-            <div className="space-y-2">
-              <Label>Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="payment_date">Payment Date</SelectItem>
-                  <SelectItem value="amount">Amount</SelectItem>
-                  <SelectItem value="student_name">Student Name</SelectItem>
-                  <SelectItem value="stage">Payment Stage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="flex gap-2">
@@ -375,28 +331,58 @@ export const PaymentReports = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+      {/* Payment Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Total Payments</p>
-                <p className="text-2xl font-bold">{totalPayments}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-green-200" />
+            <div className="text-center">
+              <p className="text-blue-100 text-sm">Students</p>
+              <p className="text-xl font-bold">{totalStudents}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Total Amount</p>
-                <p className="text-2xl font-bold">${totalAmount.toLocaleString()}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-blue-200" />
+            <div className="text-center">
+              <p className="text-purple-100 text-sm">Course Fees</p>
+              <p className="text-xl font-bold">${totalCourseFees.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-green-100 text-sm">Advance</p>
+              <p className="text-xl font-bold">${totalAdvancePayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-yellow-100 text-sm">Second</p>
+              <p className="text-xl font-bold">${totalSecondPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-orange-100 text-sm">Final</p>
+              <p className="text-xl font-bold">${totalFinalPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-red-100 text-sm">Balance</p>
+              <p className="text-xl font-bold">${totalBalanceFee.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
@@ -414,64 +400,84 @@ export const PaymentReports = () => {
         </Button>
       </div>
 
-      {/* Payment Report Table */}
+      {/* Payment Breakdown Table */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Payment Report ({totalPayments} payments)</CardTitle>
+          <CardTitle>Payment Breakdown Report ({totalStudents} students)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">#</TableHead>
+                  <TableHead className="w-16">Sl No.</TableHead>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Student Name</TableHead>
                   <TableHead>Course</TableHead>
-                  <TableHead>Payment Date</TableHead>
                   <TableHead>Stage</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment Mode</TableHead>
+                  <TableHead>Course Fee</TableHead>
+                  <TableHead>Advance Payment</TableHead>
+                  <TableHead>Advance Date</TableHead>
+                  <TableHead>Second Payment</TableHead>
+                  <TableHead>Second Date</TableHead>
+                  <TableHead>Other Payments</TableHead>
+                  <TableHead>Other Dates</TableHead>
+                  <TableHead>Final Payment</TableHead>
+                  <TableHead>Final Date</TableHead>
+                  <TableHead>Balance Fee</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map((payment, index) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{payment.student_id}</TableCell>
-                    <TableCell className="font-medium">{payment.student_name}</TableCell>
-                    <TableCell>{payment.course_title}</TableCell>
-                    <TableCell>{formatDateForExcel(payment.payment_date)}</TableCell>
+                {filteredBreakdown.map((item) => (
+                  <TableRow key={item.student_id}>
+                    <TableCell className="font-medium">{item.sl_number}</TableCell>
+                    <TableCell>{item.student_id}</TableCell>
+                    <TableCell className="font-medium">{item.student_name}</TableCell>
+                    <TableCell>{item.course_title}</TableCell>
                     <TableCell>
-                      <Badge className={getStageBadge(payment.stage)}>
-                        {payment.stage}
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {item.stage}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-bold">${payment.amount.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Badge className={getModeBadge(payment.payment_mode)}>
-                        {payment.payment_mode}
-                      </Badge>
+                    <TableCell className="font-bold">${item.course_fee.toLocaleString()}</TableCell>
+                    <TableCell>${item.advance_payment.toLocaleString()}</TableCell>
+                    <TableCell>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</TableCell>
+                    <TableCell>${item.second_payment.toLocaleString()}</TableCell>
+                    <TableCell>{item.second_date ? formatDateForExcel(item.second_date) : '-'}</TableCell>
+                    <TableCell>${item.other_payments.toLocaleString()}</TableCell>
+                    <TableCell className="max-w-32 truncate" title={item.other_dates}>
+                      {item.other_dates || '-'}
+                    </TableCell>
+                    <TableCell>${item.final_payment.toLocaleString()}</TableCell>
+                    <TableCell>{item.final_date ? formatDateForExcel(item.final_date) : '-'}</TableCell>
+                    <TableCell className={`font-bold ${item.balance_fee > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      ${item.balance_fee.toLocaleString()}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             
-            {/* Total Row */}
-            {filteredPayments.length > 0 && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                <div className="flex justify-between items-center font-bold text-lg">
-                  <span>Total: {totalPayments} payments</span>
-                  <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
+            {/* Totals Row */}
+            {filteredBreakdown.length > 0 && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
+                <div className="grid grid-cols-6 gap-4 text-sm font-bold">
+                  <div>Total Students: {totalStudents}</div>
+                  <div>Course Fees: ${totalCourseFees.toLocaleString()}</div>
+                  <div>Advance: ${totalAdvancePayments.toLocaleString()}</div>
+                  <div>Second: ${totalSecondPayments.toLocaleString()}</div>
+                  <div>Final: ${totalFinalPayments.toLocaleString()}</div>
+                  <div className={totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}>
+                    Balance: ${totalBalanceFee.toLocaleString()}
+                  </div>
                 </div>
               </div>
             )}
           </div>
           
-          {filteredPayments.length === 0 && (
+          {filteredBreakdown.length === 0 && (
             <div className="p-8 text-center text-gray-500">
-              <p>No payments found matching your criteria.</p>
+              <p>No payment data found matching your criteria.</p>
             </div>
           )}
         </CardContent>

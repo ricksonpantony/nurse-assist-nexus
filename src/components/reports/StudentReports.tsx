@@ -97,7 +97,6 @@ export const StudentReports = () => {
 
   // Calculate totals
   const totalStudents = filteredStudents.length;
-  const totalRevenue = filteredStudents.reduce((sum, student) => sum + (student.advance_payment || 0), 0);
   const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
 
   const getStatusBadge = (status: string) => {
@@ -275,7 +274,7 @@ export const StudentReports = () => {
       </Card>
 
       {/* Report Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -288,18 +287,6 @@ export const StudentReports = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Total Advance Payment</p>
-                <p className="text-2xl font-bold">${totalRevenue.toLocaleString()}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -307,7 +294,7 @@ export const StudentReports = () => {
                 <p className="text-purple-100">Total Course Fees</p>
                 <p className="text-2xl font-bold">${totalCourseFees.toLocaleString()}</p>
               </div>
-              <Download className="h-8 w-8 text-purple-200" />
+              <Calendar className="h-8 w-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
@@ -344,7 +331,6 @@ export const StudentReports = () => {
                   <TableHead>Join Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Course Fee</TableHead>
-                  <TableHead>Advance Payment</TableHead>
                   <TableHead>Country</TableHead>
                 </TableRow>
               </TableHeader>
@@ -364,7 +350,6 @@ export const StudentReports = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
-                    <TableCell>${(student.advance_payment || 0).toLocaleString()}</TableCell>
                     <TableCell>{student.country || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
