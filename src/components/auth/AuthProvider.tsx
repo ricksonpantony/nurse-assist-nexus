@@ -34,42 +34,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Ensure all logged-in users have admin role
+        // Handle user profile creation/update without causing infinite recursion
         if (session?.user && event === 'SIGNED_IN') {
-          try {
-            // Check if user profile exists and update role to admin
-            const { data: profile, error: fetchError } = await supabase
-              .from('user_profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
+          // Use setTimeout to avoid blocking the auth state change
+          setTimeout(async () => {
+            try {
+              // Try to create/update user profile with direct INSERT/UPDATE to avoid RLS issues
+              const { error } = await supabase
+                .rpc('handle_user_profile_upsert', {
+                  user_id: session.user.id,
+                  user_email: session.user.email,
+                  user_full_name: session.user.user_metadata?.full_name || session.user.email || 'Admin User'
+                });
 
-            if (fetchError && fetchError.code !== 'PGRST116') {
-              console.error('Error fetching user profile:', fetchError);
-            } else {
-              // Update user role to admin if not already
-              if (!profile || profile.role !== 'admin') {
-                const { error: updateError } = await supabase
-                  .from('user_profiles')
-                  .upsert({
-                    id: session.user.id,
-                    full_name: session.user.user_metadata?.full_name || session.user.email,
-                    role: 'admin'
-                  });
-
-                if (updateError) {
-                  console.error('Error updating user role:', updateError);
-                } else {
-                  console.log('User role updated to admin');
-                }
+              if (error) {
+                console.error('Error handling user profile:', error);
+                // Don't throw error - just log it and continue
+              } else {
+                console.log('User profile handled successfully');
               }
+            } catch (error) {
+              console.error('Error in user profile handling:', error);
+              // Don't throw error - just log it and continue
             }
-          } catch (error) {
-            console.error('Error in auth state change:', error);
-          }
+          }, 100);
         }
         
         setIsLoading(false);
@@ -78,6 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
