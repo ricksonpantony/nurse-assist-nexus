@@ -16,7 +16,7 @@ interface CourseCardProps {
     title: string;
     description: string;
     fee: number;
-    periodMonths: number;
+    period_months: number;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -61,7 +61,7 @@ export const CourseCard = ({ course, onEdit, onDelete }: CourseCardProps) => {
           </div>
           <div className="flex items-center gap-2 text-slate-600">
             <Clock className="h-4 w-4 text-blue-600" />
-            <span>{course.periodMonths} months</span>
+            <span>{course.period_months} months</span>
           </div>
         </div>
 
