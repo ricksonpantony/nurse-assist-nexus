@@ -6,15 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
-
-interface Course {
-  id: string;
-  title: string;
-  fee: number;
-}
+import { Course } from "@/hooks/useCourses";
+import { Student } from "@/hooks/useStudents";
 
 interface AddStudentFormProps {
-  student?: any;
+  student?: Student;
   courses: Course[];
   onClose: () => void;
   onSave: (student: any) => void;
@@ -22,36 +18,51 @@ interface AddStudentFormProps {
 
 export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudentFormProps) => {
   const [formData, setFormData] = useState({
-    fullName: "",
+    full_name: "",
     email: "",
     phone: "",
     address: "",
     country: "",
-    passportId: "",
-    courseId: "",
-    batchId: "",
-    joinDate: new Date().toISOString().split('T')[0],
-    classStartDate: "",
-    status: "enrolled",
-    totalCourseFee: 0,
-    advancePayment: 0,
+    passport_id: "",
+    course_id: "",
+    batch_id: "",
+    join_date: new Date().toISOString().split('T')[0],
+    class_start_date: "",
+    status: "enrolled" as const,
+    total_course_fee: 0,
+    advance_payment: 0,
     installments: 1
   });
 
   useEffect(() => {
     if (student) {
-      setFormData(student);
+      setFormData({
+        full_name: student.full_name,
+        email: student.email,
+        phone: student.phone,
+        address: student.address || "",
+        country: student.country || "",
+        passport_id: student.passport_id || "",
+        course_id: student.course_id || "",
+        batch_id: student.batch_id || "",
+        join_date: student.join_date,
+        class_start_date: student.class_start_date || "",
+        status: student.status,
+        total_course_fee: student.total_course_fee,
+        advance_payment: student.advance_payment,
+        installments: student.installments
+      });
     }
   }, [student]);
 
   useEffect(() => {
-    if (formData.courseId) {
-      const selectedCourse = courses.find(c => c.id === formData.courseId);
+    if (formData.course_id) {
+      const selectedCourse = courses.find(c => c.id === formData.course_id);
       if (selectedCourse) {
-        setFormData(prev => ({ ...prev, totalCourseFee: selectedCourse.fee }));
+        setFormData(prev => ({ ...prev, total_course_fee: selectedCourse.fee }));
       }
     }
-  }, [formData.courseId, courses]);
+  }, [formData.course_id, courses]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,11 +98,11 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             {/* Personal Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="fullName">Full Name *</Label>
+                <Label htmlFor="full_name">Full Name *</Label>
                 <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={(e) => handleInputChange("full_name", e.target.value)}
                   required
                 />
               </div>
@@ -118,11 +129,11 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
                 />
               </div>
               <div>
-                <Label htmlFor="passportId">Passport ID</Label>
+                <Label htmlFor="passport_id">Passport ID</Label>
                 <Input
-                  id="passportId"
-                  value={formData.passportId}
-                  onChange={(e) => handleInputChange("passportId", e.target.value)}
+                  id="passport_id"
+                  value={formData.passport_id}
+                  onChange={(e) => handleInputChange("passport_id", e.target.value)}
                 />
               </div>
             </div>
@@ -148,8 +159,8 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             {/* Course Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="courseId">Course *</Label>
-                <Select value={formData.courseId} onValueChange={(value) => handleInputChange("courseId", value)}>
+                <Label htmlFor="course_id">Course *</Label>
+                <Select value={formData.course_id} onValueChange={(value) => handleInputChange("course_id", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
@@ -163,40 +174,40 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
                 </Select>
               </div>
               <div>
-                <Label htmlFor="batchId">Batch ID</Label>
+                <Label htmlFor="batch_id">Batch ID</Label>
                 <Input
-                  id="batchId"
-                  value={formData.batchId}
-                  onChange={(e) => handleInputChange("batchId", e.target.value)}
+                  id="batch_id"
+                  value={formData.batch_id}
+                  onChange={(e) => handleInputChange("batch_id", e.target.value)}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="joinDate">Join Date *</Label>
+                <Label htmlFor="join_date">Join Date *</Label>
                 <Input
-                  id="joinDate"
+                  id="join_date"
                   type="date"
-                  value={formData.joinDate}
-                  onChange={(e) => handleInputChange("joinDate", e.target.value)}
+                  value={formData.join_date}
+                  onChange={(e) => handleInputChange("join_date", e.target.value)}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="classStartDate">Class Start Date</Label>
+                <Label htmlFor="class_start_date">Class Start Date</Label>
                 <Input
-                  id="classStartDate"
+                  id="class_start_date"
                   type="date"
-                  value={formData.classStartDate}
-                  onChange={(e) => handleInputChange("classStartDate", e.target.value)}
+                  value={formData.class_start_date}
+                  onChange={(e) => handleInputChange("class_start_date", e.target.value)}
                 />
               </div>
             </div>
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+              <Select value={formData.status} onValueChange={(value: any) => handleInputChange("status", value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -212,22 +223,22 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             {/* Payment Information */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="totalCourseFee">Total Course Fee</Label>
+                <Label htmlFor="total_course_fee">Total Course Fee</Label>
                 <Input
-                  id="totalCourseFee"
+                  id="total_course_fee"
                   type="number"
-                  value={formData.totalCourseFee}
+                  value={formData.total_course_fee}
                   disabled
                   className="bg-gray-100"
                 />
               </div>
               <div>
-                <Label htmlFor="advancePayment">Advance Payment</Label>
+                <Label htmlFor="advance_payment">Advance Payment</Label>
                 <Input
-                  id="advancePayment"
+                  id="advance_payment"
                   type="number"
-                  value={formData.advancePayment}
-                  onChange={(e) => handleInputChange("advancePayment", Number(e.target.value))}
+                  value={formData.advance_payment}
+                  onChange={(e) => handleInputChange("advance_payment", Number(e.target.value))}
                 />
               </div>
               <div>

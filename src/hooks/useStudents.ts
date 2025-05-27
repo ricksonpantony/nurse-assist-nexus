@@ -1,0 +1,197 @@
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+export interface Student {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  address: string | null;
+  country: string | null;
+  passport_id: string | null;
+  course_id: string | null;
+  batch_id: string | null;
+  join_date: string;
+  class_start_date: string | null;
+  status: 'awaiting-course' | 'enrolled' | 'online' | 'face-to-face';
+  total_course_fee: number;
+  advance_payment: number;
+  installments: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Payment {
+  id: string;
+  student_id: string;
+  payment_date: string;
+  stage: string;
+  amount: number;
+  payment_mode: string;
+  created_at?: string;
+}
+
+export const useStudents = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch students",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateStudentId = async () => {
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from('students')
+      .select('*', { count: 'exact', head: true });
+    
+    const nextNumber = (count || 0) + 1;
+    return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+  };
+
+  const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const newStudentId = await generateStudentId();
+      
+      const { data, error } = await supabase
+        .from('students')
+        .insert([{ ...studentData, id: newStudentId }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add advance payment if provided
+      if (studentData.advance_payment > 0) {
+        await supabase
+          .from('payments')
+          .insert([{
+            student_id: newStudentId,
+            payment_date: new Date().toISOString().split('T')[0],
+            stage: 'Advance',
+            amount: studentData.advance_payment,
+            payment_mode: 'Credit Card'
+          }]);
+      }
+      
+      setStudents(prev => [data, ...prev]);
+      toast({
+        title: "Success",
+        description: "Student added successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error adding student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add student",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updateStudent = async (id: string, studentData: Partial<Student>) => {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .update({ ...studentData, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setStudents(prev => prev.map(student => student.id === id ? data : student));
+      toast({
+        title: "Success",
+        description: "Student updated successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error updating student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update student",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteStudent = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('students')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setStudents(prev => prev.filter(student => student.id !== id));
+      toast({
+        title: "Success",
+        description: "Student deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete student",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const fetchStudentPayments = async (studentId: string): Promise<Payment[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('payment_date', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching student payments:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  return {
+    students,
+    loading,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    fetchStudentPayments,
+    refetch: fetchStudents
+  };
+};

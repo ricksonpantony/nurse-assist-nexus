@@ -6,44 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CourseCard } from "@/components/courses/CourseCard";
 import { CreateCourseForm } from "@/components/courses/CreateCourseForm";
-
-// Simplified course data structure
-const sampleCourses = [
-  {
-    id: "OBA-2024-001",
-    title: "Objective Behavioral Assessment (OBA)",
-    description: "Comprehensive behavioral assessment training for nursing professionals focusing on patient interaction and clinical decision-making skills.",
-    fee: 1850,
-    periodMonths: 6
-  },
-  {
-    id: "OSCE-2024-002", 
-    title: "Objective Structured Clinical Examination (OSCE)",
-    description: "Intensive preparation for OSCE examinations with hands-on clinical skills assessment and structured practice sessions.",
-    fee: 2200,
-    periodMonths: 8
-  },
-  {
-    id: "NCLEX-2024-003",
-    title: "NCLEX-RN Next Generation (NGN)",
-    description: "Advanced preparation for the Next Generation NCLEX-RN examination with updated question formats and clinical judgment assessment.",
-    fee: 2750,
-    periodMonths: 12
-  }
-];
+import { useCourses } from "@/hooks/useCourses";
 
 const Courses = () => {
-  const [courses, setCourses] = useState(sampleCourses);
+  const { courses, loading, addCourse, updateCourse, deleteCourse } = useCourses();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
 
-  const handleCreateCourse = (courseData: any) => {
-    const newCourse = {
-      ...courseData,
-      id: `COURSE-2024-${String(courses.length + 1).padStart(3, '0')}`
-    };
-    setCourses([...courses, newCourse]);
-    setShowCreateForm(false);
+  const handleCreateCourse = async (courseData: any) => {
+    try {
+      await addCourse(courseData);
+      setShowCreateForm(false);
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
 
   const handleEditCourse = (course: any) => {
@@ -51,17 +27,38 @@ const Courses = () => {
     setShowCreateForm(true);
   };
 
-  const handleUpdateCourse = (updatedCourse: any) => {
-    setCourses(courses.map(course => 
-      course.id === updatedCourse.id ? updatedCourse : course
-    ));
-    setShowCreateForm(false);
-    setEditingCourse(null);
+  const handleUpdateCourse = async (updatedCourse: any) => {
+    try {
+      await updateCourse(updatedCourse.id, updatedCourse);
+      setShowCreateForm(false);
+      setEditingCourse(null);
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
 
-  const handleDeleteCourse = (courseId: string) => {
-    setCourses(courses.filter(course => course.id !== courseId));
+  const handleDeleteCourse = async (courseId: string) => {
+    try {
+      await deleteCourse(courseId);
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
+
+  if (loading) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+          <AppSidebar />
+          <SidebarInset className="flex-1">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-lg text-blue-600">Loading courses...</div>
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
     <SidebarProvider>

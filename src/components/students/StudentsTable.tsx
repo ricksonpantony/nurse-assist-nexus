@@ -7,22 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Eye, Search } from "lucide-react";
-
-interface Student {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  courseId: string;
-  joinDate: string;
-  status: string;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  fee: number;
-}
+import { Student } from "@/hooks/useStudents";
+import { Course } from "@/hooks/useCourses";
 
 interface StudentsTableProps {
   students: Student[];
@@ -37,7 +23,8 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
   const [courseFilter, setCourseFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const getCourseName = (courseId: string) => {
+  const getCourseName = (courseId: string | null) => {
+    if (!courseId) return "No Course";
     const course = courses.find(c => c.id === courseId);
     return course ? course.title : courseId;
   };
@@ -73,9 +60,9 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
   };
 
   const filteredStudents = students.filter(student => {
-    const matchesSearch = student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = courseFilter === "all" || student.courseId === courseFilter;
+    const matchesCourse = courseFilter === "all" || student.course_id === courseFilter;
     const matchesStatus = statusFilter === "all" || student.status === statusFilter;
     
     return matchesSearch && matchesCourse && matchesStatus;
@@ -145,11 +132,11 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
             {filteredStudents.map((student) => (
               <TableRow key={student.id} className="hover:bg-blue-50">
                 <TableCell className="font-mono text-sm">{student.id}</TableCell>
-                <TableCell className="font-medium">{student.fullName}</TableCell>
+                <TableCell className="font-medium">{student.full_name}</TableCell>
                 <TableCell>{student.email}</TableCell>
                 <TableCell>{student.phone}</TableCell>
-                <TableCell className="text-sm">{getCourseName(student.courseId)}</TableCell>
-                <TableCell>{new Date(student.joinDate).toLocaleDateString()}</TableCell>
+                <TableCell className="text-sm">{getCourseName(student.course_id)}</TableCell>
+                <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(student.status)}>
                     {getStatusLabel(student.status)}

@@ -9,7 +9,142 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          fee: number
+          id: string
+          period_months: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          fee: number
+          id: string
+          period_months: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          fee?: number
+          id?: string
+          period_months?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          payment_date: string
+          payment_mode: string
+          stage: string
+          student_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          payment_date: string
+          payment_mode: string
+          stage: string
+          student_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payment_date?: string
+          payment_mode?: string
+          stage?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          address: string | null
+          advance_payment: number | null
+          batch_id: string | null
+          class_start_date: string | null
+          country: string | null
+          course_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          installments: number | null
+          join_date: string
+          passport_id: string | null
+          phone: string
+          status: string
+          total_course_fee: number
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          advance_payment?: number | null
+          batch_id?: string | null
+          class_start_date?: string | null
+          country?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          installments?: number | null
+          join_date: string
+          passport_id?: string | null
+          phone: string
+          status: string
+          total_course_fee: number
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          advance_payment?: number | null
+          batch_id?: string | null
+          class_start_date?: string | null
+          country?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          installments?: number | null
+          join_date?: string
+          passport_id?: string | null
+          phone?: string
+          status?: string
+          total_course_fee?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
