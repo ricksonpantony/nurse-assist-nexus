@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, Trash2, Eye, Search } from "lucide-react";
+import { Edit, Trash2, CreditCard, Search, User } from "lucide-react";
 import { Course } from "@/hooks/useCourses";
 import { Student } from "@/hooks/useStudents";
 
@@ -125,12 +126,27 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
                 </TableCell>
                 <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1 justify-center">
-                    <Button variant="ghost" size="sm" onClick={() => onView(student)}>
-                      <Eye className="h-4 w-4 text-blue-600" />
+                  <div className="flex gap-2 justify-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onView(student)}
+                      className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200"
+                    >
+                      <User className="h-4 w-4" />
+                      View Account
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onView(student)}
+                      className="gap-1 text-green-600 hover:bg-green-50 border-green-200"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      Update Payment
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => onEdit(student)}>
-                      <Edit className="h-4 w-4 text-green-600" />
+                      <Edit className="h-4 w-4 text-orange-600" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => onDelete(student.id)}>
                       <Trash2 className="h-4 w-4 text-red-600" />
