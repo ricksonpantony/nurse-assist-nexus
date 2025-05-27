@@ -18,7 +18,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
     title: course?.title || "",
     description: course?.description || "",
     fee: course?.fee || "",
-    periodMonths: course?.periodMonths || ""
+    period_months: course?.period_months || ""  // Changed from periodMonths to period_months
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,7 +26,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
     const courseData = {
       ...formData,
       fee: Number(formData.fee),
-      periodMonths: Number(formData.periodMonths),
+      period_months: Number(formData.period_months),  // Changed from periodMonths to period_months
       ...(course && { id: course.id })
     };
     onSave(courseData);
@@ -123,15 +123,15 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="periodMonths" className="text-slate-700 font-medium flex items-center gap-1">
+                  <Label htmlFor="period_months" className="text-slate-700 font-medium flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     Duration (Months) *
                   </Label>
                   <Input
-                    id="periodMonths"
+                    id="period_months"
                     type="number"
-                    value={formData.periodMonths}
-                    onChange={(e) => handleInputChange("periodMonths", e.target.value)}
+                    value={formData.period_months}
+                    onChange={(e) => handleInputChange("period_months", e.target.value)}
                     placeholder="6"
                     className="border-blue-200 focus:border-blue-400"
                     required

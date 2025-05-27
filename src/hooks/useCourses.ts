@@ -8,7 +8,7 @@ export interface Course {
   title: string;
   description: string | null;
   fee: number;
-  period_months: number;
+  period_months: number;  // Changed from periodMonths to period_months to match DB
   created_at?: string;
   updated_at?: string;
 }

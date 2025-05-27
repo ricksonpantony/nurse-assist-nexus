@@ -9,7 +9,7 @@ interface Course {
   id: string;
   title: string;
   fee: number;
-  periodMonths: number;
+  period_months: number;  // Changed from periodMonths to period_months
 }
 
 interface StudentDetailsViewProps {
@@ -19,7 +19,7 @@ interface StudentDetailsViewProps {
 }
 
 export const StudentDetailsView = ({ student, courses, onClose }: StudentDetailsViewProps) => {
-  const course = courses.find(c => c.id === student.courseId);
+  const course = courses.find(c => c.id === student.course_id);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -52,7 +52,7 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
   };
 
   const totalPaid = student.payments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
-  const balanceDue = student.totalCourseFee - totalPaid;
+  const balanceDue = student.total_course_fee - totalPaid;
 
   const handlePrint = () => {
     window.print();
@@ -101,7 +101,7 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Full Name:</span>
-                    <span className="ml-2">{student.fullName}</span>
+                    <span className="ml-2">{student.full_name}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Email:</span>
@@ -115,7 +115,7 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
                 <div className="space-y-3">
                   <div>
                     <span className="font-semibold text-gray-700">Passport ID:</span>
-                    <span className="ml-2">{student.passportId}</span>
+                    <span className="ml-2">{student.passport_id}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Country:</span>
@@ -150,25 +150,25 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Duration:</span>
-                    <span className="ml-2">{course?.periodMonths} months</span>
+                    <span className="ml-2">{course?.period_months} months</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Batch ID:</span>
-                    <span className="ml-2">{student.batchId}</span>
+                    <span className="ml-2">{student.batch_id}</span>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
                     <span className="font-semibold text-gray-700">Join Date:</span>
-                    <span className="ml-2">{new Date(student.joinDate).toLocaleDateString()}</span>
+                    <span className="ml-2">{new Date(student.join_date).toLocaleDateString()}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Class Start Date:</span>
-                    <span className="ml-2">{new Date(student.classStartDate).toLocaleDateString()}</span>
+                    <span className="ml-2">{student.class_start_date ? new Date(student.class_start_date).toLocaleDateString() : 'Not set'}</span>
                   </div>
                   <div>
                     <span className="font-semibold text-gray-700">Total Fee:</span>
-                    <span className="ml-2 font-semibold text-green-600">${student.totalCourseFee}</span>
+                    <span className="ml-2 font-semibold text-green-600">${student.total_course_fee}</span>
                   </div>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
               {/* Payment Summary Stats */}
               <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-blue-50 rounded-lg">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">${student.totalCourseFee}</div>
+                  <div className="text-2xl font-bold text-blue-600">${student.total_course_fee}</div>
                   <div className="text-sm text-gray-600">Total Fee</div>
                 </div>
                 <div className="text-center">
@@ -210,10 +210,10 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
                 <TableBody>
                   {student.payments?.map((payment: any, index: number) => (
                     <TableRow key={index}>
-                      <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(payment.payment_date).toLocaleDateString()}</TableCell>
                       <TableCell>{payment.stage}</TableCell>
                       <TableCell className="font-semibold">${payment.amount}</TableCell>
-                      <TableCell>{payment.mode}</TableCell>
+                      <TableCell>{payment.payment_mode}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -224,7 +224,7 @@ export const StudentDetailsView = ({ student, courses, onClose }: StudentDetails
                 <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
                   <h4 className="font-semibold text-yellow-800 mb-2">Installment Plan</h4>
                   <p className="text-sm text-yellow-700">
-                    Payment is divided into {student.installments} installments of approximately ${Math.round(student.totalCourseFee / student.installments)} each.
+                    Payment is divided into {student.installments} installments of approximately ${Math.round(student.total_course_fee / student.installments)} each.
                   </p>
                 </div>
               )}
