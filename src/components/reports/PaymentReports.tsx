@@ -140,6 +140,10 @@ export const PaymentReports = () => {
           aValue = a.student_name?.toLowerCase() || '';
           bValue = b.student_name?.toLowerCase() || '';
           break;
+        case 'stage':
+          aValue = a.stage;
+          bValue = b.stage;
+          break;
         default:
           aValue = a[sortBy as keyof typeof a];
           bValue = b[sortBy as keyof typeof b];
@@ -158,6 +162,20 @@ export const PaymentReports = () => {
   // Calculate totals
   const totalPayments = filteredPayments.length;
   const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
+
+  // Get current month for display
+  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
+  // Calculate payments by stage
+  const paymentsByStage = useMemo(() => {
+    const stageCount = filteredPayments.reduce((acc, payment) => {
+      const stage = payment.stage || 'unknown';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return stageCount;
+  }, [filteredPayments]);
 
   // Get unique payment stages and modes, filter out empty/null values
   const paymentStages = [...new Set(payments.map(p => p.stage))]
@@ -236,12 +254,64 @@ export const PaymentReports = () => {
 
   return (
     <div className="space-y-6">
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 0.5in;
+          }
+          
+          body * {
+            visibility: hidden;
+          }
+          
+          .printable-area, .printable-area * {
+            visibility: visible;
+          }
+          
+          .printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          
+          .no-print {
+            display: none !important;
+          }
+          
+          .print-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+          }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+          }
+          
+          th, td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            text-align: left;
+          }
+          
+          th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+          }
+        }
+      `}</style>
+
       {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+      <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50 no-print">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Filter className="h-5 w-5" />
-            Payment Report Filters
+            Payment Report Filters - {currentMonth} Report
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -264,7 +334,6 @@ export const PaymentReports = () => {
               />
             </div>
 
-            {/* Month/Year Filters */}
             <div className="space-y-2">
               <Label>Specific Month</Label>
               <Select value={filters.month} onValueChange={(value) => setFilters(prev => ({ ...prev, month: value }))}>
@@ -376,7 +445,7 @@ export const PaymentReports = () => {
       </Card>
 
       {/* Payment Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
         <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -400,10 +469,26 @@ export const PaymentReports = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100">Stage Distribution</p>
+                <div className="text-sm">
+                  {Object.entries(paymentsByStage).map(([stage, count]) => (
+                    <div key={stage}>{stage}: {count}</div>
+                  ))}
+                </div>
+              </div>
+              <CreditCard className="h-8 w-8 text-purple-200" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 no-print">
         <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
           <Download className="h-4 w-4" />
           Export to Excel
@@ -415,67 +500,72 @@ export const PaymentReports = () => {
       </div>
 
       {/* Payment Report Table */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Payment Report ({totalPayments} payments)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Payment Date</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment Mode</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPayments.map((payment, index) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{payment.student_id}</TableCell>
-                    <TableCell className="font-medium">{payment.student_name}</TableCell>
-                    <TableCell>{payment.course_title}</TableCell>
-                    <TableCell>{formatDateForExcel(payment.payment_date)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStageBadge(payment.stage)}>
-                        {payment.stage}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-bold">${payment.amount.toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Badge className={getModeBadge(payment.payment_mode)}>
-                        {payment.payment_mode}
-                      </Badge>
-                    </TableCell>
+      <div className="printable-area">
+        <div className="print-title">
+          Payment Report - {currentMonth} ({totalPayments} payments)
+        </div>
+        <Card className="shadow-lg">
+          <CardHeader className="no-print">
+            <CardTitle>Payment Report ({totalPayments} payments)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Student Name</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Payment Date</TableHead>
+                    <TableHead>Stage</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Payment Mode</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            
-            {/* Total Row */}
-            {filteredPayments.length > 0 && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                <div className="flex justify-between items-center font-bold text-lg">
-                  <span>Total: {totalPayments} payments</span>
-                  <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
+                </TableHeader>
+                <TableBody>
+                  {filteredPayments.map((payment, index) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>{payment.student_id}</TableCell>
+                      <TableCell className="font-medium">{payment.student_name}</TableCell>
+                      <TableCell>{payment.course_title}</TableCell>
+                      <TableCell>{formatDateForExcel(payment.payment_date)}</TableCell>
+                      <TableCell>
+                        <Badge className={getStageBadge(payment.stage)}>
+                          {payment.stage}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-bold">${payment.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge className={getModeBadge(payment.payment_mode)}>
+                          {payment.payment_mode}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {/* Total Row */}
+              {filteredPayments.length > 0 && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
+                  <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total: {totalPayments} payments</span>
+                    <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
+                  </div>
                 </div>
+              )}
+            </div>
+            
+            {filteredPayments.length === 0 && (
+              <div className="p-8 text-center text-gray-500">
+                <p>No payments found matching your criteria.</p>
               </div>
             )}
-          </div>
-          
-          {filteredPayments.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              <p>No payments found matching your criteria.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

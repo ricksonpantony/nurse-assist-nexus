@@ -100,6 +100,18 @@ export const StudentReports = () => {
   const totalRevenue = filteredStudents.reduce((sum, student) => sum + (student.advance_payment || 0), 0);
   const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
 
+  // Calculate students by status for the current month
+  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+  const studentsByStatus = useMemo(() => {
+    const statusCount = filteredStudents.reduce((acc, student) => {
+      const status = student.status || 'unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return statusCount;
+  }, [filteredStudents]);
+
   const getStatusBadge = (status: string) => {
     const colors = {
       'enrolled': 'bg-blue-100 text-blue-800',
@@ -137,12 +149,64 @@ export const StudentReports = () => {
 
   return (
     <div className="space-y-6">
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4;
+            margin: 0.5in;
+          }
+          
+          body * {
+            visibility: hidden;
+          }
+          
+          .printable-area, .printable-area * {
+            visibility: visible;
+          }
+          
+          .printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          
+          .no-print {
+            display: none !important;
+          }
+          
+          .print-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+          }
+          
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+          }
+          
+          th, td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            text-align: left;
+          }
+          
+          th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+          }
+        }
+      `}</style>
+
       {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
+      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 no-print">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Filter className="h-5 w-5" />
-            Report Filters
+            Report Filters - {currentMonth} Report
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -275,7 +339,7 @@ export const StudentReports = () => {
       </Card>
 
       {/* Report Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -292,8 +356,12 @@ export const StudentReports = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100">Total Advance Payment</p>
-                <p className="text-2xl font-bold">${totalRevenue.toLocaleString()}</p>
+                <p className="text-green-100">Status Distribution</p>
+                <div className="text-sm">
+                  {Object.entries(studentsByStatus).map(([status, count]) => (
+                    <div key={status}>{status}: {count}</div>
+                  ))}
+                </div>
               </div>
               <Calendar className="h-8 w-8 text-green-200" />
             </div>
@@ -311,10 +379,22 @@ export const StudentReports = () => {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-100">Total Advance Payment</p>
+                <p className="text-2xl font-bold">${totalRevenue.toLocaleString()}</p>
+              </div>
+              <Download className="h-8 w-8 text-orange-200" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 no-print">
         <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
           <Download className="h-4 w-4" />
           Export to Excel
@@ -326,53 +406,58 @@ export const StudentReports = () => {
       </div>
 
       {/* Report Table */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Student Report ({totalStudents} students)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Join Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Course Fee</TableHead>
-                  <TableHead>Advance Payment</TableHead>
-                  <TableHead>Country</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student, index) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{student.id}</TableCell>
-                    <TableCell className="font-medium">{student.full_name}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.phone}</TableCell>
-                    <TableCell>{getCourseName(student.course_id)}</TableCell>
-                    <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(student.status)}>
-                        {student.status.replace('-', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
-                    <TableCell>${(student.advance_payment || 0).toLocaleString()}</TableCell>
-                    <TableCell>{student.country || 'N/A'}</TableCell>
+      <div className="printable-area">
+        <div className="print-title">
+          Student Report - {currentMonth} ({totalStudents} students)
+        </div>
+        <Card className="shadow-lg">
+          <CardHeader className="no-print">
+            <CardTitle>Student Report ({totalStudents} students)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Full Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Join Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Course Fee</TableHead>
+                    <TableHead>Advance Payment</TableHead>
+                    <TableHead>Country</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>{student.id}</TableCell>
+                      <TableCell className="font-medium">{student.full_name}</TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.phone}</TableCell>
+                      <TableCell>{getCourseName(student.course_id)}</TableCell>
+                      <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadge(student.status)}>
+                          {student.status.replace('-', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
+                      <TableCell>${(student.advance_payment || 0).toLocaleString()}</TableCell>
+                      <TableCell>{student.country || 'N/A'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
