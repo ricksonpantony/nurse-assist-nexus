@@ -1,13 +1,14 @@
 
 import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarIcon, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,15 +16,17 @@ import { useToast } from "@/hooks/use-toast";
 
 interface PaymentRecordFormProps {
   studentId: string;
-  onPaymentAdded: () => void;
+  currentStatus?: string;
+  onPaymentAdded?: () => void;
 }
 
-export const PaymentRecordForm = ({ studentId, onPaymentAdded }: PaymentRecordFormProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const PaymentRecordForm = ({ studentId, currentStatus, onPaymentAdded }: PaymentRecordFormProps) => {
   const [amount, setAmount] = useState("");
   const [stage, setStage] = useState("");
   const [paymentMode, setPaymentMode] = useState("");
-  const [paymentDate, setPaymentDate] = useState<Date>();
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [updateCourseStatus, setUpdateCourseStatus] = useState(false);
+  const [newCourseStatus, setNewCourseStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -38,9 +41,19 @@ export const PaymentRecordForm = ({ studentId, onPaymentAdded }: PaymentRecordFo
       return;
     }
 
+    if (updateCourseStatus && !newCourseStatus) {
+      toast({
+        title: "Error",
+        description: "Please select a course status",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
+      // Record the payment
+      const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
           student_id: studentId,
@@ -50,20 +63,36 @@ export const PaymentRecordForm = ({ studentId, onPaymentAdded }: PaymentRecordFo
           payment_date: format(paymentDate, 'yyyy-MM-dd')
         }]);
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
+
+      // Update course status if requested
+      if (updateCourseStatus && newCourseStatus) {
+        const { error: statusError } = await supabase
+          .from('students')
+          .update({ status: newCourseStatus })
+          .eq('id', studentId);
+
+        if (statusError) throw statusError;
+      }
 
       toast({
         title: "Success",
-        description: "Payment recorded successfully",
+        description: updateCourseStatus 
+          ? "Payment recorded and course status updated successfully"
+          : "Payment recorded successfully",
       });
 
       // Reset form
       setAmount("");
       setStage("");
       setPaymentMode("");
-      setPaymentDate(undefined);
-      setIsOpen(false);
-      onPaymentAdded();
+      setPaymentDate(new Date());
+      setUpdateCourseStatus(false);
+      setNewCourseStatus("");
+      
+      if (onPaymentAdded) {
+        onPaymentAdded();
+      }
     } catch (error) {
       console.error('Error recording payment:', error);
       toast({
@@ -78,115 +107,132 @@ export const PaymentRecordForm = ({ studentId, onPaymentAdded }: PaymentRecordFo
 
   return (
     <Card className="border-blue-200">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg text-blue-800 flex items-center gap-2">
-          <Plus className="h-5 w-5" />
+      <CardHeader>
+        <CardTitle className="text-blue-800 text-lg flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
           Record New Payment
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!isOpen ? (
-          <Button 
-            onClick={() => setIsOpen(true)}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Payment
-          </Button>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="amount">Amount ($)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="mt-1"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="amount">Amount ($)</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="stage">Payment Stage</Label>
+            <Select value={stage} onValueChange={setStage}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Advance">Advance Payment</SelectItem>
+                <SelectItem value="Second">Second Payment</SelectItem>
+                <SelectItem value="Third">Third Payment</SelectItem>
+                <SelectItem value="Final">Final Payment</SelectItem>
+                <SelectItem value="Other">Other Payment</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="paymentMode">Payment Mode</Label>
+            <Select value={paymentMode} onValueChange={setPaymentMode}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select payment mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Credit Card">Credit Card</SelectItem>
+                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                <SelectItem value="Cash">Cash</SelectItem>
+                <SelectItem value="Check">Check</SelectItem>
+                <SelectItem value="Online Payment">Online Payment</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="paymentDate">Payment Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full mt-1 justify-start text-left font-normal"
+                  )}
+                  type="button"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {paymentDate ? format(paymentDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+                <Calendar
+                  mode="single"
+                  selected={paymentDate}
+                  onSelect={(date) => date && setPaymentDate(date)}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
                 />
-              </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Course Status Update Section */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="updateStatus" 
+                checked={updateCourseStatus}
+                onCheckedChange={(checked) => {
+                  setUpdateCourseStatus(checked as boolean);
+                  if (!checked) setNewCourseStatus("");
+                }}
+              />
+              <Label htmlFor="updateStatus" className="text-sm font-medium">
+                Update course status with this payment?
+              </Label>
+            </div>
+            
+            {currentStatus && (
+              <p className="text-sm text-gray-600">Current Status: {currentStatus}</p>
+            )}
+            
+            {updateCourseStatus && (
               <div>
-                <Label htmlFor="stage">Payment Stage</Label>
-                <Select value={stage} onValueChange={setStage}>
+                <Label htmlFor="courseStatus">New Course Status</Label>
+                <Select value={newCourseStatus} onValueChange={setNewCourseStatus}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select stage" />
+                    <SelectValue placeholder="Select new status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Advance">Advance Payment</SelectItem>
-                    <SelectItem value="Second">Second Payment</SelectItem>
-                    <SelectItem value="Third">Third Payment</SelectItem>
-                    <SelectItem value="Final">Final Payment</SelectItem>
-                    <SelectItem value="Other">Other Payment</SelectItem>
+                    <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
+                    <SelectItem value="enrolled">Enrolled</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="face-to-face">Face to Face</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="paymentMode">Payment Mode</Label>
-                <Select value={paymentMode} onValueChange={setPaymentMode}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select payment mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Credit Card">Credit Card</SelectItem>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Check">Check</SelectItem>
-                    <SelectItem value="Online Payment">Online Payment</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="paymentDate">Payment Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full mt-1 justify-start text-left font-normal",
-                        !paymentDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {paymentDate ? format(paymentDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={paymentDate}
-                      onSelect={setPaymentDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              >
-                {isSubmitting ? "Recording..." : "Record Payment"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsOpen(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        )}
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+          >
+            {isSubmitting ? "Recording..." : "Record Payment"}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );

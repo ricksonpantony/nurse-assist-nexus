@@ -302,6 +302,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
               <div className="print:hidden">
                 <PaymentRecordForm 
                   studentId={student.id} 
+                  currentStatus={getStatusLabel(student.status)}
                   onPaymentAdded={handlePaymentAdded}
                 />
               </div>

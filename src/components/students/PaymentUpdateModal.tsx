@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,8 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
   const [stage, setStage] = useState("");
   const [paymentMode, setPaymentMode] = useState("");
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [updateCourseStatus, setUpdateCourseStatus] = useState(false);
+  const [newCourseStatus, setNewCourseStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -40,9 +43,19 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
       return;
     }
 
+    if (updateCourseStatus && !newCourseStatus) {
+      toast({
+        title: "Error",
+        description: "Please select a course status",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
+      // Record the payment
+      const { error: paymentError } = await supabase
         .from('payments')
         .insert([{
           student_id: student.id,
@@ -52,11 +65,23 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
           payment_date: format(paymentDate, 'yyyy-MM-dd')
         }]);
 
-      if (error) throw error;
+      if (paymentError) throw paymentError;
+
+      // Update course status if requested
+      if (updateCourseStatus && newCourseStatus) {
+        const { error: statusError } = await supabase
+          .from('students')
+          .update({ status: newCourseStatus })
+          .eq('id', student.id);
+
+        if (statusError) throw statusError;
+      }
 
       toast({
         title: "Success",
-        description: "Payment recorded successfully",
+        description: updateCourseStatus 
+          ? "Payment recorded and course status updated successfully"
+          : "Payment recorded successfully",
       });
 
       // Reset form
@@ -64,6 +89,8 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
       setStage("");
       setPaymentMode("");
       setPaymentDate(new Date());
+      setUpdateCourseStatus(false);
+      setNewCourseStatus("");
       onClose();
       onPaymentAdded();
     } catch (error) {
@@ -83,6 +110,8 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
     setStage("");
     setPaymentMode("");
     setPaymentDate(new Date());
+    setUpdateCourseStatus(false);
+    setNewCourseStatus("");
     onClose();
   };
 
@@ -99,6 +128,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
             </Button>
           </div>
           <p className="text-sm text-gray-600">Student ID: {student.id}</p>
+          <p className="text-sm text-blue-600">Current Status: {student.status}</p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -174,6 +204,40 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+
+          {/* Course Status Update Section */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="updateStatus" 
+                checked={updateCourseStatus}
+                onCheckedChange={(checked) => {
+                  setUpdateCourseStatus(checked as boolean);
+                  if (!checked) setNewCourseStatus("");
+                }}
+              />
+              <Label htmlFor="updateStatus" className="text-sm font-medium">
+                Update course status with this payment?
+              </Label>
+            </div>
+            
+            {updateCourseStatus && (
+              <div>
+                <Label htmlFor="courseStatus">New Course Status</Label>
+                <Select value={newCourseStatus} onValueChange={setNewCourseStatus}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select new status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
+                    <SelectItem value="enrolled">Enrolled</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="face-to-face">Face to Face</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">
