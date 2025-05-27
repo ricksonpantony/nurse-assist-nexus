@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Users, GraduationCap, TrendingUp, Calendar, MapPin, Plus, CreditCard, UserPlus, BookPlus, Edit, PieChart, BarChart3 } from "lucide-react";
+import { BookOpen, Users, GraduationCap, TrendingUp, Calendar, MapPin, Plus, CreditCard, UserPlus, BookPlus, Edit, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useStudents } from "@/hooks/useStudents";
@@ -41,7 +41,7 @@ const Index = () => {
 
   // Students by course data
   const studentsByCourse = courses.map(course => ({
-    name: course.name,
+    name: course.title,
     students: students.filter(student => student.course_id === course.id).length,
     color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
   }));
