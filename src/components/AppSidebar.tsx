@@ -62,20 +62,20 @@ const menuItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="border-r border-blue-100">
-      <SidebarHeader className="border-b border-blue-100 p-6">
+    <Sidebar className="border-r-0 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900">
+      <SidebarHeader className="border-b border-blue-700/30 p-6 bg-gradient-to-r from-blue-800 to-blue-700">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 text-white">
-            <Building2 className="h-6 w-6" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-white to-blue-50 shadow-lg">
+            <Building2 className="h-7 w-7 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-blue-900">NAI</h1>
-            <p className="text-sm text-blue-600">Nurse Assist International</p>
+            <h1 className="text-xl font-bold text-white">NAI</h1>
+            <p className="text-sm text-blue-200">Nurse Assist International</p>
           </div>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="p-4">
+      <SidebarContent className="p-4 bg-gradient-to-b from-blue-800 to-blue-900">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
@@ -83,7 +83,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className="w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-blue-700 hover:bg-blue-50 hover:text-blue-800 data-[active=true]:bg-blue-100 data-[active=true]:text-blue-900 data-[active=true]:font-medium"
+                    className="w-full justify-start gap-3 rounded-xl px-4 py-3 text-white/90 hover:bg-white/10 hover:text-white hover:shadow-lg hover:scale-105 transition-all duration-200 data-[active=true]:bg-gradient-to-r data-[active=true]:from-white/20 data-[active=true]:to-white/10 data-[active=true]:text-white data-[active=true]:font-semibold data-[active=true]:shadow-lg backdrop-blur-sm"
                   >
                     <a href={item.url} className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
@@ -97,14 +97,14 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-blue-100 p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-blue-50 p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-medium">
+      <SidebarFooter className="border-t border-blue-700/30 p-4 bg-gradient-to-r from-blue-900 to-blue-800">
+        <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3 backdrop-blur-sm hover:bg-white/15 transition-all duration-200">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-100 text-blue-600 text-sm font-bold shadow-lg">
             A
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-blue-900 truncate">Admin User</p>
-            <p className="text-xs text-blue-600 truncate">admin@nai.com</p>
+            <p className="text-sm font-medium text-white truncate">Admin User</p>
+            <p className="text-xs text-blue-200 truncate">admin@nai.com</p>
           </div>
         </div>
       </SidebarFooter>
