@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,10 @@ interface StudentsTableProps {
   onEdit: (student: Student) => void;
   onDelete: (studentId: string) => void;
   onView: (student: Student) => void;
+  onUpdatePayment: (student: Student) => void;
 }
 
-export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: StudentsTableProps) => {
+export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onUpdatePayment }: StudentsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -139,7 +139,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => onView(student)}
+                      onClick={() => onUpdatePayment(student)}
                       className="gap-1 text-green-600 hover:bg-green-50 border-green-200"
                     >
                       <CreditCard className="h-4 w-4" />

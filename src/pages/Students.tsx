@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -7,6 +6,7 @@ import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
 import { AddStudentForm } from "@/components/students/AddStudentForm";
 import { StudentDetailsView } from "@/components/students/StudentDetailsView";
+import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { useCourses } from "@/hooks/useCourses";
 import { useStudents } from "@/hooks/useStudents";
 
@@ -15,8 +15,10 @@ const Students = () => {
   const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments, refetch } = useStudents();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDetailsView, setShowDetailsView] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
   const [studentPayments, setStudentPayments] = useState([]);
 
   const handleAddStudent = async (studentData: any) => {
@@ -58,6 +60,11 @@ const Students = () => {
     setShowDetailsView(true);
   };
 
+  const handleUpdatePayment = (student: any) => {
+    setPaymentUpdateStudent(student);
+    setShowPaymentModal(true);
+  };
+
   const handleRefreshStudentDetails = async () => {
     if (selectedStudent) {
       const payments = await fetchStudentPayments(selectedStudent.id);
@@ -65,6 +72,10 @@ const Students = () => {
       // Also refresh the students list to get updated data
       refetch();
     }
+  };
+
+  const handlePaymentAdded = () => {
+    refetch(); // Refresh the students list after payment is added
   };
 
   if (loading) {
@@ -125,6 +136,7 @@ const Students = () => {
               onEdit={handleEditStudent}
               onDelete={handleDeleteStudent}
               onView={handleViewStudent}
+              onUpdatePayment={handleUpdatePayment}
             />
           </main>
         </SidebarInset>
@@ -154,6 +166,19 @@ const Students = () => {
             setStudentPayments([]);
           }}
           onRefresh={handleRefreshStudentDetails}
+        />
+      )}
+
+      {/* Payment Update Modal */}
+      {showPaymentModal && paymentUpdateStudent && (
+        <PaymentUpdateModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentUpdateStudent(null);
+          }}
+          student={paymentUpdateStudent}
+          onPaymentAdded={handlePaymentAdded}
         />
       )}
     </SidebarProvider>
