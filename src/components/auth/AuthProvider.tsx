@@ -33,9 +33,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Ensure all logged-in users have admin role
+        if (session?.user && event === 'SIGNED_IN') {
+          try {
+            // Check if user profile exists and update role to admin
+            const { data: profile, error: fetchError } = await supabase
+              .from('user_profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+              console.error('Error fetching user profile:', fetchError);
+            } else {
+              // Update user role to admin if not already
+              if (!profile || profile.role !== 'admin') {
+                const { error: updateError } = await supabase
+                  .from('user_profiles')
+                  .upsert({
+                    id: session.user.id,
+                    full_name: session.user.user_metadata?.full_name || session.user.email,
+                    role: 'admin'
+                  });
+
+                if (updateError) {
+                  console.error('Error updating user role:', updateError);
+                } else {
+                  console.log('User role updated to admin');
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error in auth state change:', error);
+          }
+        }
+        
         setIsLoading(false);
       }
     );

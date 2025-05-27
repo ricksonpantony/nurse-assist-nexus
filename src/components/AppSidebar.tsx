@@ -22,6 +22,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 const menuItems = [
   {
@@ -63,6 +65,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { user } = useAuth();
 
   return (
     <Sidebar className="border-r-0 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900">
@@ -105,14 +108,23 @@ export function AppSidebar() {
       </SidebarContent>
       
       <SidebarFooter className="border-t border-blue-700/30 p-4 bg-gradient-to-r from-blue-900 to-blue-800">
-        <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3 backdrop-blur-sm hover:bg-white/15 transition-all duration-200">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-100 text-blue-600 text-sm font-bold shadow-lg">
-            A
+        <div className="space-y-3">
+          {/* User Info */}
+          <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3 backdrop-blur-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-100 text-blue-600 text-sm font-bold shadow-lg">
+              {user?.email?.charAt(0).toUpperCase() || 'A'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {user?.user_metadata?.full_name || 'Admin User'}
+              </p>
+              <p className="text-xs text-blue-200 truncate">{user?.email}</p>
+              <p className="text-xs text-green-300 font-semibold">Admin</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Admin User</p>
-            <p className="text-xs text-blue-200 truncate">admin@nai.com</p>
-          </div>
+          
+          {/* Logout Button */}
+          <LogoutButton />
         </div>
       </SidebarFooter>
     </Sidebar>
