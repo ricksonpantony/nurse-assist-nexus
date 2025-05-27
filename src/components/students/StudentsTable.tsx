@@ -34,8 +34,8 @@ interface StudentsTableProps {
 
 export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: StudentsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const getCourseName = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
@@ -75,8 +75,8 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = courseFilter === "" || student.courseId === courseFilter;
-    const matchesStatus = statusFilter === "" || student.status === statusFilter;
+    const matchesCourse = courseFilter === "all" || student.courseId === courseFilter;
+    const matchesStatus = statusFilter === "all" || student.status === statusFilter;
     
     return matchesSearch && matchesCourse && matchesStatus;
   });
@@ -103,7 +103,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
               <SelectValue placeholder="Filter by Course" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Courses</SelectItem>
+              <SelectItem value="all">All Courses</SelectItem>
               {courses.map((course) => (
                 <SelectItem key={course.id} value={course.id}>
                   {course.title}
@@ -117,7 +117,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
               <SelectItem value="enrolled">Enrolled</SelectItem>
               <SelectItem value="online">Online</SelectItem>
