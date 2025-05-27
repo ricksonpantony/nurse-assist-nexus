@@ -28,7 +28,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     batch_id: "",
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: "",
-    status: "enrolled" as const,
+    status: "enrolled" as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
     installments: 1
@@ -207,7 +207,10 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: any) => handleInputChange("status", value)}>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: Student['status']) => handleInputChange("status", value)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

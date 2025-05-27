@@ -74,7 +74,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
         <CardTitle className="text-blue-900">Students</CardTitle>
         
         {/* Filters */}
-        <div className="flex gap-4 mt-4">
+        <div className="flex flex-col md:flex-row gap-4 mt-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -86,7 +86,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
           </div>
           
           <Select value={courseFilter} onValueChange={setCourseFilter}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full md:w-64">
               <SelectValue placeholder="Filter by Course" />
             </SelectTrigger>
             <SelectContent>
@@ -100,7 +100,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
           </Select>
           
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
@@ -115,65 +115,67 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView }: S
       </CardHeader>
       
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Join Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredStudents.map((student) => (
-              <TableRow key={student.id} className="hover:bg-blue-50">
-                <TableCell className="font-mono text-sm">{student.id}</TableCell>
-                <TableCell className="font-medium">{student.full_name}</TableCell>
-                <TableCell>{student.email}</TableCell>
-                <TableCell>{student.phone}</TableCell>
-                <TableCell className="text-sm">{getCourseName(student.course_id)}</TableCell>
-                <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(student.status)}>
-                    {getStatusLabel(student.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onView(student)}
-                      className="h-8 w-8 p-0 hover:bg-blue-100"
-                    >
-                      <Eye className="h-4 w-4 text-blue-600" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onEdit(student)}
-                      className="h-8 w-8 p-0 hover:bg-blue-100"
-                    >
-                      <Edit className="h-4 w-4 text-blue-600" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onDelete(student.id)}
-                      className="h-8 w-8 p-0 hover:bg-red-100"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Join Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredStudents.map((student) => (
+                <TableRow key={student.id} className="hover:bg-blue-50">
+                  <TableCell className="font-mono text-sm">{student.id}</TableCell>
+                  <TableCell className="font-medium">{student.full_name}</TableCell>
+                  <TableCell>{student.email}</TableCell>
+                  <TableCell>{student.phone}</TableCell>
+                  <TableCell className="text-sm">{getCourseName(student.course_id)}</TableCell>
+                  <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(student.status)}>
+                      {getStatusLabel(student.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onView(student)}
+                        className="h-8 w-8 p-0 hover:bg-blue-100"
+                      >
+                        <Eye className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onEdit(student)}
+                        className="h-8 w-8 p-0 hover:bg-blue-100"
+                      >
+                        <Edit className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onDelete(student.id)}
+                        className="h-8 w-8 p-0 hover:bg-red-100"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

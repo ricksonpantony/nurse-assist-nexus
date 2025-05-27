@@ -33,6 +33,10 @@ export interface Payment {
   created_at?: string;
 }
 
+const isValidStatus = (status: string): status is Student['status'] => {
+  return ['awaiting-course', 'enrolled', 'online', 'face-to-face'].includes(status);
+};
+
 export const useStudents = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +51,14 @@ export const useStudents = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStudents(data || []);
+      
+      // Transform the data to ensure proper typing
+      const transformedData: Student[] = (data || []).map(item => ({
+        ...item,
+        status: isValidStatus(item.status) ? item.status : 'enrolled'
+      }));
+      
+      setStudents(transformedData);
     } catch (error) {
       console.error('Error fetching students:', error);
       toast({
@@ -95,12 +106,18 @@ export const useStudents = () => {
           }]);
       }
       
-      setStudents(prev => [data, ...prev]);
+      // Transform the returned data
+      const transformedData: Student = {
+        ...data,
+        status: isValidStatus(data.status) ? data.status : 'enrolled'
+      };
+      
+      setStudents(prev => [transformedData, ...prev]);
       toast({
         title: "Success",
         description: "Student added successfully",
       });
-      return data;
+      return transformedData;
     } catch (error) {
       console.error('Error adding student:', error);
       toast({
@@ -123,12 +140,18 @@ export const useStudents = () => {
 
       if (error) throw error;
       
-      setStudents(prev => prev.map(student => student.id === id ? data : student));
+      // Transform the returned data
+      const transformedData: Student = {
+        ...data,
+        status: isValidStatus(data.status) ? data.status : 'enrolled'
+      };
+      
+      setStudents(prev => prev.map(student => student.id === id ? transformedData : student));
       toast({
         title: "Success",
         description: "Student updated successfully",
       });
-      return data;
+      return transformedData;
     } catch (error) {
       console.error('Error updating student:', error);
       toast({
