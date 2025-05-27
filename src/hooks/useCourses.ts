@@ -79,11 +79,37 @@ export const useCourses = () => {
         .single();
 
       if (error) throw error;
+
+      // If the course fee was updated, update all enrolled students' fees
+      if (courseData.fee !== undefined) {
+        console.log(`Updating student fees for course ${id} to $${courseData.fee}`);
+        
+        const { error: updateStudentsError } = await supabase
+          .from('students')
+          .update({ 
+            total_course_fee: courseData.fee,
+            updated_at: new Date().toISOString()
+          })
+          .eq('course_id', id);
+
+        if (updateStudentsError) {
+          console.error('Error updating student fees:', updateStudentsError);
+          toast({
+            title: "Warning",
+            description: "Course updated but failed to sync student fees",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Successfully updated student fees');
+        }
+      }
       
       setCourses(prev => prev.map(course => course.id === id ? data : course));
       toast({
         title: "Success",
-        description: "Course updated successfully",
+        description: courseData.fee !== undefined 
+          ? "Course updated and student fees synchronized" 
+          : "Course updated successfully",
       });
       return data;
     } catch (error) {
