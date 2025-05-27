@@ -3,7 +3,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, DollarSign, TrendingUp, Calendar } from 'lucide-react';
+import { Users, BookOpen, DollarSign, TrendingUp, Calendar, GraduationCap } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +15,17 @@ interface Payment {
   amount: number;
   payment_mode: string;
 }
+
+// Move getStatusColor function to the top before it's used
+const getStatusColor = (status: string) => {
+  const colors = {
+    'enrolled': '#3B82F6',
+    'online': '#10B981',
+    'face-to-face': '#8B5CF6',
+    'awaiting-course': '#F59E0B',
+  };
+  return colors[status as keyof typeof colors] || '#6B7280';
+};
 
 export const ReportsDashboard = () => {
   const { students } = useStudents();
@@ -57,6 +68,27 @@ export const ReportsDashboard = () => {
       .reduce((sum, payment) => sum + payment.amount, 0);
   }, [payments, currentMonthNumber, currentYear]);
 
+  // Students by course stage
+  const studentsByCourseStage = useMemo(() => {
+    const stageCounts = students.reduce((acc, student) => {
+      // Get the stage from the student's payments or default to 'Not Started'
+      const studentPayments = payments.filter(p => p.student_id === student.id);
+      const latestPayment = studentPayments.sort((a, b) => 
+        new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()
+      )[0];
+      
+      const stage = latestPayment?.stage || 'Not Started';
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(stageCounts).map(([stage, count]) => ({
+      stage: stage.replace('-', ' ').toUpperCase(),
+      count,
+      fill: getStatusColor(stage)
+    }));
+  }, [students, payments]);
+
   // Students by status
   const studentsByStatus = useMemo(() => {
     const statusCount = students.reduce((acc, student) => {
@@ -89,16 +121,6 @@ export const ReportsDashboard = () => {
       students
     }));
   }, [students, courses]);
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'enrolled': '#3B82F6',
-      'online': '#10B981',
-      'face-to-face': '#8B5CF6',
-      'awaiting-course': '#F59E0B',
-    };
-    return colors[status as keyof typeof colors] || '#6B7280';
-  };
 
   if (loading) {
     return <div className="p-6 text-center">Loading dashboard...</div>;
@@ -159,6 +181,37 @@ export const ReportsDashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Students by Course Stage */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Students by Course Stage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={studentsByCourseStage}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ stage, count }) => `${stage}: ${count}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="count"
+                >
+                  {studentsByCourseStage.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         {/* Students by Status */}
         <Card>
           <CardHeader>
@@ -191,7 +244,7 @@ export const ReportsDashboard = () => {
         </Card>
 
         {/* Course Enrollment */}
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />

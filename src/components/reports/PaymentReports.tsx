@@ -1,17 +1,13 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { useStudents } from '@/hooks/useStudents';
-import { useCourses } from '@/hooks/useCourses';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { CreditCard, Download, Filter, Printer } from 'lucide-react';
-import { formatDateForExcel } from '@/utils/excelUtils';
+import { useStudents } from '@/hooks/useStudents';
+import { Download, FileText, Search, CreditCard } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface Payment {
@@ -21,56 +17,27 @@ interface Payment {
   stage: string;
   amount: number;
   payment_mode: string;
-  student_name?: string;
-  student_email?: string;
-  course_title?: string;
 }
 
 export const PaymentReports = () => {
   const { students } = useStudents();
-  const { courses } = useCourses();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    month: 'all',
-    year: new Date().getFullYear().toString(),
-    stage: 'all',
-    paymentMode: 'all',
-    student: 'all',
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stageFilter, setStageFilter] = useState('all');
+  const [modeFilter, setModeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
 
-  const [sortBy, setSortBy] = useState('payment_date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  // Fetch payments with student details
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        setLoading(true);
         const { data, error } = await supabase
           .from('payments')
           .select('*')
           .order('payment_date', { ascending: false });
-
+        
         if (error) throw error;
-
-        // Enrich payments with student and course details
-        const enrichedPayments = data?.map(payment => {
-          const student = students.find(s => s.id === payment.student_id);
-          const course = student ? courses.find(c => c.id === student.course_id) : null;
-          
-          return {
-            ...payment,
-            student_name: student?.full_name || 'Unknown Student',
-            student_email: student?.email || 'N/A',
-            course_title: course?.title || 'No Course Assigned',
-          };
-        }) || [];
-
-        setPayments(enrichedPayments);
+        setPayments(data || []);
       } catch (error) {
         console.error('Error fetching payments:', error);
       } finally {
@@ -78,175 +45,94 @@ export const PaymentReports = () => {
       }
     };
 
-    if (students.length > 0) {
-      fetchPayments();
-    }
-  }, [students, courses]);
+    fetchPayments();
+  }, []);
+
+  // Get unique stages and payment modes for filters
+  const uniqueStages = useMemo(() => {
+    const stages = payments.map(p => p.stage).filter(Boolean);
+    return [...new Set(stages)];
+  }, [payments]);
+
+  const uniqueModes = useMemo(() => {
+    const modes = payments.map(p => p.payment_mode).filter(Boolean);
+    return [...new Set(modes)];
+  }, [payments]);
 
   // Filter and sort payments
   const filteredPayments = useMemo(() => {
-    let filtered = [...payments];
-
-    // Filter by date range
-    if (filters.dateFrom) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.payment_date) >= new Date(filters.dateFrom)
-      );
-    }
-    if (filters.dateTo) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.payment_date) <= new Date(filters.dateTo)
-      );
-    }
-
-    // Filter by specific month/year
-    if (filters.month && filters.month !== 'all' && filters.year) {
-      filtered = filtered.filter(payment => {
-        const paymentDate = new Date(payment.payment_date);
-        return paymentDate.getMonth() === parseInt(filters.month) - 1 && 
-               paymentDate.getFullYear() === parseInt(filters.year);
-      });
-    }
-
-    // Filter by stage
-    if (filters.stage && filters.stage !== 'all') {
-      filtered = filtered.filter(payment => payment.stage === filters.stage);
-    }
-
-    // Filter by payment mode
-    if (filters.paymentMode && filters.paymentMode !== 'all') {
-      filtered = filtered.filter(payment => payment.payment_mode === filters.paymentMode);
-    }
-
-    // Filter by student
-    if (filters.student && filters.student !== 'all') {
-      filtered = filtered.filter(payment => payment.student_id === filters.student);
-    }
+    let filtered = payments.filter(payment => {
+      const student = students.find(s => s.id === payment.student_id);
+      const matchesSearch = student?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           student?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           student?.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           payment.id.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStage = stageFilter === 'all' || payment.stage === stageFilter;
+      const matchesMode = modeFilter === 'all' || payment.payment_mode === modeFilter;
+      
+      return matchesSearch && matchesStage && matchesMode;
+    });
 
     // Sort payments
     filtered.sort((a, b) => {
-      let aValue, bValue;
-      
       switch (sortBy) {
-        case 'payment_date':
-          aValue = new Date(a.payment_date);
-          bValue = new Date(b.payment_date);
-          break;
+        case 'date':
+          return new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime();
         case 'amount':
-          aValue = a.amount;
-          bValue = b.amount;
-          break;
-        case 'student_name':
-          aValue = a.student_name?.toLowerCase() || '';
-          bValue = b.student_name?.toLowerCase() || '';
-          break;
+          return b.amount - a.amount;
         case 'stage':
-          aValue = a.stage;
-          bValue = b.stage;
-          break;
+          return (a.stage || '').localeCompare(b.stage || '');
+        case 'mode':
+          return (a.payment_mode || '').localeCompare(b.payment_mode || '');
+        case 'student':
+          const studentA = students.find(s => s.id === a.student_id);
+          const studentB = students.find(s => s.id === b.student_id);
+          return (studentA?.full_name || '').localeCompare(studentB?.full_name || '');
         default:
-          aValue = a[sortBy as keyof typeof a];
-          bValue = b[sortBy as keyof typeof b];
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+          return 0;
       }
     });
 
     return filtered;
-  }, [payments, filters, sortBy, sortOrder]);
+  }, [payments, students, searchTerm, stageFilter, modeFilter, sortBy]);
 
-  // Calculate totals
-  const totalPayments = filteredPayments.length;
-  const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
-
-  // Get current month for display
-  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
-
-  // Calculate payments by stage
-  const paymentsByStage = useMemo(() => {
-    const stageCount = filteredPayments.reduce((acc, payment) => {
-      const stage = payment.stage || 'unknown';
-      acc[stage] = (acc[stage] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return stageCount;
-  }, [filteredPayments]);
-
-  // Get unique payment stages and modes, filter out empty/null values
-  const paymentStages = [...new Set(payments.map(p => p.stage))]
-    .filter(stage => stage && stage.trim() !== '');
-  const paymentModes = [...new Set(payments.map(p => p.payment_mode))]
-    .filter(mode => mode && mode.trim() !== '');
-
-  const getStageBadge = (stage: string) => {
-    const colors = {
-      'Advance': 'bg-blue-100 text-blue-800',
-      'Second': 'bg-green-100 text-green-800',
-      'Third': 'bg-purple-100 text-purple-800',
-      'Final': 'bg-orange-100 text-orange-800',
-      'Other': 'bg-gray-100 text-gray-800',
-    };
-    return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getModeBadge = (mode: string) => {
-    const colors = {
-      'Credit Card': 'bg-indigo-100 text-indigo-800',
-      'Bank Transfer': 'bg-green-100 text-green-800',
-      'Cash': 'bg-yellow-100 text-yellow-800',
-      'Check': 'bg-purple-100 text-purple-800',
-      'Online Payment': 'bg-blue-100 text-blue-800',
-    };
-    return colors[mode as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const handleExport = () => {
-    const exportData = filteredPayments.map((payment, index) => ({
-      serial_number: index + 1,
-      student_id: payment.student_id,
-      student_name: payment.student_name,
-      student_email: payment.student_email,
-      course_title: payment.course_title,
-      payment_date: formatDateForExcel(payment.payment_date),
-      stage: payment.stage,
-      amount: payment.amount,
-      payment_mode: payment.payment_mode,
-    }));
+  const exportToExcel = () => {
+    const exportData = filteredPayments.map(payment => {
+      const student = students.find(s => s.id === payment.student_id);
+      return {
+        'Payment ID': payment.id,
+        'Student Name': student?.full_name || 'Unknown',
+        'Student ID': student?.student_id || 'Unknown',
+        'Student Email': student?.email || 'Unknown',
+        'Payment Date': new Date(payment.payment_date).toLocaleDateString(),
+        'Stage': payment.stage || '',
+        'Amount': payment.amount,
+        'Payment Mode': payment.payment_mode || ''
+      };
+    });
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Payment Report");
-
-    // Add totals row
-    const totalRow = [
-      { serial_number: '', student_id: '', student_name: '', student_email: '', course_title: '', payment_date: '', stage: 'TOTAL:', amount: totalAmount, payment_mode: `${totalPayments} payments` }
-    ];
-    XLSX.utils.sheet_add_json(ws, totalRow, { origin: -1, skipHeader: true });
-
-    const currentDate = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `payment_report_${currentDate}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Payment Report');
+    XLSX.writeFile(wb, `payment-report-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const handlePrint = () => {
+  const printReport = () => {
     window.print();
   };
 
-  const clearFilters = () => {
-    setFilters({
-      dateFrom: '',
-      dateTo: '',
-      month: 'all',
-      year: new Date().getFullYear().toString(),
-      stage: 'all',
-      paymentMode: 'all',
-      student: 'all',
-    });
+  const getStageBadgeVariant = (stage: string) => {
+    switch (stage) {
+      case 'registration': return 'default';
+      case 'first-installment': return 'secondary';
+      case 'second-installment': return 'outline';
+      case 'final-payment': return 'destructive';
+      default: return 'outline';
+    }
   };
+
+  const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
 
   if (loading) {
     return <div className="p-6 text-center">Loading payment reports...</div>;
@@ -254,315 +140,203 @@ export const PaymentReports = () => {
 
   return (
     <div className="space-y-6">
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4;
-            margin: 0.5in;
+      <style>
+        {`
+          @media print {
+            @page {
+              size: A4;
+              margin: 1in;
+            }
+            
+            body * {
+              visibility: hidden;
+            }
+            
+            .print-area, .print-area * {
+              visibility: visible;
+            }
+            
+            .print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            
+            .no-print {
+              display: none !important;
+            }
+            
+            .print-break {
+              page-break-before: always;
+            }
+            
+            .print-table {
+              font-size: 10px;
+            }
+            
+            .print-header {
+              text-align: center;
+              margin-bottom: 20px;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
           }
-          
-          body * {
-            visibility: hidden;
-          }
-          
-          .printable-area, .printable-area * {
-            visibility: visible;
-          }
-          
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          
-          .no-print {
-            display: none !important;
-          }
-          
-          .print-title {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-          }
-          
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10px;
-          }
-          
-          th, td {
-            border: 1px solid #ddd;
-            padding: 4px;
-            text-align: left;
-          }
-          
-          th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-          }
-        }
-      `}</style>
+        `}
+      </style>
 
-      {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50 no-print">
+      {/* Filters and Controls */}
+      <Card className="no-print">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-800">
-            <Filter className="h-5 w-5" />
-            Payment Report Filters - {currentMonth} Report
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Payment Reports
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Date Range Filters */}
-            <div className="space-y-2">
-              <Label>From Date</Label>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                placeholder="Search payments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
               />
             </div>
-            <div className="space-y-2">
-              <Label>To Date</Label>
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-              />
+            
+            <Select value={stageFilter} onValueChange={setStageFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by stage" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stages</SelectItem>
+                {uniqueStages.map(stage => (
+                  <SelectItem key={stage} value={stage}>
+                    {stage?.replace('-', ' ').toUpperCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={modeFilter} onValueChange={setModeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Payment Modes</SelectItem>
+                {uniqueModes.map(mode => (
+                  <SelectItem key={mode} value={mode}>
+                    {mode?.toUpperCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Payment Date</SelectItem>
+                <SelectItem value="amount">Amount</SelectItem>
+                <SelectItem value="stage">Stage</SelectItem>
+                <SelectItem value="mode">Payment Mode</SelectItem>
+                <SelectItem value="student">Student Name</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex gap-2">
+              <Button onClick={exportToExcel} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button onClick={printReport} variant="outline" size="sm">
+                <FileText className="h-4 w-4 mr-2" />
+                Print
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label>Specific Month</Label>
-              <Select value={filters.month} onValueChange={(value) => setFilters(prev => ({ ...prev, month: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Months</SelectItem>
-                  <SelectItem value="1">January</SelectItem>
-                  <SelectItem value="2">February</SelectItem>
-                  <SelectItem value="3">March</SelectItem>
-                  <SelectItem value="4">April</SelectItem>
-                  <SelectItem value="5">May</SelectItem>
-                  <SelectItem value="6">June</SelectItem>
-                  <SelectItem value="7">July</SelectItem>
-                  <SelectItem value="8">August</SelectItem>
-                  <SelectItem value="9">September</SelectItem>
-                  <SelectItem value="10">October</SelectItem>
-                  <SelectItem value="11">November</SelectItem>
-                  <SelectItem value="12">December</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="text-sm font-medium">
+              Total: ${totalAmount.toLocaleString()}
             </div>
-            <div className="space-y-2">
-              <Label>Year</Label>
-              <Input
-                type="number"
-                value={filters.year}
-                onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
-                min="2020"
-                max="2030"
-              />
-            </div>
-
-            {/* Payment Stage Filter */}
-            <div className="space-y-2">
-              <Label>Payment Stage</Label>
-              <Select value={filters.stage} onValueChange={(value) => setFilters(prev => ({ ...prev, stage: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All stages" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stages</SelectItem>
-                  {paymentStages.map(stage => (
-                    <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Payment Mode Filter */}
-            <div className="space-y-2">
-              <Label>Payment Mode</Label>
-              <Select value={filters.paymentMode} onValueChange={(value) => setFilters(prev => ({ ...prev, paymentMode: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All modes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Modes</SelectItem>
-                  {paymentModes.map(mode => (
-                    <SelectItem key={mode} value={mode}>{mode}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Student Filter */}
-            <div className="space-y-2">
-              <Label>Student</Label>
-              <Select value={filters.student} onValueChange={(value) => setFilters(prev => ({ ...prev, student: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All students" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Students</SelectItem>
-                  {students.map(student => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.full_name} ({student.id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Sort Options */}
-            <div className="space-y-2">
-              <Label>Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="payment_date">Payment Date</SelectItem>
-                  <SelectItem value="amount">Amount</SelectItem>
-                  <SelectItem value="student_name">Student Name</SelectItem>
-                  <SelectItem value="stage">Payment Stage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Clear Filters
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Payment Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Total Payments</p>
-                <p className="text-2xl font-bold">{totalPayments}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Total Amount</p>
-                <p className="text-2xl font-bold">${totalAmount.toLocaleString()}</p>
-              </div>
-              <CreditCard className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100">Stage Distribution</p>
-                <div className="text-sm">
-                  {Object.entries(paymentsByStage).map(([stage, count]) => (
-                    <div key={stage}>{stage}: {count}</div>
-                  ))}
-                </div>
-              </div>
-              <CreditCard className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 no-print">
-        <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-          <Download className="h-4 w-4" />
-          Export to Excel
-        </Button>
-        <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
-          <Printer className="h-4 w-4" />
-          Print Report
-        </Button>
-      </div>
-
-      {/* Payment Report Table */}
-      <div className="printable-area">
-        <div className="print-title">
-          Payment Report - {currentMonth} ({totalPayments} payments)
+      {/* Report Content */}
+      <div className="print-area">
+        <div className="print-header">
+          <h1 className="text-2xl font-bold">Payment Report</h1>
+          <p className="text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-gray-500">Total Payments: {filteredPayments.length}</p>
+          <p className="text-sm text-gray-500">Total Amount: ${totalAmount.toLocaleString()}</p>
         </div>
-        <Card className="shadow-lg">
-          <CardHeader className="no-print">
-            <CardTitle>Payment Report ({totalPayments} payments)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Student Name</TableHead>
-                    <TableHead>Course</TableHead>
-                    <TableHead>Payment Date</TableHead>
-                    <TableHead>Stage</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Payment Mode</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPayments.map((payment, index) => (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{payment.student_id}</TableCell>
-                      <TableCell className="font-medium">{payment.student_name}</TableCell>
-                      <TableCell>{payment.course_title}</TableCell>
-                      <TableCell>{formatDateForExcel(payment.payment_date)}</TableCell>
-                      <TableCell>
-                        <Badge className={getStageBadge(payment.stage)}>
-                          {payment.stage}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-bold">${payment.amount.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge className={getModeBadge(payment.payment_mode)}>
-                          {payment.payment_mode}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              {/* Total Row */}
-              {filteredPayments.length > 0 && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                  <div className="flex justify-between items-center font-bold text-lg">
-                    <span>Total: {totalPayments} payments</span>
-                    <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
-                  </div>
-                </div>
-              )}
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-hidden">
+              <table className="w-full print-table">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Student
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stage
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment Mode
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredPayments.map((payment, index) => {
+                    const student = students.find(s => s.id === payment.student_id);
+                    return (
+                      <tr key={payment.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {payment.id.slice(0, 8)}...
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {student?.full_name || 'Unknown Student'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {student?.student_id || 'Unknown ID'}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(payment.payment_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <Badge variant={getStageBadgeVariant(payment.stage)}>
+                            {payment.stage?.replace('-', ' ').toUpperCase() || 'Unknown'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          ${payment.amount.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {payment.payment_mode?.toUpperCase() || 'Unknown'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            
-            {filteredPayments.length === 0 && (
-              <div className="p-8 text-center text-gray-500">
-                <p>No payments found matching your criteria.</p>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
