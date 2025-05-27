@@ -38,17 +38,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle user profile creation/update without causing infinite recursion
+        // Handle user profile creation/update for admin access
         if (session?.user && event === 'SIGNED_IN') {
-          // Use setTimeout to avoid blocking the auth state change
           setTimeout(async () => {
             try {
-              // Try to create/update user profile with direct INSERT/UPDATE to avoid RLS issues
+              // Try to upsert user profile with admin role using direct database operations
               const { error } = await supabase
-                .rpc('handle_user_profile_upsert', {
-                  user_id: session.user.id,
-                  user_email: session.user.email,
-                  user_full_name: session.user.user_metadata?.full_name || session.user.email || 'Admin User'
+                .from('user_profiles')
+                .upsert({
+                  id: session.user.id,
+                  full_name: session.user.user_metadata?.full_name || session.user.email || 'Admin User',
+                  role: 'admin'
+                }, {
+                  onConflict: 'id'
                 });
 
               if (error) {
