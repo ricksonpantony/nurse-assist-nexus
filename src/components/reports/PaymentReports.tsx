@@ -65,7 +65,7 @@ export const PaymentReports = () => {
       const student = students.find(s => s.id === payment.student_id);
       const matchesSearch = student?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            student?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student?.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           student?.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            payment.id.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStage = stageFilter === 'all' || payment.stage === stageFilter;
@@ -103,7 +103,7 @@ export const PaymentReports = () => {
       return {
         'Payment ID': payment.id,
         'Student Name': student?.full_name || 'Unknown',
-        'Student ID': student?.student_id || 'Unknown',
+        'Student ID': student?.id || 'Unknown',
         'Student Email': student?.email || 'Unknown',
         'Payment Date': new Date(payment.payment_date).toLocaleDateString(),
         'Stage': payment.stage || '',
@@ -145,7 +145,7 @@ export const PaymentReports = () => {
           @media print {
             @page {
               size: A4;
-              margin: 1in;
+              margin: 0.75in;
             }
             
             body * {
@@ -167,12 +167,17 @@ export const PaymentReports = () => {
               display: none !important;
             }
             
-            .print-break {
-              page-break-before: always;
+            .print-table {
+              font-size: 9px;
+              width: 100%;
+              border-collapse: collapse;
             }
             
-            .print-table {
-              font-size: 10px;
+            .print-table th,
+            .print-table td {
+              border: 1px solid #000;
+              padding: 4px;
+              text-align: left;
             }
             
             .print-header {
@@ -180,6 +185,16 @@ export const PaymentReports = () => {
               margin-bottom: 20px;
               border-bottom: 2px solid #000;
               padding-bottom: 10px;
+            }
+            
+            .print-header h1 {
+              font-size: 18px;
+              margin: 0 0 5px 0;
+            }
+            
+            .print-header p {
+              font-size: 12px;
+              margin: 2px 0;
             }
           }
         `}
@@ -267,10 +282,10 @@ export const PaymentReports = () => {
       {/* Report Content */}
       <div className="print-area">
         <div className="print-header">
-          <h1 className="text-2xl font-bold">Payment Report</h1>
-          <p className="text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
-          <p className="text-sm text-gray-500">Total Payments: {filteredPayments.length}</p>
-          <p className="text-sm text-gray-500">Total Amount: ${totalAmount.toLocaleString()}</p>
+          <h1>Payment Report</h1>
+          <p>Generated on {new Date().toLocaleDateString()}</p>
+          <p>Total Payments: {filteredPayments.length}</p>
+          <p>Total Amount: ${totalAmount.toLocaleString()}</p>
         </div>
 
         <Card>
@@ -313,7 +328,7 @@ export const PaymentReports = () => {
                               {student?.full_name || 'Unknown Student'}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {student?.student_id || 'Unknown ID'}
+                              {student?.id || 'Unknown ID'}
                             </div>
                           </div>
                         </td>

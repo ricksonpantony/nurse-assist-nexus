@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
-import { Download, FileText, Search, Filter, Users } from 'lucide-react';
+import { Download, FileText, Search, Users } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export const StudentReports = () => {
@@ -29,7 +29,7 @@ export const StudentReports = () => {
     let filtered = students.filter(student => {
       const matchesSearch = student.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.student_id?.toLowerCase().includes(searchTerm.toLowerCase());
+                           student.id?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
       const matchesCourse = courseFilter === 'all' || student.course_id === courseFilter;
@@ -60,16 +60,14 @@ export const StudentReports = () => {
     const exportData = filteredStudents.map(student => {
       const course = courses.find(c => c.id === student.course_id);
       return {
-        'Student ID': student.student_id || '',
+        'Student ID': student.id || '',
         'Full Name': student.full_name || '',
         'Email': student.email || '',
         'Phone': student.phone || '',
         'Status': student.status || '',
         'Course': course?.title || 'Not Assigned',
-        'Date of Birth': student.date_of_birth || '',
         'Address': student.address || '',
-        'Emergency Contact': student.emergency_contact_name || '',
-        'Emergency Phone': student.emergency_contact_phone || '',
+        'Country': student.country || '',
         'Registration Date': student.created_at ? new Date(student.created_at).toLocaleDateString() : ''
       };
     });
@@ -101,7 +99,7 @@ export const StudentReports = () => {
           @media print {
             @page {
               size: A4;
-              margin: 1in;
+              margin: 0.75in;
             }
             
             body * {
@@ -123,12 +121,17 @@ export const StudentReports = () => {
               display: none !important;
             }
             
-            .print-break {
-              page-break-before: always;
+            .print-table {
+              font-size: 9px;
+              width: 100%;
+              border-collapse: collapse;
             }
             
-            .print-table {
-              font-size: 10px;
+            .print-table th,
+            .print-table td {
+              border: 1px solid #000;
+              padding: 4px;
+              text-align: left;
             }
             
             .print-header {
@@ -136,6 +139,16 @@ export const StudentReports = () => {
               margin-bottom: 20px;
               border-bottom: 2px solid #000;
               padding-bottom: 10px;
+            }
+            
+            .print-header h1 {
+              font-size: 18px;
+              margin: 0 0 5px 0;
+            }
+            
+            .print-header p {
+              font-size: 12px;
+              margin: 2px 0;
             }
           }
         `}
@@ -218,9 +231,9 @@ export const StudentReports = () => {
       {/* Report Content */}
       <div className="print-area">
         <div className="print-header">
-          <h1 className="text-2xl font-bold">Student Report</h1>
-          <p className="text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
-          <p className="text-sm text-gray-500">Total Students: {filteredStudents.length}</p>
+          <h1>Student Report</h1>
+          <p>Generated on {new Date().toLocaleDateString()}</p>
+          <p>Total Students: {filteredStudents.length}</p>
         </div>
 
         <Card>
@@ -257,7 +270,7 @@ export const StudentReports = () => {
                               {student.full_name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {student.student_id}
+                              ID: {student.id}
                             </div>
                           </div>
                         </td>
