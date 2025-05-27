@@ -1,303 +1,378 @@
 
 import { useState, useMemo } from 'react';
+import { useStudents } from '@/hooks/useStudents';
+import { useCourses } from '@/hooks/useCourses';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useStudents } from '@/hooks/useStudents';
-import { useCourses } from '@/hooks/useCourses';
-import { Download, FileText, Search, Users } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { Calendar, Download, Filter, Printer, Users } from 'lucide-react';
+import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
 
 export const StudentReports = () => {
   const { students } = useStudents();
   const { courses } = useCourses();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [courseFilter, setCourseFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
+  
+  const [filters, setFilters] = useState({
+    dateFrom: '',
+    dateTo: '',
+    month: 'all',
+    year: new Date().getFullYear().toString(),
+    status: 'all',
+    course: 'all',
+  });
 
-  // Get unique statuses for filter
-  const uniqueStatuses = useMemo(() => {
-    const statuses = students.map(s => s.status).filter(Boolean);
-    return [...new Set(statuses)];
-  }, [students]);
+  const [sortBy, setSortBy] = useState('join_date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Filter and sort students
+  // Filter and sort students based on criteria
   const filteredStudents = useMemo(() => {
-    let filtered = students.filter(student => {
-      const matchesSearch = student.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.id?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
-      const matchesCourse = courseFilter === 'all' || student.course_id === courseFilter;
-      
-      return matchesSearch && matchesStatus && matchesCourse;
-    });
+    let filtered = [...students];
+
+    // Filter by join date range
+    if (filters.dateFrom) {
+      filtered = filtered.filter(student => 
+        new Date(student.join_date) >= new Date(filters.dateFrom)
+      );
+    }
+    if (filters.dateTo) {
+      filtered = filtered.filter(student => 
+        new Date(student.join_date) <= new Date(filters.dateTo)
+      );
+    }
+
+    // Filter by specific month/year
+    if (filters.month && filters.month !== 'all' && filters.year) {
+      filtered = filtered.filter(student => {
+        const joinDate = new Date(student.join_date);
+        return joinDate.getMonth() === parseInt(filters.month) - 1 && 
+               joinDate.getFullYear() === parseInt(filters.year);
+      });
+    }
+
+    // Filter by status
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter(student => student.status === filters.status);
+    }
+
+    // Filter by course
+    if (filters.course && filters.course !== 'all') {
+      filtered = filtered.filter(student => student.course_id === filters.course);
+    }
 
     // Sort students
     filtered.sort((a, b) => {
+      let aValue, bValue;
+      
       switch (sortBy) {
-        case 'name':
-          return (a.full_name || '').localeCompare(b.full_name || '');
-        case 'email':
-          return (a.email || '').localeCompare(b.email || '');
+        case 'join_date':
+          aValue = new Date(a.join_date);
+          bValue = new Date(b.join_date);
+          break;
+        case 'full_name':
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+          break;
         case 'status':
-          return (a.status || '').localeCompare(b.status || '');
-        case 'date':
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+          aValue = a.status;
+          bValue = b.status;
+          break;
         default:
-          return 0;
+          aValue = a[sortBy as keyof typeof a];
+          bValue = b[sortBy as keyof typeof b];
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
 
     return filtered;
-  }, [students, searchTerm, statusFilter, courseFilter, sortBy]);
+  }, [students, filters, sortBy, sortOrder]);
 
-  const exportToExcel = () => {
-    const exportData = filteredStudents.map(student => {
-      const course = courses.find(c => c.id === student.course_id);
-      return {
-        'Student ID': student.id || '',
-        'Full Name': student.full_name || '',
-        'Email': student.email || '',
-        'Phone': student.phone || '',
-        'Status': student.status || '',
-        'Course': course?.title || 'Not Assigned',
-        'Address': student.address || '',
-        'Country': student.country || '',
-        'Registration Date': student.created_at ? new Date(student.created_at).toLocaleDateString() : ''
-      };
-    });
+  // Calculate totals
+  const totalStudents = filteredStudents.length;
+  const totalRevenue = filteredStudents.reduce((sum, student) => sum + (student.advance_payment || 0), 0);
+  const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Student Report');
-    XLSX.writeFile(wb, `student-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+  const getStatusBadge = (status: string) => {
+    const colors = {
+      'enrolled': 'bg-blue-100 text-blue-800',
+      'online': 'bg-green-100 text-green-800',
+      'face-to-face': 'bg-purple-100 text-purple-800',
+      'awaiting-course': 'bg-yellow-100 text-yellow-800',
+    };
+    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const printReport = () => {
+  const getCourseName = (courseId: string | null) => {
+    if (!courseId) return 'No Course Assigned';
+    const course = courses.find(c => c.id === courseId);
+    return course?.title || 'Unknown Course';
+  };
+
+  const handleExport = () => {
+    exportStudentsToExcel(filteredStudents, courses);
+  };
+
+  const handlePrint = () => {
     window.print();
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'enrolled': return 'default';
-      case 'online': return 'secondary';
-      case 'face-to-face': return 'outline';
-      case 'awaiting-course': return 'destructive';
-      default: return 'outline';
-    }
+  const clearFilters = () => {
+    setFilters({
+      dateFrom: '',
+      dateTo: '',
+      month: 'all',
+      year: new Date().getFullYear().toString(),
+      status: 'all',
+      course: 'all',
+    });
   };
 
   return (
     <div className="space-y-6">
-      <style>
-        {`
-          @media print {
-            @page {
-              size: A4;
-              margin: 0.75in;
-            }
-            
-            body * {
-              visibility: hidden;
-            }
-            
-            .print-area, .print-area * {
-              visibility: visible;
-            }
-            
-            .print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            
-            .no-print {
-              display: none !important;
-            }
-            
-            .print-table {
-              font-size: 9px;
-              width: 100%;
-              border-collapse: collapse;
-            }
-            
-            .print-table th,
-            .print-table td {
-              border: 1px solid #000;
-              padding: 4px;
-              text-align: left;
-            }
-            
-            .print-header {
-              text-align: center;
-              margin-bottom: 20px;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            
-            .print-header h1 {
-              font-size: 18px;
-              margin: 0 0 5px 0;
-            }
-            
-            .print-header p {
-              font-size: 12px;
-              margin: 2px 0;
-            }
-          }
-        `}
-      </style>
-
-      {/* Filters and Controls */}
-      <Card className="no-print">
+      {/* Filters Card */}
+      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Student Reports
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Filter className="h-5 w-5" />
+            Report Filters
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Date Range Filters */}
+            <div className="space-y-2">
+              <Label>From Date</Label>
               <Input
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
               />
             </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {uniqueStatuses.map(status => (
-                  <SelectItem key={status} value={status}>
-                    {status?.replace('-', ' ').toUpperCase()}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={courseFilter} onValueChange={setCourseFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by course" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Courses</SelectItem>
-                {courses.map(course => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="date">Registration Date</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex gap-2">
-              <Button onClick={exportToExcel} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-              <Button onClick={printReport} variant="outline" size="sm">
-                <FileText className="h-4 w-4 mr-2" />
-                Print
-              </Button>
+            <div className="space-y-2">
+              <Label>To Date</Label>
+              <Input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+              />
             </div>
+
+            {/* Month/Year Filters */}
+            <div className="space-y-2">
+              <Label>Specific Month</Label>
+              <Select value={filters.month} onValueChange={(value) => setFilters(prev => ({ ...prev, month: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Months</SelectItem>
+                  <SelectItem value="1">January</SelectItem>
+                  <SelectItem value="2">February</SelectItem>
+                  <SelectItem value="3">March</SelectItem>
+                  <SelectItem value="4">April</SelectItem>
+                  <SelectItem value="5">May</SelectItem>
+                  <SelectItem value="6">June</SelectItem>
+                  <SelectItem value="7">July</SelectItem>
+                  <SelectItem value="8">August</SelectItem>
+                  <SelectItem value="9">September</SelectItem>
+                  <SelectItem value="10">October</SelectItem>
+                  <SelectItem value="11">November</SelectItem>
+                  <SelectItem value="12">December</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Year</Label>
+              <Input
+                type="number"
+                value={filters.year}
+                onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
+                min="2020"
+                max="2030"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <Label>Student Status</Label>
+              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="enrolled">Enrolled</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="face-to-face">Face-to-Face</SelectItem>
+                  <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Course Filter */}
+            <div className="space-y-2">
+              <Label>Course</Label>
+              <Select value={filters.course} onValueChange={(value) => setFilters(prev => ({ ...prev, course: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sort Options */}
+            <div className="space-y-2">
+              <Label>Sort By</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="join_date">Join Date</SelectItem>
+                  <SelectItem value="full_name">Name</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="total_course_fee">Course Fee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Sort Order</Label>
+              <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">Descending</SelectItem>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Clear Filters
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Report Content */}
-      <div className="print-area">
-        <div className="print-header">
-          <h1>Student Report</h1>
-          <p>Generated on {new Date().toLocaleDateString()}</p>
-          <p>Total Students: {filteredStudents.length}</p>
-        </div>
+      {/* Report Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100">Total Students</p>
+                <p className="text-2xl font-bold">{totalStudents}</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-200" />
+            </div>
+          </CardContent>
+        </Card>
 
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-hidden">
-              <table className="w-full print-table">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student Info
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Course
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Registration Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStudents.map((student, index) => {
-                    const course = courses.find(c => c.id === student.course_id);
-                    return (
-                      <tr key={student.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {student.full_name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              ID: {student.id}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{student.email}</div>
-                          <div className="text-sm text-gray-500">{student.phone}</div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <Badge variant={getStatusBadgeVariant(student.status || '')}>
-                            {student.status?.replace('-', ' ').toUpperCase() || 'Unknown'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {course?.title || 'Not Assigned'}
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {student.created_at ? new Date(student.created_at).toLocaleDateString() : 'N/A'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100">Total Advance Payment</p>
+                <p className="text-2xl font-bold">${totalRevenue.toLocaleString()}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-green-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100">Total Course Fees</p>
+                <p className="text-2xl font-bold">${totalCourseFees.toLocaleString()}</p>
+              </div>
+              <Download className="h-8 w-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+          <Download className="h-4 w-4" />
+          Export to Excel
+        </Button>
+        <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
+          <Printer className="h-4 w-4" />
+          Print Report
+        </Button>
+      </div>
+
+      {/* Report Table */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Student Report ({totalStudents} students)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Student ID</TableHead>
+                  <TableHead>Full Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Join Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Course Fee</TableHead>
+                  <TableHead>Advance Payment</TableHead>
+                  <TableHead>Country</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.map((student, index) => (
+                  <TableRow key={student.id}>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell>{student.id}</TableCell>
+                    <TableCell className="font-medium">{student.full_name}</TableCell>
+                    <TableCell>{student.email}</TableCell>
+                    <TableCell>{student.phone}</TableCell>
+                    <TableCell>{getCourseName(student.course_id)}</TableCell>
+                    <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusBadge(student.status)}>
+                        {student.status.replace('-', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
+                    <TableCell>${(student.advance_payment || 0).toLocaleString()}</TableCell>
+                    <TableCell>{student.country || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
