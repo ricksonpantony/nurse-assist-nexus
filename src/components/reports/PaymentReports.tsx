@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -34,11 +35,11 @@ export const PaymentReports = () => {
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
-    month: '',
+    month: 'all',
     year: new Date().getFullYear().toString(),
-    stage: '',
-    paymentMode: '',
-    student: '',
+    stage: 'all',
+    paymentMode: 'all',
+    student: 'all',
   });
 
   const [sortBy, setSortBy] = useState('payment_date');
@@ -99,7 +100,7 @@ export const PaymentReports = () => {
     }
 
     // Filter by specific month/year
-    if (filters.month && filters.year) {
+    if (filters.month && filters.month !== 'all' && filters.year) {
       filtered = filtered.filter(payment => {
         const paymentDate = new Date(payment.payment_date);
         return paymentDate.getMonth() === parseInt(filters.month) - 1 && 
@@ -108,17 +109,17 @@ export const PaymentReports = () => {
     }
 
     // Filter by stage
-    if (filters.stage) {
+    if (filters.stage && filters.stage !== 'all') {
       filtered = filtered.filter(payment => payment.stage === filters.stage);
     }
 
     // Filter by payment mode
-    if (filters.paymentMode) {
+    if (filters.paymentMode && filters.paymentMode !== 'all') {
       filtered = filtered.filter(payment => payment.payment_mode === filters.paymentMode);
     }
 
     // Filter by student
-    if (filters.student) {
+    if (filters.student && filters.student !== 'all') {
       filtered = filtered.filter(payment => payment.student_id === filters.student);
     }
 
@@ -217,11 +218,11 @@ export const PaymentReports = () => {
     setFilters({
       dateFrom: '',
       dateTo: '',
-      month: '',
+      month: 'all',
       year: new Date().getFullYear().toString(),
-      stage: '',
-      paymentMode: '',
-      student: '',
+      stage: 'all',
+      paymentMode: 'all',
+      student: 'all',
     });
   };
 
