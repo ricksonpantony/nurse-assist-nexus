@@ -159,9 +159,9 @@ export const PaymentReports = () => {
   const totalPayments = filteredPayments.length;
   const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
 
-  // Get unique payment stages and modes
-  const paymentStages = [...new Set(payments.map(p => p.stage))];
-  const paymentModes = [...new Set(payments.map(p => p.payment_mode))];
+  // Get unique payment stages and modes, filter out empty strings
+  const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
+  const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
 
   const getStageBadge = (stage: string) => {
     const colors = {
