@@ -25,7 +25,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
   const [amount, setAmount] = useState("");
   const [stage, setStage] = useState("");
   const [paymentMode, setPaymentMode] = useState("");
-  const [paymentDate, setPaymentDate] = useState<Date>();
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -63,7 +63,7 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
       setAmount("");
       setStage("");
       setPaymentMode("");
-      setPaymentDate(undefined);
+      setPaymentDate(new Date());
       onClose();
       onPaymentAdded();
     } catch (error) {
@@ -82,13 +82,13 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
     setAmount("");
     setStage("");
     setPaymentMode("");
-    setPaymentDate(undefined);
+    setPaymentDate(new Date());
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold text-blue-800">
@@ -155,20 +155,21 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full mt-1 justify-start text-left font-normal",
-                      !paymentDate && "text-muted-foreground"
+                      "w-full mt-1 justify-start text-left font-normal"
                     )}
+                    type="button"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {paymentDate ? format(paymentDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                   <Calendar
                     mode="single"
                     selected={paymentDate}
-                    onSelect={setPaymentDate}
+                    onSelect={(date) => date && setPaymentDate(date)}
                     initialFocus
+                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
