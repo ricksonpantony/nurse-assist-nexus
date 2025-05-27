@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Save, BookOpen, DollarSign, Clock, Tag, GraduationCap } from "lucide-react";
+import { X, Save, BookOpen, DollarSign, Clock } from "lucide-react";
 
 interface CreateCourseFormProps {
   course?: any;
@@ -18,11 +18,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
     title: course?.title || "",
     description: course?.description || "",
     fee: course?.fee || "",
-    periodMonths: course?.periodMonths || "",
-    category: course?.category || "",
-    level: course?.level || "Beginner",
-    instructor: course?.instructor || "",
-    features: course?.features?.join(", ") || ""
+    periodMonths: course?.periodMonths || ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,8 +27,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
       ...formData,
       fee: Number(formData.fee),
       periodMonths: Number(formData.periodMonths),
-      features: formData.features.split(",").map(f => f.trim()).filter(f => f),
-      ...(course && { id: course.id, students: course.students, rating: course.rating, status: course.status })
+      ...(course && { id: course.id })
     };
     onSave(courseData);
   };
@@ -43,7 +38,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 shadow-2xl">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 shadow-2xl">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -52,7 +47,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
                 {course ? "Edit Course" : "Create New Course"}
               </CardTitle>
               <CardDescription className="text-blue-100">
-                {course ? "Update course information and settings" : "Add a new course to your educational platform"}
+                {course ? "Update course information" : "Add a new course to your platform"}
               </CardDescription>
             </div>
             <Button 
@@ -66,9 +61,9 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 space-y-8">
+        <CardContent className="p-8 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
+            {/* Course Information */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -100,31 +95,6 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
                   required
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="instructor" className="text-slate-700 font-medium">Instructor *</Label>
-                  <Input
-                    id="instructor"
-                    value={formData.instructor}
-                    onChange={(e) => handleInputChange("instructor", e.target.value)}
-                    placeholder="Dr. Jane Smith"
-                    className="border-blue-200 focus:border-blue-400"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-slate-700 font-medium">Category *</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => handleInputChange("category", e.target.value)}
-                    placeholder="e.g., License Preparation, Clinical Skills"
-                    className="border-blue-200 focus:border-blue-400"
-                    required
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Course Details */}
@@ -136,7 +106,7 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
                 <h3 className="text-lg font-semibold text-slate-800">Pricing & Duration</h3>
               </div>
               
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fee" className="text-slate-700 font-medium flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
@@ -167,45 +137,6 @@ export const CreateCourseForm = ({ course, onClose, onSave }: CreateCourseFormPr
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="level" className="text-slate-700 font-medium flex items-center gap-1">
-                    <GraduationCap className="h-4 w-4" />
-                    Level *
-                  </Label>
-                  <select
-                    id="level"
-                    value={formData.level}
-                    onChange={(e) => handleInputChange("level", e.target.value)}
-                    className="w-full h-10 px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
-                    required
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Features */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Tag className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-800">Course Features</h3>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="features" className="text-slate-700 font-medium">Key Features</Label>
-                <Textarea
-                  id="features"
-                  value={formData.features}
-                  onChange={(e) => handleInputChange("features", e.target.value)}
-                  placeholder="Clinical Simulations, Case Studies, Mock Exams, Interactive Learning (separate with commas)"
-                  className="min-h-[80px] border-blue-200 focus:border-blue-400"
-                />
-                <p className="text-xs text-slate-500">Separate features with commas</p>
               </div>
             </div>
 

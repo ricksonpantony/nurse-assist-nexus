@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Edit, 
   Trash2, 
@@ -18,7 +17,6 @@ interface CourseCardProps {
     description: string;
     fee: number;
     periodMonths: number;
-    category: string;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -29,9 +27,7 @@ export const CourseCard = ({ course, onEdit, onDelete }: CourseCardProps) => {
     <Card className="bg-gradient-to-br from-white via-blue-50/30 to-white border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between mb-3">
-          <Badge variant="outline" className="text-blue-700 border-blue-300 bg-blue-50">
-            {course.category}
-          </Badge>
+          <div className="text-xs text-blue-600 font-mono">{course.id}</div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button variant="ghost" size="sm" onClick={onEdit} className="h-8 w-8 p-0 hover:bg-blue-100">
               <Edit className="h-4 w-4 text-blue-600" />
@@ -41,8 +37,6 @@ export const CourseCard = ({ course, onEdit, onDelete }: CourseCardProps) => {
             </Button>
           </div>
         </div>
-
-        <div className="text-xs text-blue-600 font-mono mb-2">{course.id}</div>
         
         <CardTitle className="text-lg font-bold text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">
           {course.title}

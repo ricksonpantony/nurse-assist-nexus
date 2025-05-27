@@ -14,24 +14,21 @@ const sampleCourses = [
     title: "Objective Behavioral Assessment (OBA)",
     description: "Comprehensive behavioral assessment training for nursing professionals focusing on patient interaction and clinical decision-making skills.",
     fee: 1850,
-    periodMonths: 6,
-    category: "Assessment"
+    periodMonths: 6
   },
   {
     id: "OSCE-2024-002", 
     title: "Objective Structured Clinical Examination (OSCE)",
     description: "Intensive preparation for OSCE examinations with hands-on clinical skills assessment and structured practice sessions.",
     fee: 2200,
-    periodMonths: 8,
-    category: "Clinical Skills"
+    periodMonths: 8
   },
   {
     id: "NCLEX-2024-003",
     title: "NCLEX-RN Next Generation (NGN)",
     description: "Advanced preparation for the Next Generation NCLEX-RN examination with updated question formats and clinical judgment assessment.",
     fee: 2750,
-    periodMonths: 12,
-    category: "License Preparation"
+    periodMonths: 12
   }
 ];
 
@@ -43,7 +40,7 @@ const Courses = () => {
   const handleCreateCourse = (courseData: any) => {
     const newCourse = {
       ...courseData,
-      id: `${courseData.title.substring(0, 3).toUpperCase()}-2024-${String(courses.length + 1).padStart(3, '0')}`
+      id: `COURSE-2024-${String(courses.length + 1).padStart(3, '0')}`
     };
     setCourses([...courses, newCourse]);
     setShowCreateForm(false);
