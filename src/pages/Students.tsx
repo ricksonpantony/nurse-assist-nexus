@@ -7,8 +7,11 @@ import { StudentsTable } from "@/components/students/StudentsTable";
 import { AddStudentForm } from "@/components/students/AddStudentForm";
 import { StudentDetailsView } from "@/components/students/StudentDetailsView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
+import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
 import { useStudents } from "@/hooks/useStudents";
+import { exportStudentsToExcel } from "@/utils/excelUtils";
+import { useToast } from "@/hooks/use-toast";
 
 const Students = () => {
   const { courses } = useCourses();
@@ -16,10 +19,12 @@ const Students = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
   const [studentPayments, setStudentPayments] = useState([]);
+  const { toast } = useToast();
 
   const handleAddStudent = async (studentData: any) => {
     try {
@@ -78,6 +83,28 @@ const Students = () => {
     refetch(); // Refresh the students list after payment is added
   };
 
+  const handleExportStudents = () => {
+    if (students.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no students to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    exportStudentsToExcel(students, courses);
+    toast({
+      title: "Export Successful",
+      description: "Students data has been exported to Excel",
+    });
+  };
+
+  const handleImportComplete = () => {
+    refetch();
+    setShowImportModal(false);
+  };
+
   if (loading) {
     return (
       <SidebarProvider>
@@ -108,6 +135,7 @@ const Students = () => {
               <Button 
                 variant="outline"
                 className="gap-2"
+                onClick={() => setShowImportModal(true)}
               >
                 <Upload className="h-4 w-4" />
                 Import
@@ -115,6 +143,7 @@ const Students = () => {
               <Button 
                 variant="outline"
                 className="gap-2"
+                onClick={handleExportStudents}
               >
                 <Download className="h-4 w-4" />
                 Export
@@ -179,6 +208,16 @@ const Students = () => {
           }}
           student={paymentUpdateStudent}
           onPaymentAdded={handlePaymentAdded}
+        />
+      )}
+
+      {/* Import Students Modal */}
+      {showImportModal && (
+        <ImportStudentsModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          courses={courses}
+          onImportComplete={handleImportComplete}
         />
       )}
     </SidebarProvider>

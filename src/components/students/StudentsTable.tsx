@@ -65,6 +65,14 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onU
     return course?.title || "Unknown Course";
   };
 
+  const formatDateToDDMMYYYY = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Search and Filter Controls */}
@@ -124,7 +132,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onU
                 <TableCell className="font-semibold text-green-600">
                   ${student.total_course_fee}
                 </TableCell>
-                <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
+                <TableCell>{formatDateToDDMMYYYY(student.join_date)}</TableCell>
                 <TableCell>
                   <div className="flex gap-2 justify-center">
                     <Button 
