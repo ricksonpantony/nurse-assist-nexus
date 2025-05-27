@@ -58,7 +58,7 @@ export const PaymentReports = () => {
         if (error) throw error;
 
         // Enrich payments with student and course details
-        const enrichedPayments = data.map(payment => {
+        const enrichedPayments = data?.map(payment => {
           const student = students.find(s => s.id === payment.student_id);
           const course = student ? courses.find(c => c.id === student.course_id) : null;
           
@@ -68,7 +68,7 @@ export const PaymentReports = () => {
             student_email: student?.email || 'N/A',
             course_title: course?.title || 'No Course Assigned',
           };
-        });
+        }) || [];
 
         setPayments(enrichedPayments);
       } catch (error) {
@@ -159,9 +159,11 @@ export const PaymentReports = () => {
   const totalPayments = filteredPayments.length;
   const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
 
-  // Get unique payment stages and modes, filter out empty strings
-  const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
-  const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
+  // Get unique payment stages and modes, filter out empty/null values
+  const paymentStages = [...new Set(payments.map(p => p.stage))]
+    .filter(stage => stage && stage.trim() !== '');
+  const paymentModes = [...new Set(payments.map(p => p.payment_mode))]
+    .filter(mode => mode && mode.trim() !== '');
 
   const getStageBadge = (stage: string) => {
     const colors = {
@@ -169,6 +171,7 @@ export const PaymentReports = () => {
       'Second': 'bg-green-100 text-green-800',
       'Third': 'bg-purple-100 text-purple-800',
       'Final': 'bg-orange-100 text-orange-800',
+      'Other': 'bg-gray-100 text-gray-800',
     };
     return colors[stage as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -179,6 +182,7 @@ export const PaymentReports = () => {
       'Bank Transfer': 'bg-green-100 text-green-800',
       'Cash': 'bg-yellow-100 text-yellow-800',
       'Check': 'bg-purple-100 text-purple-800',
+      'Online Payment': 'bg-blue-100 text-blue-800',
     };
     return colors[mode as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -227,7 +231,7 @@ export const PaymentReports = () => {
   };
 
   if (loading) {
-    return <div>Loading payment reports...</div>;
+    return <div className="p-6 text-center">Loading payment reports...</div>;
   }
 
   return (
@@ -455,13 +459,21 @@ export const PaymentReports = () => {
             </Table>
             
             {/* Total Row */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-              <div className="flex justify-between items-center font-bold text-lg">
-                <span>Total: {totalPayments} payments</span>
-                <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
+            {filteredPayments.length > 0 && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
+                <div className="flex justify-between items-center font-bold text-lg">
+                  <span>Total: {totalPayments} payments</span>
+                  <span className="text-green-600">Total Amount: ${totalAmount.toLocaleString()}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+          
+          {filteredPayments.length === 0 && (
+            <div className="p-8 text-center text-gray-500">
+              <p>No payments found matching your criteria.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

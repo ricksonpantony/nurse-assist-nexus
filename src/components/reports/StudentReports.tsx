@@ -19,13 +19,10 @@ export const StudentReports = () => {
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
-    month: '',
+    month: 'all',
     year: new Date().getFullYear().toString(),
-    status: '',
-    course: '',
-    paymentStage: '',
-    paymentMonth: '',
-    paymentYear: new Date().getFullYear().toString(),
+    status: 'all',
+    course: 'all',
   });
 
   const [sortBy, setSortBy] = useState('join_date');
@@ -48,7 +45,7 @@ export const StudentReports = () => {
     }
 
     // Filter by specific month/year
-    if (filters.month && filters.year) {
+    if (filters.month && filters.month !== 'all' && filters.year) {
       filtered = filtered.filter(student => {
         const joinDate = new Date(student.join_date);
         return joinDate.getMonth() === parseInt(filters.month) - 1 && 
@@ -57,12 +54,12 @@ export const StudentReports = () => {
     }
 
     // Filter by status
-    if (filters.status) {
+    if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(student => student.status === filters.status);
     }
 
     // Filter by course
-    if (filters.course) {
+    if (filters.course && filters.course !== 'all') {
       filtered = filtered.filter(student => student.course_id === filters.course);
     }
 
@@ -131,13 +128,10 @@ export const StudentReports = () => {
     setFilters({
       dateFrom: '',
       dateTo: '',
-      month: '',
+      month: 'all',
       year: new Date().getFullYear().toString(),
-      status: '',
-      course: '',
-      paymentStage: '',
-      paymentMonth: '',
-      paymentYear: new Date().getFullYear().toString(),
+      status: 'all',
+      course: 'all',
     });
   };
 
@@ -179,7 +173,7 @@ export const StudentReports = () => {
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Months</SelectItem>
+                  <SelectItem value="all">All Months</SelectItem>
                   <SelectItem value="1">January</SelectItem>
                   <SelectItem value="2">February</SelectItem>
                   <SelectItem value="3">March</SelectItem>
@@ -214,7 +208,7 @@ export const StudentReports = () => {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="enrolled">Enrolled</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                   <SelectItem value="face-to-face">Face-to-Face</SelectItem>
@@ -231,7 +225,7 @@ export const StudentReports = () => {
                   <SelectValue placeholder="All courses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Courses</SelectItem>
+                  <SelectItem value="all">All Courses</SelectItem>
                   {courses.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}
