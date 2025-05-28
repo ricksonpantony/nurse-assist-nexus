@@ -7,11 +7,13 @@ import { Plus } from "lucide-react";
 import { CourseCard } from "@/components/courses/CourseCard";
 import { CreateCourseForm } from "@/components/courses/CreateCourseForm";
 import { useCourses } from "@/hooks/useCourses";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Courses = () => {
   const { courses, loading, addCourse, updateCourse, deleteCourse } = useCourses();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const isMobile = useIsMobile();
 
   const handleCreateCourse = async (courseData: any) => {
     try {
@@ -46,6 +48,14 @@ const Courses = () => {
   };
 
   if (loading) {
+    if (isMobile) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-blue-600">Loading courses...</div>
+        </div>
+      );
+    }
+
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -57,6 +67,64 @@ const Courses = () => {
           </SidebarInset>
         </div>
       </SidebarProvider>
+    );
+  }
+
+  const courseContent = (
+    <>
+      {/* Header */}
+      <div className={`${isMobile ? 'mb-4' : 'mb-6'} ${isMobile ? 'bg-gradient-to-r from-blue-600 to-blue-700 -mx-3 -mt-2 p-4 text-white' : 'bg-gradient-to-r from-white via-blue-50 to-white p-6 rounded-lg shadow-lg'}`}>
+        <div className="flex flex-col gap-3">
+          <div className="flex-1">
+            <h1 className={`${isMobile ? 'text-xl text-white' : 'text-xl text-blue-900'} font-bold`}>
+              Course Management
+            </h1>
+            <p className={`${isMobile ? 'text-blue-100' : 'text-blue-600'} text-sm`}>
+              Create and manage nursing education courses
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowCreateForm(true)}
+            className={`gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg ${isMobile ? 'w-full bg-white text-blue-600 hover:bg-gray-100' : ''}`}
+            variant={isMobile ? "secondary" : "default"}
+          >
+            <Plus className="h-4 w-4" />
+            Create New Course
+          </Button>
+        </div>
+      </div>
+
+      {/* Course Cards Grid */}
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+        {courses.map((course) => (
+          <CourseCard
+            key={course.id}
+            course={course}
+            onEdit={() => handleEditCourse(course)}
+            onDelete={() => handleDeleteCourse(course.id)}
+          />
+        ))}
+      </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {courseContent}
+        
+        {/* Course Creation/Edit Form Modal */}
+        {showCreateForm && (
+          <CreateCourseForm
+            course={editingCourse}
+            onClose={() => {
+              setShowCreateForm(false);
+              setEditingCourse(null);
+            }}
+            onSave={editingCourse ? handleUpdateCourse : handleCreateCourse}
+          />
+        )}
+      </>
     );
   }
 
