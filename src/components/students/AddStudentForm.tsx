@@ -66,7 +66,19 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Prepare data for submission, converting empty strings to null for optional date fields
+    const submitData = {
+      ...formData,
+      class_start_date: formData.class_start_date || null,
+      address: formData.address || null,
+      country: formData.country || null,
+      passport_id: formData.passport_id || null,
+      course_id: formData.course_id || null,
+      batch_id: formData.batch_id || null
+    };
+    
+    onSave(submitData);
   };
 
   const handleInputChange = (field: string, value: any) => {
