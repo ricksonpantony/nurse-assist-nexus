@@ -29,6 +29,7 @@ interface PaymentBreakdown {
   student_name: string;
   course_title: string;
   stage: string;
+  student_status: string;
   course_fee: number;
   advance_payment: number;
   advance_date: string;
@@ -55,6 +56,7 @@ export const PaymentReports = () => {
     stage: 'all',
     paymentMode: 'all',
     student: 'all',
+    studentStatus: 'all',
   });
 
   const [sortBy, setSortBy] = useState('payment_date');
@@ -86,7 +88,7 @@ export const PaymentReports = () => {
   const paymentBreakdown = useMemo(() => {
     const breakdown: PaymentBreakdown[] = [];
     
-    students.forEach((student, index) => {
+    students.forEach((student) => {
       const studentPayments = payments.filter(p => p.student_id === student.id);
       const course = courses.find(c => c.id === student.course_id);
       
@@ -100,11 +102,12 @@ export const PaymentReports = () => {
       const balanceFee = student.total_course_fee - totalPaid;
       
       breakdown.push({
-        sl_number: index + 1,
+        sl_number: 0, // Will be set after sorting
         student_id: student.id,
         student_name: student.full_name,
         course_title: course?.title || 'No Course Assigned',
         stage: filters.stage === 'all' ? 'All' : filters.stage,
+        student_status: student.status,
         course_fee: student.total_course_fee,
         advance_payment: advancePayment?.amount || 0,
         advance_date: advancePayment?.payment_date || '',
@@ -152,6 +155,11 @@ export const PaymentReports = () => {
       filtered = filtered.filter(item => item.student_id === filters.student);
     }
 
+    // Filter by student status
+    if (filters.studentStatus && filters.studentStatus !== 'all') {
+      filtered = filtered.filter(item => item.student_status === filters.studentStatus);
+    }
+
     // If specific stage is selected, filter to show only students with that payment stage
     if (filters.stage && filters.stage !== 'all') {
       const relevantPayments = payments.filter(p => p.stage === filters.stage);
@@ -159,8 +167,30 @@ export const PaymentReports = () => {
       filtered = filtered.filter(item => studentIdsWithStage.includes(item.student_id));
     }
 
-    return filtered;
-  }, [paymentBreakdown, filters, payments]);
+    // Sort by student status if selected
+    if (sortBy === 'student_status') {
+      filtered.sort((a, b) => {
+        const comparison = a.student_status.localeCompare(b.student_status);
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+    } else {
+      // Default sorting by payment date or other criteria
+      filtered.sort((a, b) => {
+        if (sortBy === 'payment_date') {
+          const aDate = new Date(a.advance_date || '1970-01-01');
+          const bDate = new Date(b.advance_date || '1970-01-01');
+          return sortOrder === 'asc' ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
+        }
+        return 0;
+      });
+    }
+
+    // Reassign sequential sl_number after filtering and sorting
+    return filtered.map((item, index) => ({
+      ...item,
+      sl_number: index + 1
+    }));
+  }, [paymentBreakdown, filters, payments, sortBy, sortOrder]);
 
   // Calculate totals
   const totalStudents = filteredBreakdown.length;
@@ -171,9 +201,10 @@ export const PaymentReports = () => {
   const totalFinalPayments = filteredBreakdown.reduce((sum, item) => sum + item.final_payment, 0);
   const totalBalanceFee = filteredBreakdown.reduce((sum, item) => sum + item.balance_fee, 0);
 
-  // Get unique payment stages and modes
+  // Get unique payment stages, modes, and student statuses
   const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
   const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
+  const studentStatuses = ['awaiting-course', 'enrolled', 'online', 'face-to-face'];
 
   const handleExport = () => {
     const exportData = filteredBreakdown.map((item) => ({
@@ -182,6 +213,7 @@ export const PaymentReports = () => {
       student_name: item.student_name,
       course_title: item.course_title,
       stage: item.stage,
+      student_status: item.student_status,
       course_fee: item.course_fee,
       advance_payment: item.advance_payment,
       advance_date: item.advance_date ? formatDateForExcel(item.advance_date) : '',
@@ -215,7 +247,10 @@ export const PaymentReports = () => {
       stage: 'all',
       paymentMode: 'all',
       student: 'all',
+      studentStatus: 'all',
     });
+    setSortBy('payment_date');
+    setSortOrder('desc');
   };
 
   if (loading) {
@@ -303,6 +338,24 @@ export const PaymentReports = () => {
               </Select>
             </div>
 
+            {/* Student Status Filter */}
+            <div className="space-y-2">
+              <Label>Student Status</Label>
+              <Select value={filters.studentStatus} onValueChange={(value) => setFilters(prev => ({ ...prev, studentStatus: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {studentStatuses.map(status => (
+                    <SelectItem key={status} value={status}>
+                      {status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Student Filter */}
             <div className="space-y-2">
               <Label>Student</Label>
@@ -320,12 +373,29 @@ export const PaymentReports = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Sort Options */}
+            <div className="space-y-2">
+              <Label>Sort By</Label>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="payment_date">Payment Date</SelectItem>
+                  <SelectItem value="student_status">Student Status</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="flex gap-2">
             <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Clear Filters
+            </Button>
+            <Button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} variant="outline">
+              Sort: {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             </Button>
           </div>
         </CardContent>
@@ -414,7 +484,8 @@ export const PaymentReports = () => {
                   <TableHead>Student ID</TableHead>
                   <TableHead>Student Name</TableHead>
                   <TableHead>Course</TableHead>
-                  <TableHead>Stage</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Student Status</TableHead>
                   <TableHead>Course Fee</TableHead>
                   <TableHead>Advance Payment</TableHead>
                   <TableHead>Advance Date</TableHead>
@@ -437,6 +508,11 @@ export const PaymentReports = () => {
                     <TableCell>
                       <Badge className="bg-blue-100 text-blue-800">
                         {item.stage}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="bg-gray-100 text-gray-800">
+                        {item.student_status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-bold">${item.course_fee.toLocaleString()}</TableCell>

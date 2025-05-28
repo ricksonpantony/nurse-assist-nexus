@@ -238,13 +238,15 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             {/* Payment Information */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="total_course_fee">Total Course Fee</Label>
+                <Label htmlFor="total_course_fee">Total Course Fee *</Label>
                 <Input
                   id="total_course_fee"
                   type="number"
                   value={formData.total_course_fee}
-                  disabled
-                  className="bg-gray-100"
+                  onChange={(e) => handleInputChange("total_course_fee", Number(e.target.value))}
+                  required
+                  min="0"
+                  step="0.01"
                 />
               </div>
               <div>
@@ -254,6 +256,8 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
                   type="number"
                   value={formData.advance_payment}
                   onChange={(e) => handleInputChange("advance_payment", Number(e.target.value))}
+                  min="0"
+                  step="0.01"
                 />
               </div>
               <div>
