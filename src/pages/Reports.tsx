@@ -7,7 +7,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { StudentReports } from '@/components/reports/StudentReports';
 import { PaymentReports } from '@/components/reports/PaymentReports';
 import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
-import { BarChart3, Users, CreditCard, FileText } from 'lucide-react';
+import { AuditLog } from '@/components/reports/AuditLog';
+import { BarChart3, Users, CreditCard, FileText, Shield } from 'lucide-react';
 
 const Reports = () => {
   return (
@@ -47,7 +48,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <Tabs defaultValue="students" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                  <TabsList className="grid w-full grid-cols-3 bg-gray-100">
                     <TabsTrigger value="students" className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
                       Student Reports
@@ -55,6 +56,10 @@ const Reports = () => {
                     <TabsTrigger value="payments" className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
                       Payment Reports
+                    </TabsTrigger>
+                    <TabsTrigger value="audit" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Audit Log
                     </TabsTrigger>
                   </TabsList>
                   
@@ -64,6 +69,10 @@ const Reports = () => {
                   
                   <TabsContent value="payments" className="mt-6">
                     <PaymentReports />
+                  </TabsContent>
+
+                  <TabsContent value="audit" className="mt-6">
+                    <AuditLog />
                   </TabsContent>
                 </Tabs>
               </CardContent>

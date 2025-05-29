@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -204,7 +203,7 @@ export const PaymentReports = () => {
   // Get unique payment stages, modes, and student statuses
   const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
   const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
-  const studentStatuses = ['awaiting-course', 'enrolled', 'online', 'face-to-face'];
+  const studentStatuses = ['Attended Online', 'Attend sessions', 'Attended F2F', 'Exam cycle', 'Awaiting results', 'Pass', 'Fail'];
 
   const handleExport = () => {
     const exportData = filteredBreakdown.map((item) => ({
@@ -338,7 +337,7 @@ export const PaymentReports = () => {
               </Select>
             </div>
 
-            {/* Student Status Filter */}
+            {/* Student Status Filter - Updated with new status values */}
             <div className="space-y-2">
               <Label>Student Status</Label>
               <Select value={filters.studentStatus} onValueChange={(value) => setFilters(prev => ({ ...prev, studentStatus: value }))}>
@@ -349,7 +348,7 @@ export const PaymentReports = () => {
                   <SelectItem value="all">All Statuses</SelectItem>
                   {studentStatuses.map(status => (
                     <SelectItem key={status} value={status}>
-                      {status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {status}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -512,7 +511,7 @@ export const PaymentReports = () => {
                     </TableCell>
                     <TableCell>
                       <Badge className="bg-gray-100 text-gray-800">
-                        {item.student_status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {item.student_status}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-bold">${item.course_fee.toLocaleString()}</TableCell>

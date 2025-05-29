@@ -101,10 +101,13 @@ export const StudentReports = () => {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      'enrolled': 'bg-blue-100 text-blue-800',
-      'online': 'bg-green-100 text-green-800',
-      'face-to-face': 'bg-purple-100 text-purple-800',
-      'awaiting-course': 'bg-yellow-100 text-yellow-800',
+      'Attended Online': 'bg-blue-100 text-blue-800',
+      'Attend sessions': 'bg-green-100 text-green-800',
+      'Attended F2F': 'bg-purple-100 text-purple-800',
+      'Exam cycle': 'bg-yellow-100 text-yellow-800',
+      'Awaiting results': 'bg-orange-100 text-orange-800',
+      'Pass': 'bg-emerald-100 text-emerald-800',
+      'Fail': 'bg-red-100 text-red-800',
     };
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
@@ -199,7 +202,7 @@ export const StudentReports = () => {
               />
             </div>
 
-            {/* Status Filter */}
+            {/* Status Filter - Updated with new status values */}
             <div className="space-y-2">
               <Label>Student Status</Label>
               <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
@@ -208,10 +211,13 @@ export const StudentReports = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="enrolled">Enrolled</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="face-to-face">Face-to-Face</SelectItem>
-                  <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
+                  <SelectItem value="Attended Online">Attended Online</SelectItem>
+                  <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                  <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                  <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                  <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                  <SelectItem value="Pass">Pass</SelectItem>
+                  <SelectItem value="Fail">Fail</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -346,7 +352,7 @@ export const StudentReports = () => {
                     <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
                     <TableCell>
                       <Badge className={getStatusBadge(student.status)}>
-                        {student.status.replace('-', ' ')}
+                        {student.status}
                       </Badge>
                     </TableCell>
                     <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
