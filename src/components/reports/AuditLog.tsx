@@ -22,7 +22,10 @@ import {
   CheckCircle,
   XCircle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2,
+  Edit,
+  Plus
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -56,7 +59,7 @@ export const AuditLog = () => {
     severity: 'all',
   });
 
-  // Mock data for demonstration - In real app, this would come from database
+  // Enhanced mock data with actual database operations
   const mockAuditData: AuditLogEntry[] = [
     {
       id: '1',
@@ -66,8 +69,14 @@ export const AuditLog = () => {
       table_name: 'students',
       record_id: 'ATZ-2024-001',
       old_values: null,
-      new_values: { full_name: 'John Doe', email: 'john@example.com', status: 'Attend sessions' },
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+      new_values: { 
+        full_name: 'John Doe', 
+        email: 'john@example.com', 
+        status: 'Attend sessions',
+        total_course_fee: 3000,
+        advance_payment: 1500
+      },
+      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
       ip_address: '192.168.1.100',
       user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       severity: 'medium'
@@ -79,9 +88,15 @@ export const AuditLog = () => {
       action: 'UPDATE',
       table_name: 'students',
       record_id: 'ATZ-2024-001',
-      old_values: { status: 'Attend sessions' },
-      new_values: { status: 'Attended F2F' },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+      old_values: { 
+        status: 'Attend sessions',
+        total_course_fee: 3000
+      },
+      new_values: { 
+        status: 'Attended F2F',
+        total_course_fee: 3500
+      },
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
       ip_address: '192.168.1.100',
       user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       severity: 'low'
@@ -94,44 +109,74 @@ export const AuditLog = () => {
       table_name: 'payments',
       record_id: 'PAY-001',
       old_values: null,
-      new_values: { student_id: 'ATZ-2024-001', amount: 1500, stage: 'Advance' },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4 hours ago
+      new_values: { 
+        student_id: 'ATZ-2024-001', 
+        amount: 1500, 
+        stage: 'Advance',
+        payment_mode: 'Credit Card'
+      },
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
       ip_address: '192.168.1.101',
       user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
       severity: 'high'
     },
     {
       id: '4',
+      user_id: 'user3',
+      user_email: 'teacher@example.com',
+      action: 'DELETE',
+      table_name: 'students',
+      record_id: 'ATZ-2024-002',
+      old_values: { 
+        full_name: 'Jane Smith', 
+        email: 'jane@example.com', 
+        status: 'Pass',
+        total_course_fee: 2800,
+        advance_payment: 1000
+      },
+      new_values: null,
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+      ip_address: '192.168.1.102',
+      user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15',
+      severity: 'critical'
+    },
+    {
+      id: '5',
       user_id: 'user1',
       user_email: 'admin@example.com',
       action: 'PASSWORD_CHANGE',
       table_name: 'auth.users',
       record_id: 'user1',
-      old_values: null,
-      new_values: { password_changed: true },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6 hours ago
+      old_values: { password_hash: '***' },
+      new_values: { password_hash: '***', password_changed_at: new Date().toISOString() },
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
       ip_address: '192.168.1.100',
       user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      severity: 'critical'
+      severity: 'high'
     },
     {
-      id: '5',
-      user_id: 'user3',
-      user_email: 'teacher@example.com',
+      id: '6',
+      user_id: 'user2',
+      user_email: 'manager@example.com',
       action: 'UPDATE',
-      table_name: 'courses',
-      record_id: 'COURSE-001',
-      old_values: { fee: 3000 },
-      new_values: { fee: 3500 },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
-      ip_address: '192.168.1.102',
-      user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15',
+      table_name: 'payments',
+      record_id: 'PAY-002',
+      old_values: { 
+        amount: 2000,
+        stage: 'Second'
+      },
+      new_values: { 
+        amount: 2500,
+        stage: 'Final'
+      },
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
+      ip_address: '192.168.1.101',
+      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
       severity: 'medium'
     }
   ];
 
   useEffect(() => {
-    // Simulate loading audit logs
     setLoading(true);
     setTimeout(() => {
       setAuditLogs(mockAuditData);
@@ -142,7 +187,6 @@ export const AuditLog = () => {
   const filteredLogs = useMemo(() => {
     let filtered = [...auditLogs];
 
-    // Apply filters
     if (filters.dateFrom) {
       filtered = filtered.filter(log => 
         new Date(log.timestamp) >= new Date(filters.dateFrom)
@@ -166,16 +210,14 @@ export const AuditLog = () => {
       filtered = filtered.filter(log => log.severity === filters.severity);
     }
 
-    // Sort by timestamp (newest first)
     filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
     return filtered.slice(0, showCount);
   }, [auditLogs, filters, showCount]);
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return <XCircle className="h-4 w-4 text-red-600" />;
+        return <AlertTriangle className="h-4 w-4 text-red-600" />;
       case 'high':
         return <AlertTriangle className="h-4 w-4 text-orange-600" />;
       case 'medium':
@@ -189,22 +231,22 @@ export const AuditLog = () => {
 
   const getSeverityBadge = (severity: string) => {
     const colors = {
-      'critical': 'bg-red-100 text-red-800 border-red-200',
-      'high': 'bg-orange-100 text-orange-800 border-orange-200',
-      'medium': 'bg-blue-100 text-blue-800 border-blue-200',
-      'low': 'bg-green-100 text-green-800 border-green-200'
+      'critical': 'bg-red-50 text-red-700 border-red-200',
+      'high': 'bg-orange-50 text-orange-700 border-orange-200',
+      'medium': 'bg-blue-50 text-blue-700 border-blue-200',
+      'low': 'bg-green-50 text-green-700 border-green-200'
     };
-    return colors[severity as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return colors[severity as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   const getActionIcon = (action: string) => {
     switch (action) {
       case 'INSERT':
-        return <Database className="h-4 w-4 text-green-600" />;
+        return <Plus className="h-4 w-4 text-green-600" />;
       case 'UPDATE':
-        return <Database className="h-4 w-4 text-blue-600" />;
+        return <Edit className="h-4 w-4 text-blue-600" />;
       case 'DELETE':
-        return <Database className="h-4 w-4 text-red-600" />;
+        return <Trash2 className="h-4 w-4 text-red-600" />;
       case 'PASSWORD_CHANGE':
         return <Key className="h-4 w-4 text-purple-600" />;
       default:
@@ -232,6 +274,57 @@ export const AuditLog = () => {
       newExpanded.add(id);
     }
     setExpandedRows(newExpanded);
+  };
+
+  const renderValueComparison = (oldVal: any, newVal: any, key: string) => {
+    const isAmountField = key.toLowerCase().includes('amount') || key.toLowerCase().includes('fee');
+    const isDelete = newVal === null;
+    
+    if (oldVal === null && newVal !== null) {
+      // New value added
+      return (
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-600">{key}:</div>
+          <div className="text-sm text-green-700 bg-green-50 px-2 py-1 rounded">
+            + {typeof newVal === 'object' ? JSON.stringify(newVal) : String(newVal)}
+          </div>
+        </div>
+      );
+    }
+    
+    if (oldVal !== null && newVal === null) {
+      // Value deleted
+      return (
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-600">{key}:</div>
+          <div className="text-sm text-red-700 bg-red-50 px-2 py-1 rounded">
+            - {typeof oldVal === 'object' ? JSON.stringify(oldVal) : String(oldVal)}
+          </div>
+        </div>
+      );
+    }
+    
+    if (oldVal !== newVal) {
+      // Value changed
+      const textColor = isAmountField || isDelete ? 'text-red-700' : 'text-blue-700';
+      const bgColor = isAmountField || isDelete ? 'bg-red-50' : 'bg-blue-50';
+      
+      return (
+        <div className="space-y-1">
+          <div className="text-xs font-medium text-gray-600">{key}:</div>
+          <div className="space-y-1">
+            <div className="text-sm text-red-700 bg-red-50 px-2 py-1 rounded">
+              - {typeof oldVal === 'object' ? JSON.stringify(oldVal) : String(oldVal)}
+            </div>
+            <div className={`text-sm ${textColor} ${bgColor} px-2 py-1 rounded`}>
+              + {typeof newVal === 'object' ? JSON.stringify(newVal) : String(newVal)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   const handleExport = () => {
@@ -470,13 +563,13 @@ export const AuditLog = () => {
                   <TableHead>Table</TableHead>
                   <TableHead>Record ID</TableHead>
                   <TableHead>Severity</TableHead>
-                  <TableHead>IP Address</TableHead>
+                  <TableHead>Changes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLogs.map((log) => (
                   <>
-                    <TableRow key={log.id} className="hover:bg-gray-50">
+                    <TableRow key={log.id} className={`hover:bg-gray-50 ${log.action === 'DELETE' ? 'bg-red-50' : ''}`}>
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -498,7 +591,7 @@ export const AuditLog = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {getActionIcon(log.action)}
-                          <span>{log.action}</span>
+                          <span className={log.action === 'DELETE' ? 'text-red-600 font-medium' : ''}>{log.action}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -515,32 +608,66 @@ export const AuditLog = () => {
                           </div>
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{log.ip_address}</TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {log.action === 'INSERT' && 'New record created'}
+                          {log.action === 'UPDATE' && Object.keys(log.old_values || {}).length + ' fields modified'}
+                          {log.action === 'DELETE' && <span className="text-red-600 font-medium">Record deleted</span>}
+                          {log.action === 'PASSWORD_CHANGE' && 'Password updated'}
+                        </div>
+                      </TableCell>
                     </TableRow>
                     {expandedRows.has(log.id) && (
                       <TableRow>
                         <TableCell colSpan={8} className="bg-gray-50 p-4">
                           <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {log.old_values && (
-                                <div>
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Previous Values:</h4>
-                                  <pre className="text-xs bg-red-50 p-3 rounded border text-red-800">
-                                    {JSON.stringify(log.old_values, null, 2)}
-                                  </pre>
+                            <div className="text-sm font-medium text-gray-700">Change Details:</div>
+                            
+                            {log.action === 'DELETE' && log.old_values && (
+                              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <h4 className="font-semibold text-sm text-red-800 mb-2">Deleted Data:</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {Object.entries(log.old_values).map(([key, value]) => (
+                                    <div key={key} className="text-sm">
+                                      <span className="font-medium text-red-700">{key}:</span>
+                                      <span className="ml-2 text-red-600">{String(value)}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              )}
-                              {log.new_values && (
-                                <div>
-                                  <h4 className="font-semibold text-sm text-gray-700 mb-2">New Values:</h4>
-                                  <pre className="text-xs bg-green-50 p-3 rounded border text-green-800">
-                                    {JSON.stringify(log.new_values, null, 2)}
-                                  </pre>
+                              </div>
+                            )}
+                            
+                            {log.action === 'INSERT' && log.new_values && (
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <h4 className="font-semibold text-sm text-green-800 mb-2">Created Data:</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {Object.entries(log.new_values).map(([key, value]) => (
+                                    <div key={key} className="text-sm">
+                                      <span className="font-medium text-green-700">{key}:</span>
+                                      <span className="ml-2 text-green-600">{String(value)}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              <strong>User Agent:</strong> {log.user_agent}
+                              </div>
+                            )}
+                            
+                            {log.action === 'UPDATE' && (log.old_values || log.new_values) && (
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <h4 className="font-semibold text-sm text-blue-800 mb-2">Data Changes:</h4>
+                                <div className="space-y-3">
+                                  {log.old_values && log.new_values && Object.keys(log.old_values).map(key => (
+                                    <div key={key}>
+                                      {renderValueComparison(log.old_values[key], log.new_values[key], key)}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="text-xs text-gray-600 border-t pt-2">
+                              <div><strong>IP Address:</strong> {log.ip_address}</div>
+                              <div><strong>User Agent:</strong> {log.user_agent}</div>
+                              <div><strong>Timestamp:</strong> {new Date(log.timestamp).toLocaleString()}</div>
                             </div>
                           </div>
                         </TableCell>

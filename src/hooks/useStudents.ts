@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -131,14 +130,35 @@ export const useStudents = () => {
 
   const updateStudent = async (id: string, studentData: Partial<Student>) => {
     try {
+      console.log('Updating student with ID:', id);
+      console.log('Update data:', studentData);
+      
+      // Remove undefined values and prepare clean update object
+      const cleanData = Object.entries(studentData).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+      
+      // Add updated_at timestamp
+      cleanData.updated_at = new Date().toISOString();
+      
+      console.log('Clean update data:', cleanData);
+      
       const { data, error } = await supabase
         .from('students')
-        .update({ ...studentData, updated_at: new Date().toISOString() })
+        .update(cleanData)
         .eq('id', id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+      
+      console.log('Update successful, returned data:', data);
       
       // Transform the returned data
       const transformedData: Student = {
