@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -218,10 +217,13 @@ export const PaymentRecordForm = ({ studentId, currentStatus, onPaymentAdded }: 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unselected">Select new status</SelectItem>
-                    <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
-                    <SelectItem value="enrolled">Enrolled</SelectItem>
-                    <SelectItem value="online">Online</SelectItem>
-                    <SelectItem value="face-to-face">Face to Face</SelectItem>
+                    <SelectItem value="Attended Online">Attended Online</SelectItem>
+                    <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                    <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                    <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                    <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                    <SelectItem value="Pass">Pass</SelectItem>
+                    <SelectItem value="Fail">Fail</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

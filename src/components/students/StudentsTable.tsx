@@ -24,31 +24,22 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onU
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "awaiting-course":
-        return "bg-yellow-100 text-yellow-800";
-      case "enrolled":
-        return "bg-blue-100 text-blue-800";
-      case "online":
+      case "Attended Online":
         return "bg-green-100 text-green-800";
-      case "face-to-face":
+      case "Attend sessions":
+        return "bg-blue-100 text-blue-800";
+      case "Attended F2F":
         return "bg-purple-100 text-purple-800";
+      case "Exam cycle":
+        return "bg-orange-100 text-orange-800";
+      case "Awaiting results":
+        return "bg-yellow-100 text-yellow-800";
+      case "Pass":
+        return "bg-emerald-100 text-emerald-800";
+      case "Fail":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "awaiting-course":
-        return "Awaiting Course";
-      case "enrolled":
-        return "Enrolled";
-      case "online":
-        return "Online";
-      case "face-to-face":
-        return "Face to Face";
-      default:
-        return status;
     }
   };
 
@@ -94,10 +85,13 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onU
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
-              <SelectItem value="enrolled">Enrolled</SelectItem>
-              <SelectItem value="online">Online</SelectItem>
-              <SelectItem value="face-to-face">Face to Face</SelectItem>
+              <SelectItem value="Attended Online">Attended Online</SelectItem>
+              <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+              <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+              <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+              <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+              <SelectItem value="Pass">Pass</SelectItem>
+              <SelectItem value="Fail">Fail</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -127,7 +121,7 @@ export const StudentsTable = ({ students, courses, onEdit, onDelete, onView, onU
                 <TableCell>{getCourseTitle(student.course_id)}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(student.status)}>
-                    {getStatusLabel(student.status)}
+                    {student.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="font-semibold text-green-600">

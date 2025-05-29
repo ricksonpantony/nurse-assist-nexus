@@ -31,7 +31,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     batch_id: "",
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: "",
-    status: "enrolled" as Student['status'],
+    status: "Attend sessions" as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
     installments: 1
@@ -219,10 +219,13 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="awaiting-course">Awaiting Course</SelectItem>
-            <SelectItem value="enrolled">Enrolled</SelectItem>
-            <SelectItem value="online">Online</SelectItem>
-            <SelectItem value="face-to-face">Face to Face</SelectItem>
+            <SelectItem value="Attended Online">Attended Online</SelectItem>
+            <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+            <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+            <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+            <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+            <SelectItem value="Pass">Pass</SelectItem>
+            <SelectItem value="Fail">Fail</SelectItem>
           </SelectContent>
         </Select>
       </div>
