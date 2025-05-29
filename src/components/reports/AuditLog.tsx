@@ -9,12 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
 import { 
   Shield, 
   Filter, 
   Download, 
   Clock,
-  Database,
+  Database as DatabaseIcon,
   AlertTriangle,
   Info,
   CheckCircle,
@@ -26,18 +27,9 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-interface AuditLogEntry {
-  id: string;
-  user_id: string;
-  user_email: string;
-  action: string;
-  table_name: string;
-  record_id: string;
-  old_values: any;
-  new_values: any;
-  timestamp: string;
-  ip_address: string;
-  user_agent: string;
+type AuditLogRow = Database['public']['Tables']['audit_logs']['Row'];
+
+interface AuditLogEntry extends Omit<AuditLogRow, 'severity'> {
   severity: 'low' | 'medium' | 'high' | 'critical';
 }
 
@@ -77,7 +69,13 @@ export const AuditLog = () => {
         return;
       }
 
-      setAuditLogs(data || []);
+      // Type cast the severity field to match our interface
+      const typedData: AuditLogEntry[] = (data || []).map(log => ({
+        ...log,
+        severity: log.severity as 'low' | 'medium' | 'high' | 'critical'
+      }));
+
+      setAuditLogs(typedData);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
@@ -158,7 +156,7 @@ export const AuditLog = () => {
       case 'DELETE':
         return <Trash2 className="h-4 w-4 text-red-600" />;
       default:
-        return <Database className="h-4 w-4 text-gray-600" />;
+        return <DatabaseIcon className="h-4 w-4 text-gray-600" />;
     }
   };
 
@@ -293,7 +291,7 @@ export const AuditLog = () => {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -314,22 +312,6 @@ export const AuditLog = () => {
                 <p className="text-2xl font-bold">{auditLogs.filter(log => log.severity === 'critical').length}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">Last 24 Hours</p>
-                <p className="text-2xl font-bold">
-                  {auditLogs.filter(log => 
-                    new Date(log.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
-                  ).length}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
@@ -430,7 +412,7 @@ export const AuditLog = () => {
               Export to Excel
             </Button>
             <Button onClick={fetchAuditLogs} variant="outline" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
+              <DatabaseIcon className="h-4 w-4" />
               Refresh
             </Button>
           </div>
@@ -541,7 +523,7 @@ export const AuditLog = () => {
                               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                 <h4 className="font-semibold text-sm text-red-800 mb-2">Deleted Data:</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {Object.entries(log.old_values).map(([key, value]) => (
+                                  {Object.entries(log.old_values as Record<string, any>).map(([key, value]) => (
                                     <div key={key} className="text-sm">
                                       <span className="font-medium text-red-700">{key}:</span>
                                       <span className="ml-2 text-red-600">{String(value)}</span>
@@ -555,7 +537,7 @@ export const AuditLog = () => {
                               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                                 <h4 className="font-semibold text-sm text-green-800 mb-2">Created Data:</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {Object.entries(log.new_values).map(([key, value]) => (
+                                  {Object.entries(log.new_values as Record<string, any>).map(([key, value]) => (
                                     <div key={key} className="text-sm">
                                       <span className="font-medium text-green-700">{key}:</span>
                                       <span className="ml-2 text-green-600">{String(value)}</span>
@@ -569,9 +551,13 @@ export const AuditLog = () => {
                               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                                 <h4 className="font-semibold text-sm text-blue-800 mb-2">Data Changes:</h4>
                                 <div className="space-y-3">
-                                  {log.old_values && log.new_values && Object.keys(log.old_values).map(key => (
+                                  {log.old_values && log.new_values && Object.keys(log.old_values as Record<string, any>).map(key => (
                                     <div key={key}>
-                                      {renderValueComparison(log.old_values[key], log.new_values[key], key)}
+                                      {renderValueComparison(
+                                        (log.old_values as Record<string, any>)[key], 
+                                        (log.new_values as Record<string, any>)[key], 
+                                        key
+                                      )}
                                     </div>
                                   ))}
                                 </div>
