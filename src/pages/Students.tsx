@@ -36,16 +36,33 @@ const Students = () => {
   };
 
   const handleEditStudent = (student: any) => {
+    console.log('Editing student:', student);
     setEditingStudent(student);
     setShowAddForm(true);
   };
 
   const handleUpdateStudent = async (updatedStudent: any) => {
     try {
-      await updateStudent(updatedStudent.id, updatedStudent);
+      console.log('Updating student in page:', updatedStudent);
+      // Ensure we have the student ID - use either the provided ID or the editing student's ID
+      const studentId = updatedStudent.id || editingStudent?.id;
+      
+      if (!studentId) {
+        console.error('No student ID found for update');
+        toast({
+          title: "Error",
+          description: "Student ID is required for update",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Final student ID for update:', studentId);
+      await updateStudent(studentId, updatedStudent);
       setShowAddForm(false);
       setEditingStudent(null);
     } catch (error) {
+      console.error('Error in handleUpdateStudent:', error);
       // Error is handled in the hook
     }
   };
