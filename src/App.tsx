@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import Students from "./pages/Students";
 import Reports from "./pages/Reports";
+import AuditLogs from "./pages/AuditLogs";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const AppContent = () => {
               <Route path="/courses" element={<Courses />} />
               <Route path="/students" element={<Students />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/audit" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -57,6 +59,7 @@ const AppContent = () => {
               <Route path="/courses" element={<Courses />} />
               <Route path="/students" element={<Students />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/audit" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
