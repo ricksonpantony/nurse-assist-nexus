@@ -8,19 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Shield, 
-  Eye, 
   Filter, 
   Download, 
   Clock,
-  User,
   Database,
-  Key,
   AlertTriangle,
   Info,
   CheckCircle,
-  XCircle,
   ChevronDown,
   ChevronUp,
   Trash2,
@@ -49,6 +46,7 @@ export const AuditLog = () => {
   const [loading, setLoading] = useState(true);
   const [showCount, setShowCount] = useState(25);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -59,129 +57,41 @@ export const AuditLog = () => {
     severity: 'all',
   });
 
-  // Enhanced mock data with actual database operations
-  const mockAuditData: AuditLogEntry[] = [
-    {
-      id: '1',
-      user_id: 'user1',
-      user_email: 'admin@example.com',
-      action: 'INSERT',
-      table_name: 'students',
-      record_id: 'ATZ-2024-001',
-      old_values: null,
-      new_values: { 
-        full_name: 'John Doe', 
-        email: 'john@example.com', 
-        status: 'Attend sessions',
-        total_course_fee: 3000,
-        advance_payment: 1500
-      },
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      severity: 'medium'
-    },
-    {
-      id: '2',
-      user_id: 'user1',
-      user_email: 'admin@example.com',
-      action: 'UPDATE',
-      table_name: 'students',
-      record_id: 'ATZ-2024-001',
-      old_values: { 
-        status: 'Attend sessions',
-        total_course_fee: 3000
-      },
-      new_values: { 
-        status: 'Attended F2F',
-        total_course_fee: 3500
-      },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      severity: 'low'
-    },
-    {
-      id: '3',
-      user_id: 'user2',
-      user_email: 'manager@example.com',
-      action: 'INSERT',
-      table_name: 'payments',
-      record_id: 'PAY-001',
-      old_values: null,
-      new_values: { 
-        student_id: 'ATZ-2024-001', 
-        amount: 1500, 
-        stage: 'Advance',
-        payment_mode: 'Credit Card'
-      },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-      ip_address: '192.168.1.101',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      severity: 'high'
-    },
-    {
-      id: '4',
-      user_id: 'user3',
-      user_email: 'teacher@example.com',
-      action: 'DELETE',
-      table_name: 'students',
-      record_id: 'ATZ-2024-002',
-      old_values: { 
-        full_name: 'Jane Smith', 
-        email: 'jane@example.com', 
-        status: 'Pass',
-        total_course_fee: 2800,
-        advance_payment: 1000
-      },
-      new_values: null,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-      ip_address: '192.168.1.102',
-      user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15',
-      severity: 'critical'
-    },
-    {
-      id: '5',
-      user_id: 'user1',
-      user_email: 'admin@example.com',
-      action: 'PASSWORD_CHANGE',
-      table_name: 'auth.users',
-      record_id: 'user1',
-      old_values: { password_hash: '***' },
-      new_values: { password_hash: '***', password_changed_at: new Date().toISOString() },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-      ip_address: '192.168.1.100',
-      user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      severity: 'high'
-    },
-    {
-      id: '6',
-      user_id: 'user2',
-      user_email: 'manager@example.com',
-      action: 'UPDATE',
-      table_name: 'payments',
-      record_id: 'PAY-002',
-      old_values: { 
-        amount: 2000,
-        stage: 'Second'
-      },
-      new_values: { 
-        amount: 2500,
-        stage: 'Final'
-      },
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
-      ip_address: '192.168.1.101',
-      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      severity: 'medium'
+  // Fetch audit logs from database
+  const fetchAuditLogs = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(300);
+
+      if (error) {
+        console.error('Error fetching audit logs:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch audit logs",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAuditLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch audit logs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setAuditLogs(mockAuditData);
-      setLoading(false);
-    }, 1000);
+    fetchAuditLogs();
   }, []);
 
   const filteredLogs = useMemo(() => {
@@ -247,10 +157,8 @@ export const AuditLog = () => {
         return <Edit className="h-4 w-4 text-blue-600" />;
       case 'DELETE':
         return <Trash2 className="h-4 w-4 text-red-600" />;
-      case 'PASSWORD_CHANGE':
-        return <Key className="h-4 w-4 text-purple-600" />;
       default:
-        return <Eye className="h-4 w-4 text-gray-600" />;
+        return <Database className="h-4 w-4 text-gray-600" />;
     }
   };
 
@@ -281,7 +189,6 @@ export const AuditLog = () => {
     const isDelete = newVal === null;
     
     if (oldVal === null && newVal !== null) {
-      // New value added
       return (
         <div className="space-y-1">
           <div className="text-xs font-medium text-gray-600">{key}:</div>
@@ -293,7 +200,6 @@ export const AuditLog = () => {
     }
     
     if (oldVal !== null && newVal === null) {
-      // Value deleted
       return (
         <div className="space-y-1">
           <div className="text-xs font-medium text-gray-600">{key}:</div>
@@ -305,7 +211,6 @@ export const AuditLog = () => {
     }
     
     if (oldVal !== newVal) {
-      // Value changed
       const textColor = isAmountField || isDelete ? 'text-red-700' : 'text-blue-700';
       const bgColor = isAmountField || isDelete ? 'bg-red-50' : 'bg-blue-50';
       
@@ -328,6 +233,15 @@ export const AuditLog = () => {
   };
 
   const handleExport = () => {
+    if (filteredLogs.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no audit logs to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const exportData = filteredLogs.map(log => ({
       timestamp: formatTimestamp(log.timestamp),
       user_email: log.user_email,
@@ -346,6 +260,11 @@ export const AuditLog = () => {
 
     const currentDate = new Date().toISOString().split('T')[0];
     XLSX.writeFile(wb, `audit_log_${currentDate}.xlsx`);
+    
+    toast({
+      title: "Export Successful",
+      description: "Audit log has been exported to Excel",
+    });
   };
 
   const clearFilters = () => {
@@ -360,7 +279,11 @@ export const AuditLog = () => {
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading audit logs...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-blue-600">Loading audit logs...</div>
+      </div>
+    );
   }
 
   const uniqueUsers = [...new Set(auditLogs.map(log => log.user_email))];
@@ -370,7 +293,7 @@ export const AuditLog = () => {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -379,18 +302,6 @@ export const AuditLog = () => {
                 <p className="text-2xl font-bold">{auditLogs.length}</p>
               </div>
               <Shield className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">Active Users</p>
-                <p className="text-2xl font-bold">{uniqueUsers.length}</p>
-              </div>
-              <User className="h-8 w-8 text-green-200" />
             </div>
           </CardContent>
         </Card>
@@ -518,6 +429,10 @@ export const AuditLog = () => {
               <Download className="h-4 w-4" />
               Export to Excel
             </Button>
+            <Button onClick={fetchAuditLogs} variant="outline" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Refresh
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -613,7 +528,6 @@ export const AuditLog = () => {
                           {log.action === 'INSERT' && 'New record created'}
                           {log.action === 'UPDATE' && Object.keys(log.old_values || {}).length + ' fields modified'}
                           {log.action === 'DELETE' && <span className="text-red-600 font-medium">Record deleted</span>}
-                          {log.action === 'PASSWORD_CHANGE' && 'Password updated'}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -683,6 +597,7 @@ export const AuditLog = () => {
             <div className="p-8 text-center text-gray-500">
               <Shield className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <p>No audit log entries found matching your criteria.</p>
+              <p className="text-sm mt-2">Try adjusting your filters or performing some database operations to generate audit logs.</p>
             </div>
           )}
         </CardContent>
