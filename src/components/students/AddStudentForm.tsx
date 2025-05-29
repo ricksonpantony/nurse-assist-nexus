@@ -71,7 +71,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     e.preventDefault();
     
     // Prepare data for submission, converting empty strings to null for optional date fields
-    const submitData = {
+    const submitData: any = {
       ...formData,
       class_start_date: formData.class_start_date || null,
       address: formData.address || null,
