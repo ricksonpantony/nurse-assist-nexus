@@ -26,12 +26,15 @@ export const ReportsDashboard = () => {
   const totalCourses = courses.length;
   const totalRevenue = students.reduce((sum, student) => sum + (student.advance_payment || 0), 0);
 
-  // Status distribution
+  // Status distribution - updated to use new status values
   const statusData = [
-    { name: 'Enrolled', value: students.filter(s => s.status === 'enrolled').length, color: '#3b82f6' },
-    { name: 'Online', value: students.filter(s => s.status === 'online').length, color: '#10b981' },
-    { name: 'Face-to-Face', value: students.filter(s => s.status === 'face-to-face').length, color: '#f59e0b' },
-    { name: 'Awaiting Course', value: students.filter(s => s.status === 'awaiting-course').length, color: '#ef4444' },
+    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
+    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
+    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
+    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
+    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
+    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
+    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
   ];
 
   // Monthly enrollment data
