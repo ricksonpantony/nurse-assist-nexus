@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useStudents } from "@/hooks/useStudents";
 import { useCourses } from "@/hooks/useCourses";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { EnrollmentChart } from "@/components/dashboard/EnrollmentChart";
@@ -18,8 +20,26 @@ const Index = () => {
   const { user } = useAuth();
   const { students, loading: studentsLoading } = useStudents();
   const { courses, loading: coursesLoading } = useCourses();
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const loading = studentsLoading || coursesLoading;
+
+  // Fetch user profile to get the full name
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   // Calculate key metrics
   const totalStudents = students.length;
@@ -34,6 +54,14 @@ const Index = () => {
     return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear;
   }).length;
 
+  // Get display name: profile name first, then email as fallback
+  const getDisplayName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name;
+    }
+    return user?.email || 'Admin';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
       {/* Header Section */}
@@ -41,7 +69,7 @@ const Index = () => {
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome back, {user?.user_metadata?.full_name || user?.email || 'Admin'}
+              Welcome back, {getDisplayName()}
             </h1>
             <p className="text-lg text-blue-100 mb-4">
               Educational Management Dashboard

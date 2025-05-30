@@ -1,3 +1,5 @@
+
+import { useState, useEffect } from "react";
 import {
   Calendar,
   Users,
@@ -24,6 +26,7 @@ import {
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { supabase } from "@/integrations/supabase/client";
 
 const menuItems = [
   {
@@ -71,6 +74,32 @@ const menuItems = [
 export function AppSidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Fetch user profile to get the full name
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  // Get display name: profile name first, then email as fallback
+  const getDisplayName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name;
+    }
+    return user?.email || 'Admin User';
+  };
 
   return (
     <Sidebar className="border-r-0 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900">
@@ -117,14 +146,16 @@ export function AppSidebar() {
           {/* User Info */}
           <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3 backdrop-blur-sm">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-100 text-blue-600 text-sm font-bold shadow-lg">
-              {user?.email?.charAt(0).toUpperCase() || 'A'}
+              {getDisplayName().charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {user?.user_metadata?.full_name || 'Admin User'}
+                {getDisplayName()}
               </p>
               <p className="text-xs text-blue-200 truncate">{user?.email}</p>
-              <p className="text-xs text-green-300 font-semibold">Admin</p>
+              <p className="text-xs text-green-300 font-semibold">
+                {userProfile?.role ? userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1) : 'Admin'}
+              </p>
             </div>
           </div>
           

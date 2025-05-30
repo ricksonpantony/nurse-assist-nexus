@@ -62,6 +62,15 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
   };
 
   const handleUpdateProfile = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User ID not found. Please log in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -78,17 +87,23 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
           role: formData.role,
           updated_at: new Date().toISOString()
         })
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw profileError;
+      }
 
       // Update email in auth if changed
-      if (formData.email !== user?.email) {
+      if (formData.email !== user.email) {
         const { error: authError } = await supabase.auth.updateUser({
           email: formData.email
         });
 
-        if (authError) throw authError;
+        if (authError) {
+          console.error('Email update error:', authError);
+          throw authError;
+        }
 
         toast({
           title: "Email Update",
@@ -103,6 +118,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
 
       onUpdate();
     } catch (error: any) {
+      console.error('Update profile error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile.",
