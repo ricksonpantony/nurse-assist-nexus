@@ -117,6 +117,72 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          address: string | null
+          country: string | null
+          created_at: string
+          email: string
+          expected_joining_date: string | null
+          full_name: string
+          id: string
+          interested_course_id: string | null
+          notes: string | null
+          passport_id: string | null
+          phone: string
+          referral_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          expected_joining_date?: string | null
+          full_name: string
+          id?: string
+          interested_course_id?: string | null
+          notes?: string | null
+          passport_id?: string | null
+          phone: string
+          referral_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          expected_joining_date?: string | null
+          full_name?: string
+          id?: string
+          interested_course_id?: string | null
+          notes?: string | null
+          passport_id?: string | null
+          phone?: string
+          referral_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_interested_course_id_fkey"
+            columns: ["interested_course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number

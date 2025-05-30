@@ -9,7 +9,8 @@ import {
   Settings,
   Home,
   Building2,
-  UserCheck
+  UserCheck,
+  Target
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +47,11 @@ const menuItems = [
     title: "Payments",
     url: "/payments",
     icon: CreditCard,
+  },
+  {
+    title: "Marketing",
+    url: "/marketing",
+    icon: Target,
   },
   {
     title: "Reports",
