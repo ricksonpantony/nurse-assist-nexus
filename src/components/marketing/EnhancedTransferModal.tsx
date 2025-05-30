@@ -46,7 +46,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     payment_method: "Bank Transfer",
     
     // Referral Information
-    referral_id: lead.referral_id || "",
+    referral_id: lead.referral_id || "no-referral",
     referral_payment_amount: "0",
     
     // Additional Information
@@ -90,11 +90,11 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
         advance_payment: parseFloat(formData.advance_payment) || 0,
         referral_payment_amount: parseFloat(formData.referral_payment_amount) || 0,
         // Ensure null values for optional fields
-        referral_id: formData.referral_id === "" ? null : formData.referral_id,
-        course_id: formData.course_id === "" ? null : formData.course_id,
+        referral_id: formData.referral_id === "no-referral" ? null : formData.referral_id,
+        course_id: formData.course_id === "no-course" ? null : formData.course_id,
         passport_id: formData.passport_id === "" ? null : formData.passport_id,
         address: formData.address === "" ? null : formData.address,
-        country: formData.country === "" ? null : formData.country,
+        country: formData.country === "no-country" ? null : formData.country,
         batch_id: formData.batch_id === "" ? null : formData.batch_id,
       };
 
@@ -197,6 +197,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="no-country">No Country Selected</SelectItem>
                     {countries.map((country) => (
                       <SelectItem key={country} value={country}>
                         {country}
@@ -222,6 +223,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
                     <SelectValue placeholder="Select course" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="no-course">No Course Selected</SelectItem>
                     {courses.map((course) => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.title} - ${course.fee}
@@ -390,7 +392,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
                     <SelectValue placeholder="Select referral (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Referral</SelectItem>
+                    <SelectItem value="no-referral">No Referral</SelectItem>
                     {referrals.map((referral) => (
                       <SelectItem key={referral.id} value={referral.id}>
                         {referral.full_name}
