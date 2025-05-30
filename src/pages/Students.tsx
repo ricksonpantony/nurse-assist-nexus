@@ -160,50 +160,52 @@ const Students = () => {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
-            <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
-            <div className="flex-1">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Student Management</h1>
-              <p className="text-sm text-blue-600">Manage student enrollment and course assignments</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={() => setShowImportModal(true)}
-              >
-                <Upload className="h-4 w-4" />
-                Import
-              </Button>
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={handleExportStudents}
-              >
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-              <Button 
-                onClick={() => setShowAddForm(true)}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
-              >
-                <Plus className="h-4 w-4" />
-                Add Student
-              </Button>
-            </div>
-          </header>
+          <div className="flex flex-col h-full">
+            <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
+              <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
+              <div className="flex-1">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Student Management</h1>
+                <p className="text-sm text-blue-600">Manage student enrollment and course assignments</p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setShowImportModal(true)}
+                >
+                  <Upload className="h-4 w-4" />
+                  Import
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="gap-2"
+                  onClick={handleExportStudents}
+                >
+                  <Download className="h-4 w-4" />
+                  Export
+                </Button>
+                <Button 
+                  onClick={() => setShowAddForm(true)}
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Student
+                </Button>
+              </div>
+            </header>
 
-          <main className="flex-1 p-6">
-            <StudentsTable
-              students={students}
-              courses={courses}
-              onEdit={handleEditStudent}
-              onDelete={handleDeleteStudent}
-              onDeleteMultiple={handleDeleteMultipleStudents}
-              onView={handleViewStudent}
-              onUpdatePayment={handleUpdatePayment}
-            />
-          </main>
+            <main className="flex-1 p-6">
+              <StudentsTable
+                students={students}
+                courses={courses}
+                onEdit={handleEditStudent}
+                onDelete={handleDeleteStudent}
+                onDeleteMultiple={handleDeleteMultipleStudents}
+                onView={handleViewStudent}
+                onUpdatePayment={handleUpdatePayment}
+              />
+            </main>
+          </div>
         </SidebarInset>
       </div>
 
