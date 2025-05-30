@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +85,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       passport_id: formData.passport_id || null,
       course_id: formData.course_id || null,
       batch_id: formData.batch_id || null,
-      referral_id: formData.referral_id || null
+      referral_id: formData.referral_id === "direct" ? null : formData.referral_id || null
     };
 
     // If editing, include the student ID
@@ -193,7 +192,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
             <SelectValue placeholder="Select referral person (Optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Direct (No Referral)</SelectItem>
+            <SelectItem value="direct">Direct (No Referral)</SelectItem>
             {referrals.map((referral) => (
               <SelectItem key={referral.id} value={referral.id}>
                 {referral.full_name}
