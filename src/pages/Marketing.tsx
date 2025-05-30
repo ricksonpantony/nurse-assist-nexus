@@ -276,8 +276,8 @@ const Marketing = () => {
           onTransfer={handleTransferToStudent}
         />
       )}
-    /* // </SidebarProvider> */
-      </div>
+     {/* </SidebarProvider>  */}
+    </div>
   );
 };
 
