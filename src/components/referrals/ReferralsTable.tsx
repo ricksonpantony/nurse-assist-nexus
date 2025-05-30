@@ -1,10 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Search, History, UserPlus } from "lucide-react";
 import { Referral } from "@/hooks/useReferrals";
+import { useStudents } from "@/hooks/useStudents";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ReferralsTableProps {
   referrals: Referral[];
@@ -15,6 +17,38 @@ interface ReferralsTableProps {
 
 export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: ReferralsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [referralStats, setReferralStats] = useState<Record<string, { studentCount: number; totalPayments: number }>>({});
+  const { students } = useStudents();
+
+  useEffect(() => {
+    const fetchReferralStats = async () => {
+      const stats: Record<string, { studentCount: number; totalPayments: number }> = {};
+      
+      for (const referral of referrals) {
+        // Count students referred by this referral
+        const referredStudents = students.filter(student => student.referral_id === referral.id);
+        
+        // Get total payments for this referral
+        const { data: payments } = await supabase
+          .from('referral_payments')
+          .select('amount')
+          .eq('referral_id', referral.id);
+        
+        const totalPayments = payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+        
+        stats[referral.id] = {
+          studentCount: referredStudents.length,
+          totalPayments: totalPayments
+        };
+      }
+      
+      setReferralStats(stats);
+    };
+
+    if (referrals.length > 0 && students.length > 0) {
+      fetchReferralStats();
+    }
+  }, [referrals, students]);
 
   const filteredReferrals = referrals.filter(referral => 
     referral.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,58 +79,52 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
               <TableHead className="font-semibold text-blue-900">Name</TableHead>
               <TableHead className="font-semibold text-blue-900">Email</TableHead>
               <TableHead className="font-semibold text-blue-900">Phone</TableHead>
-              <TableHead className="font-semibold text-blue-900">Bank Details</TableHead>
-              <TableHead className="font-semibold text-blue-900">Total Students</TableHead>
-              <TableHead className="font-semibold text-blue-900">Total Payments</TableHead>
+              <TableHead className="font-semibold text-blue-900">Total Students Referred</TableHead>
+              <TableHead className="font-semibold text-blue-900">Total Referral Payment Received</TableHead>
               <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReferrals.map((referral) => (
-              <TableRow key={referral.id} className="hover:bg-blue-50 transition-colors">
-                <TableCell className="font-medium">{referral.full_name}</TableCell>
-                <TableCell className="text-gray-600">{referral.email}</TableCell>
-                <TableCell>{referral.phone}</TableCell>
-                <TableCell>
-                  {referral.bank_name && (
-                    <div className="text-sm">
-                      <div className="font-medium">{referral.bank_name}</div>
-                      {referral.bsb && <div className="text-gray-500">BSB: {referral.bsb}</div>}
-                      {referral.account_number && <div className="text-gray-500">Acc: {referral.account_number}</div>}
+            {filteredReferrals.map((referral) => {
+              const stats = referralStats[referral.id] || { studentCount: 0, totalPayments: 0 };
+              
+              return (
+                <TableRow key={referral.id} className="hover:bg-blue-50 transition-colors">
+                  <TableCell className="font-medium">{referral.full_name}</TableCell>
+                  <TableCell className="text-gray-600">{referral.email}</TableCell>
+                  <TableCell>{referral.phone}</TableCell>
+                  <TableCell className="text-center">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                      {stats.studentCount}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                      ${stats.totalPayments.toFixed(2)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => onViewHistory(referral)}
+                        className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200"
+                      >
+                        <History className="h-4 w-4" />
+                        View
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => onEdit(referral)}>
+                        <Edit className="h-4 w-4 text-orange-600" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => onDelete(referral.id)}>
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
                     </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-center">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
-                    0
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
-                    $0
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2 justify-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => onViewHistory(referral)}
-                      className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200"
-                    >
-                      <History className="h-4 w-4" />
-                      History
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(referral)}>
-                      <Edit className="h-4 w-4 text-orange-600" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => onDelete(referral.id)}>
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

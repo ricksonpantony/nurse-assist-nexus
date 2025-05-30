@@ -92,13 +92,17 @@ export const useStudents = () => {
     return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
   };
 
-  const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => {
+  const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'> & { referral_payment_amount?: number }) => {
     try {
       const newStudentId = await generateStudentId();
       
+      // Extract referral payment amount before saving student
+      const referralPaymentAmount = studentData.referral_payment_amount || 0;
+      const { referral_payment_amount, ...cleanStudentData } = studentData;
+      
       const { data, error } = await supabase
         .from('students')
-        .insert([{ ...studentData, id: newStudentId }])
+        .insert([{ ...cleanStudentData, id: newStudentId }])
         .select()
         .single();
 
@@ -114,6 +118,20 @@ export const useStudents = () => {
             stage: 'Advance',
             amount: studentData.advance_payment,
             payment_mode: 'Credit Card'
+          }]);
+      }
+
+      // Add referral payment if provided and referral exists
+      if (referralPaymentAmount > 0 && studentData.referral_id && studentData.referral_id !== "direct") {
+        await supabase
+          .from('referral_payments')
+          .insert([{
+            referral_id: studentData.referral_id,
+            student_id: newStudentId,
+            amount: referralPaymentAmount,
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_method: 'Bank Transfer',
+            notes: `Payment for referring student ${data.full_name}`
           }]);
       }
       
@@ -140,13 +158,17 @@ export const useStudents = () => {
     }
   };
 
-  const updateStudent = async (id: string, studentData: Partial<Student>) => {
+  const updateStudent = async (id: string, studentData: Partial<Student> & { referral_payment_amount?: number }) => {
     try {
       console.log('Updating student with ID:', id);
       console.log('Update data:', studentData);
       
+      // Extract referral payment amount before updating student
+      const referralPaymentAmount = studentData.referral_payment_amount || 0;
+      const { referral_payment_amount, ...cleanStudentData } = studentData;
+      
       // Remove undefined values and prepare clean update object
-      const cleanData = Object.entries(studentData).reduce((acc, [key, value]) => {
+      const cleanData = Object.entries(cleanStudentData).reduce((acc, [key, value]) => {
         if (value !== undefined) {
           acc[key] = value;
         }
@@ -168,6 +190,20 @@ export const useStudents = () => {
       if (error) {
         console.error('Supabase update error:', error);
         throw error;
+      }
+
+      // Add referral payment if provided and referral exists
+      if (referralPaymentAmount > 0 && cleanData.referral_id && cleanData.referral_id !== "direct") {
+        await supabase
+          .from('referral_payments')
+          .insert([{
+            referral_id: cleanData.referral_id,
+            student_id: id,
+            amount: referralPaymentAmount,
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_method: 'Bank Transfer',
+            notes: `Payment for referring student ${data.full_name}`
+          }]);
       }
       
       console.log('Update successful, returned data:', data);

@@ -33,6 +33,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     course_id: "",
     batch_id: "",
     referral_id: "",
+    referral_payment_amount: 0,
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: "",
     status: "Attend sessions" as Student['status'],
@@ -53,6 +54,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
         course_id: student.course_id || "",
         batch_id: student.batch_id || "",
         referral_id: student.referral_id || "",
+        referral_payment_amount: 0, // Reset for editing
         join_date: student.join_date,
         class_start_date: student.class_start_date || "",
         status: student.status,
@@ -85,7 +87,8 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       passport_id: formData.passport_id || null,
       course_id: formData.course_id || null,
       batch_id: formData.batch_id || null,
-      referral_id: formData.referral_id === "direct" ? null : formData.referral_id || null
+      referral_id: formData.referral_id === "direct" ? null : formData.referral_id || null,
+      referral_payment_amount: formData.referral_payment_amount || 0
     };
 
     // If editing, include the student ID
@@ -185,27 +188,46 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       </div>
 
       {/* Referral Information */}
-      <div>
-        <Label htmlFor="referral_id">Referred By</Label>
-        <Select value={formData.referral_id} onValueChange={handleReferralSelect}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select referral person (Optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="direct">Direct (No Referral)</SelectItem>
-            {referrals.map((referral) => (
-              <SelectItem key={referral.id} value={referral.id}>
-                {referral.full_name}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="referral_id">Referred By</Label>
+          <Select value={formData.referral_id} onValueChange={handleReferralSelect}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select referral person (Optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="direct">Direct (No Referral)</SelectItem>
+              {referrals.map((referral) => (
+                <SelectItem key={referral.id} value={referral.id}>
+                  {referral.full_name}
+                </SelectItem>
+              ))}
+              <SelectItem value="add_new" className="text-blue-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Referral Person
+                </div>
               </SelectItem>
-            ))}
-            <SelectItem value="add_new" className="text-blue-600 font-medium">
-              <div className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add New Referral Person
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Referral Payment Amount - Only show if a referral person is selected */}
+        {formData.referral_id && formData.referral_id !== "direct" && (
+          <div>
+            <Label htmlFor="referral_payment_amount">Referral Payment Amount Paid ($)</Label>
+            <Input
+              id="referral_payment_amount"
+              type="number"
+              value={formData.referral_payment_amount}
+              onChange={(e) => handleInputChange("referral_payment_amount", Number(e.target.value))}
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+            />
+            <p className="text-sm text-gray-500 mt-1">Optional - Payment made to the referral person</p>
+          </div>
+        )}
       </div>
 
       {/* Course Information */}
