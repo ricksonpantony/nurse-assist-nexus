@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, X, UserPlus } from "lucide-react";
@@ -35,23 +34,17 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     
     // Academic Information
     course_id: lead.interested_course_id || "",
-    status: "Enrolled",
+    status: "Attend sessions",
     batch_id: "",
     
     // Financial Information
     total_course_fee: "",
     installments: "1",
     advance_payment: "0",
-    payment_status: "Pending",
-    payment_method: "Bank Transfer",
     
     // Referral Information
     referral_id: lead.referral_id || "no-referral",
     referral_payment_amount: "0",
-    
-    // Additional Information
-    notes: `Transferred from Lead ID: ${lead.lead_id || 'N/A'}`,
-    original_lead_id: lead.lead_id || ""
   });
 
   const [joinDate, setJoinDate] = useState<Date>(new Date());
@@ -68,20 +61,12 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     }));
   };
 
-  const generateStudentId = () => {
-    const timestamp = Date.now().toString().slice(-4);
-    return `STU-${timestamp}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const studentId = generateStudentId();
-      
       const studentData = {
-        id: studentId,
         ...formData,
         join_date: format(joinDate, 'yyyy-MM-dd'),
         class_start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
@@ -113,19 +98,14 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <UserPlus className="h-6 w-6 text-blue-600" />
-              <div>
-                <DialogTitle className="text-2xl text-blue-900 font-bold">
-                  Transfer Lead to Student Account
-                </DialogTitle>
-                <p className="text-sm text-blue-600 mt-1">
-                  Complete student enrollment from lead: {lead.lead_id}
-                </p>
-              </div>
+              <DialogTitle className="text-xl text-blue-900">
+                Transfer Lead to Student Account
+              </DialogTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -133,308 +113,251 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-2 h-6 bg-blue-500 rounded"></div>
-              Personal Information
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="full_name">Full Name *</Label>
-                <Input
-                  id="full_name"
-                  value={formData.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="passport_id">Passport/ID Number</Label>
-                <Input
-                  id="passport_id"
-                  value={formData.passport_id}
-                  onChange={(e) => handleInputChange('passport_id', e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <Select value={formData.country} onValueChange={(value) => handleInputChange('country', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-country">No Country Selected</SelectItem>
-                    {countries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            <strong>Transferring:</strong> {lead.full_name} ({lead.lead_id}) from lead to student account.
+            Please review and complete the student information below.
+          </p>
+        </div>
 
-          {/* Academic Information Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-green-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-2 h-6 bg-green-500 rounded"></div>
-              Academic Information
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="course_id">Course *</Label>
-                <Select value={formData.course_id} onValueChange={handleCourseChange}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-course">No Course Selected</SelectItem>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title} - ${course.fee}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="status">Status *</Label>
-                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Enrolled">Enrolled</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="batch_id">Batch ID</Label>
-                <Input
-                  id="batch_id"
-                  value={formData.batch_id}
-                  onChange={(e) => handleInputChange('batch_id', e.target.value)}
-                  className="mt-1"
-                  placeholder="e.g., BATCH-2024-01"
-                />
-              </div>
-              <div>
-                <Label>Join Date *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn("w-full justify-start text-left font-normal mt-1")}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(joinDate, "PPP")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={joinDate}
-                      onSelect={(date) => date && setJoinDate(date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="col-span-2">
-                <Label>Class Start Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal mt-1",
-                        !classStartDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {classStartDate ? format(classStartDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={classStartDate}
-                      onSelect={setClassStartDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          </div>
-
-          {/* Financial Information Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-2 h-6 bg-orange-500 rounded"></div>
-              Financial Information
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="total_course_fee">Total Course Fee *</Label>
-                <Input
-                  id="total_course_fee"
-                  type="number"
-                  step="0.01"
-                  value={formData.total_course_fee}
-                  onChange={(e) => handleInputChange('total_course_fee', e.target.value)}
-                  required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="installments">Installments</Label>
-                <Input
-                  id="installments"
-                  type="number"
-                  value={formData.installments}
-                  onChange={(e) => handleInputChange('installments', e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="advance_payment">Advance Payment</Label>
-                <Input
-                  id="advance_payment"
-                  type="number"
-                  step="0.01"
-                  value={formData.advance_payment}
-                  onChange={(e) => handleInputChange('advance_payment', e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="payment_status">Payment Status</Label>
-                <Select value={formData.payment_status} onValueChange={(value) => handleInputChange('payment_status', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Partial">Partial</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Overdue">Overdue</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="payment_method">Payment Method</Label>
-                <Select value={formData.payment_method} onValueChange={(value) => handleInputChange('payment_method', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Credit Card">Credit Card</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Cheque">Cheque</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Referral Information Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-              <div className="w-2 h-6 bg-purple-500 rounded"></div>
-              Referral Information
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="referral_id">Referred By</Label>
-                <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select referral (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-referral">No Referral</SelectItem>
-                    {referrals.map((referral) => (
-                      <SelectItem key={referral.id} value={referral.id}>
-                        {referral.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
-                <Input
-                  id="referral_payment_amount"
-                  type="number"
-                  step="0.01"
-                  value={formData.referral_payment_amount}
-                  onChange={(e) => handleInputChange('referral_payment_amount', e.target.value)}
-                  placeholder="0.00"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Information Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-2 h-6 bg-gray-500 rounded"></div>
-              Additional Information
-            </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Personal Information */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                rows={3}
-                className="mt-1"
-                placeholder="Additional notes about the student transfer..."
+              <Label htmlFor="full_name">Full Name *</Label>
+              <Input
+                id="full_name"
+                value={formData.full_name}
+                onChange={(e) => handleInputChange('full_name', e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                required
               />
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone">Phone *</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="passport_id">Passport ID</Label>
+              <Input
+                id="passport_id"
+                value={formData.passport_id}
+                onChange={(e) => handleInputChange('passport_id', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="country">Country</Label>
+            <Input
+              id="country"
+              value={formData.country}
+              onChange={(e) => handleInputChange('country', e.target.value)}
+            />
+          </div>
+
+          {/* Referral Information */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="referral_id">Referred By</Label>
+              <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select referral person (Optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no-referral">Direct (No Referral)</SelectItem>
+                  {referrals.map((referral) => (
+                    <SelectItem key={referral.id} value={referral.id}>
+                      {referral.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Referral Payment Amount - Only show if a referral person is selected */}
+            {formData.referral_id && formData.referral_id !== "no-referral" && (
+              <div>
+                <Label htmlFor="referral_payment_amount">Referral Payment Amount Paid ($)</Label>
+                <Input
+                  id="referral_payment_amount"
+                  type="number"
+                  value={formData.referral_payment_amount}
+                  onChange={(e) => handleInputChange('referral_payment_amount', e.target.value)}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+                <p className="text-sm text-gray-500 mt-1">Optional - Payment made to the referral person</p>
+              </div>
+            )}
+          </div>
+
+          {/* Course Information */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="course_id">Course *</Label>
+              <Select value={formData.course_id} onValueChange={handleCourseChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="batch_id">Batch ID</Label>
+              <Input
+                id="batch_id"
+                value={formData.batch_id}
+                onChange={(e) => handleInputChange('batch_id', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Join Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(joinDate, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={joinDate}
+                    onSelect={(date) => date && setJoinDate(date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Class Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !classStartDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {classStartDate ? format(classStartDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={classStartDate}
+                    onSelect={setClassStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value) => handleInputChange('status', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Attended Online">Attended Online</SelectItem>
+                <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                <SelectItem value="Pass">Pass</SelectItem>
+                <SelectItem value="Fail">Fail</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Information */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="total_course_fee">Total Course Fee *</Label>
+              <Input
+                id="total_course_fee"
+                type="number"
+                value={formData.total_course_fee}
+                onChange={(e) => handleInputChange('total_course_fee', e.target.value)}
+                required
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <Label htmlFor="advance_payment">Advance Payment</Label>
+              <Input
+                id="advance_payment"
+                type="number"
+                value={formData.advance_payment}
+                onChange={(e) => handleInputChange('advance_payment', e.target.value)}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <Label htmlFor="installments">Installments</Label>
+              <Select value={formData.installments} onValueChange={(value) => handleInputChange('installments', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                    <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
@@ -442,9 +365,9 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
             <Button 
               type="submit" 
               disabled={loading} 
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
             >
-              {loading ? 'Transferring...' : 'Complete Transfer to Student Account'}
+              {loading ? 'Transferring...' : 'Add Student'}
             </Button>
           </div>
         </form>

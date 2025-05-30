@@ -96,17 +96,33 @@ export const useStudents = () => {
     try {
       const newStudentId = await generateStudentId();
       
+      console.log('Generated student ID:', newStudentId);
+      console.log('Student data to insert:', studentData);
+      
       // Extract referral payment amount before saving student
       const referralPaymentAmount = studentData.referral_payment_amount || 0;
       const { referral_payment_amount, ...cleanStudentData } = studentData;
       
+      // Prepare the data for insertion - ensure we don't include notes field
+      const insertData = {
+        ...cleanStudentData,
+        id: newStudentId
+      };
+      
+      console.log('Clean insert data:', insertData);
+      
       const { data, error } = await supabase
         .from('students')
-        .insert([{ ...cleanStudentData, id: newStudentId }])
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
+
+      console.log('Student inserted successfully:', data);
 
       // Add advance payment if provided
       if (studentData.advance_payment > 0) {
@@ -144,14 +160,14 @@ export const useStudents = () => {
       setStudents(prev => [transformedData, ...prev]);
       toast({
         title: "Success",
-        description: "Student added successfully",
+        description: `Student added successfully with ID: ${newStudentId}`,
       });
       return transformedData;
     } catch (error) {
       console.error('Error adding student:', error);
       toast({
         title: "Error",
-        description: "Failed to add student",
+        description: `Failed to add student: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
       throw error;
