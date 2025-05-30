@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ export interface Student {
   passport_id: string | null;
   course_id: string | null;
   batch_id: string | null;
+  referral_id: string | null;
   join_date: string;
   class_start_date: string | null;
   status: 'Attended Online' | 'Attend sessions' | 'Attended F2F' | 'Exam cycle' | 'Awaiting results' | 'Pass' | 'Fail';
