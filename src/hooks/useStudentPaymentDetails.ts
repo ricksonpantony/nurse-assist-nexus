@@ -1,130 +1,44 @@
 
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Payment } from "@/hooks/useStudents";
 
-export const useStudentPaymentDetails = () => {
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+export const useStudentPaymentDetails = (studentId?: string) => {
+  const [paymentData, setPaymentData] = useState<Payment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPaymentDetails = async (studentId: string) => {
-    if (!studentId) {
-      console.error('Student ID is required');
-      return [];
-    }
+  const fetchPayments = useCallback(async () => {
+    if (!studentId) return;
     
+    setIsLoading(true);
     try {
-      setLoading(true);
-      
       const { data, error } = await supabase
         .from('payments')
         .select('*')
         .eq('student_id', studentId)
-        .order('payment_date', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data || [];
-    } catch (error: any) {
-      toast({
-        title: "Error fetching payment details",
-        description: error.message || "Failed to load payment details",
-        variant: "destructive"
-      });
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
+        .order('payment_date', { ascending: true });
 
-  const addPaymentRecord = async (paymentData: any) => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('payments')
-        .insert(paymentData)
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data;
-    } catch (error: any) {
-      toast({
-        title: "Error adding payment",
-        description: error.message || "Failed to add payment record",
-        variant: "destructive"
-      });
-      throw error;
+      if (error) throw error;
+      setPaymentData(data || []);
+    } catch (error) {
+      console.error('Error fetching student payments:', error);
+      setPaymentData([]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
+  }, [studentId]);
 
-  const updatePaymentRecord = async (paymentId: string, paymentData: any) => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('payments')
-        .update(paymentData)
-        .eq('id', paymentId)
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data;
-    } catch (error: any) {
-      toast({
-        title: "Error updating payment",
-        description: error.message || "Failed to update payment record",
-        variant: "destructive"
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalPaid = paymentData.reduce((sum, payment) => sum + payment.amount, 0);
 
-  const deletePaymentRecord = async (paymentId: string) => {
-    try {
-      setLoading(true);
-      
-      const { error } = await supabase
-        .from('payments')
-        .delete()
-        .eq('id', paymentId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      return true;
-    } catch (error: any) {
-      toast({
-        title: "Error deleting payment",
-        description: error.message || "Failed to delete payment record",
-        variant: "destructive"
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Calculate remaining amount - this would need student data to be accurate
+  // For now, returning 0 as we don't have access to total course fee here
+  const remainingAmount = 0;
 
   return {
-    loading,
-    fetchPaymentDetails,
-    addPaymentRecord,
-    updatePaymentRecord,
-    deletePaymentRecord
+    paymentData,
+    totalPaid,
+    remainingAmount,
+    isLoading,
+    fetchPayments
   };
 };

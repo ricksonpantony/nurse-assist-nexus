@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -230,7 +229,6 @@ const Students = () => {
             setSelectedStudent(null);
             setStudentPayments([]);
           }}
-          onRefresh={handleRefreshStudentDetails}
           onEdit={handleEditStudent}
           onDelete={handleDeleteStudent}
         />
