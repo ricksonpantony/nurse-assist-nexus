@@ -58,21 +58,11 @@ export const useReferrals = () => {
       setReferrals(data || []);
     } catch (error: any) {
       console.error('Error fetching referrals:', error);
-      
-      // More specific error handling
-      if (error?.code === 'PGRST116') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to view referrals. Please contact an administrator.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to fetch referral data. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to fetch referral data. Please try again.",
+        variant: "destructive",
+      });
       setReferrals([]);
     } finally {
       setLoading(false);
@@ -103,20 +93,11 @@ export const useReferrals = () => {
       return data;
     } catch (error: any) {
       console.error('Error adding referral:', error);
-      
-      if (error?.code === 'PGRST116') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to add referrals. Please contact an administrator.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to add referral. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to add referral. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -155,20 +136,11 @@ export const useReferrals = () => {
       return data;
     } catch (error: any) {
       console.error('Error updating referral:', error);
-      
-      if (error?.code === 'PGRST116') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to update referrals. Please contact an administrator.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update referral. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to update referral. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -195,20 +167,11 @@ export const useReferrals = () => {
       });
     } catch (error: any) {
       console.error('Error deleting referral:', error);
-      
-      if (error?.code === 'PGRST116') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to delete referrals. Please contact an administrator.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete referral. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to delete referral. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -259,20 +222,11 @@ export const useReferrals = () => {
       return data;
     } catch (error: any) {
       console.error('Error adding referral payment:', error);
-      
-      if (error?.code === 'PGRST116') {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to add referral payments. Please contact an administrator.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to add referral payment. Please try again.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to add referral payment. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };

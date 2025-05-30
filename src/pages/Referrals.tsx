@@ -2,13 +2,12 @@
 import { useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, FileText, AlertCircle } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { ReferralsTable } from "@/components/referrals/ReferralsTable";
 import { AddReferralForm } from "@/components/referrals/AddReferralForm";
 import { ReferralHistoryModal } from "@/components/referrals/ReferralHistoryModal";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Referrals = () => {
   const { referrals, loading, addReferral, updateReferral, deleteReferral, fetchReferralPayments } = useReferrals();
@@ -126,15 +125,6 @@ const Referrals = () => {
       </header>
 
       <main className="flex-1 p-6">
-        {referrals.length === 0 && !loading && (
-          <Alert className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No referrals found. This could be because you don't have admin permissions or no referrals have been added yet.
-            </AlertDescription>
-          </Alert>
-        )}
-        
         <ReferralsTable
           referrals={referrals}
           onEdit={handleEditReferral}
