@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import { X, Edit, Trash2, Printer } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { useStudentPaymentDetails } from "@/hooks/useStudentPaymentDetails";
-import { PaymentUpdateModal } from "@/components/payments/PaymentUpdateModal";
-import { DeleteConfirmationModal } from "@/components/ui/delete-confirmation-modal";
+import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
+import { DeleteConfirmationModal } from "@/components/students/DeleteConfirmationModal";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Course } from "@/hooks/useCourses";
 
 interface StudentDetailsViewProps {
   student: Student;
+  courses: Course[];
   onClose: () => void;
   onEdit: (student: Student) => void;
   onDelete: (studentId: string) => void;
@@ -43,7 +45,7 @@ const PrintOptionsModal = ({ isOpen, onClose, onConfirm }: {
   );
 };
 
-export const StudentDetailsView = ({ student, onClose, onEdit, onDelete }: StudentDetailsViewProps) => {
+export const StudentDetailsView = ({ student, courses, onClose, onEdit, onDelete }: StudentDetailsViewProps) => {
   const { totalPaid, remainingAmount, paymentData, isLoading, fetchPayments } = useStudentPaymentDetails(student?.id);
   const [activeTab, setActiveTab] = useState<'overview' | 'payments'>('overview');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -51,6 +53,9 @@ export const StudentDetailsView = ({ student, onClose, onEdit, onDelete }: Stude
   const { referrals } = useReferrals();
   const isMobile = useIsMobile();
   const [showPrintModal, setShowPrintModal] = useState(false);
+  
+  // Calculate actual remaining amount using student's total course fee
+  const actualRemainingAmount = student.total_course_fee - totalPaid;
   
   useEffect(() => {
     if (student?.id) {
@@ -150,7 +155,7 @@ export const StudentDetailsView = ({ student, onClose, onEdit, onDelete }: Stude
         </div>
         <div>
           <p className="text-sm text-gray-500">Remaining Amount</p>
-          <p>${remainingAmount.toFixed(2)}</p>
+          <p>${actualRemainingAmount.toFixed(2)}</p>
         </div>
       </div>
     </div>
@@ -319,8 +324,9 @@ export const StudentDetailsView = ({ student, onClose, onEdit, onDelete }: Stude
       {/* Payment Modal */}
       {showPaymentModal && (
         <PaymentUpdateModal
-          studentId={student.id}
+          isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
+          student={student}
           onPaymentAdded={() => {
             setShowPaymentModal(false);
             fetchPayments();
@@ -338,8 +344,8 @@ export const StudentDetailsView = ({ student, onClose, onEdit, onDelete }: Stude
             setShowDeleteModal(false);
             onClose();
           }}
-          title="Delete Student"
-          message={`Are you sure you want to delete ${student.full_name}? This action cannot be undone.`}
+          count={1}
+          studentNames={[student.full_name]}
         />
       )}
 
