@@ -36,20 +36,44 @@ export const useReferrals = () => {
   const fetchReferrals = async () => {
     try {
       setLoading(true);
+      
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        setReferrals([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('referrals')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
       setReferrals(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching referrals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch referrals",
-        variant: "destructive",
-      });
+      
+      // More specific error handling
+      if (error?.code === 'PGRST116') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to view referrals. Please contact an administrator.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch referral data. Please try again.",
+          variant: "destructive",
+        });
+      }
+      setReferrals([]);
     } finally {
       setLoading(false);
     }
@@ -57,6 +81,12 @@ export const useReferrals = () => {
 
   const addReferral = async (referralData: Omit<Referral, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('referrals')
         .insert([referralData])
@@ -71,19 +101,34 @@ export const useReferrals = () => {
         description: "Referral added successfully",
       });
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding referral:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add referral",
-        variant: "destructive",
-      });
+      
+      if (error?.code === 'PGRST116') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to add referrals. Please contact an administrator.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add referral. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };
 
   const updateReferral = async (id: string, referralData: Partial<Referral>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const cleanData = Object.entries(referralData).reduce((acc, [key, value]) => {
         if (value !== undefined) {
           acc[key] = value;
@@ -108,19 +153,34 @@ export const useReferrals = () => {
         description: "Referral updated successfully",
       });
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating referral:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update referral",
-        variant: "destructive",
-      });
+      
+      if (error?.code === 'PGRST116') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to update referrals. Please contact an administrator.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update referral. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };
 
   const deleteReferral = async (id: string) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('referrals')
         .delete()
@@ -133,19 +193,35 @@ export const useReferrals = () => {
         title: "Success",
         description: "Referral deleted successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting referral:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete referral",
-        variant: "destructive",
-      });
+      
+      if (error?.code === 'PGRST116') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to delete referrals. Please contact an administrator.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete referral. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };
 
   const fetchReferralPayments = async (referralId: string): Promise<ReferralPayment[]> => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated');
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('referral_payments')
         .select('*')
@@ -154,7 +230,7 @@ export const useReferrals = () => {
 
       if (error) throw error;
       return data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching referral payments:', error);
       return [];
     }
@@ -162,6 +238,12 @@ export const useReferrals = () => {
 
   const addReferralPayment = async (paymentData: Omit<ReferralPayment, 'id' | 'created_at'>) => {
     try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('referral_payments')
         .insert([paymentData])
@@ -175,13 +257,22 @@ export const useReferrals = () => {
         description: "Referral payment added successfully",
       });
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding referral payment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add referral payment",
-        variant: "destructive",
-      });
+      
+      if (error?.code === 'PGRST116') {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to add referral payments. Please contact an administrator.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add referral payment. Please try again.",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };

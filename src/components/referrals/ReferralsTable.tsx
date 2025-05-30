@@ -22,30 +22,44 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
 
   useEffect(() => {
     const fetchReferralStats = async () => {
+      if (referrals.length === 0) return;
+      
       const stats: Record<string, { studentCount: number; totalPayments: number }> = {};
       
       for (const referral of referrals) {
-        // Count students referred by this referral
-        const referredStudents = students.filter(student => student.referral_id === referral.id);
-        
-        // Get total payments for this referral
-        const { data: payments } = await supabase
-          .from('referral_payments')
-          .select('amount')
-          .eq('referral_id', referral.id);
-        
-        const totalPayments = payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
-        
-        stats[referral.id] = {
-          studentCount: referredStudents.length,
-          totalPayments: totalPayments
-        };
+        try {
+          // Count students referred by this referral
+          const referredStudents = students.filter(student => student.referral_id === referral.id);
+          
+          // Get total payments for this referral
+          const { data: payments, error } = await supabase
+            .from('referral_payments')
+            .select('amount')
+            .eq('referral_id', referral.id);
+          
+          if (error) {
+            console.error('Error fetching payments for referral:', referral.id, error);
+          }
+          
+          const totalPayments = payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+          
+          stats[referral.id] = {
+            studentCount: referredStudents.length,
+            totalPayments: totalPayments
+          };
+        } catch (error) {
+          console.error('Error calculating stats for referral:', referral.id, error);
+          stats[referral.id] = {
+            studentCount: 0,
+            totalPayments: 0
+          };
+        }
       }
       
       setReferralStats(stats);
     };
 
-    if (referrals.length > 0 && students.length > 0) {
+    if (referrals.length > 0 && students.length >= 0) {
       fetchReferralStats();
     }
   }, [referrals, students]);
@@ -132,7 +146,11 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
       {filteredReferrals.length === 0 && (
         <div className="p-8 text-center text-gray-500">
           <UserPlus className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <p>No referrals found matching your criteria.</p>
+          {referrals.length === 0 ? (
+            <p>No referrals found. Add your first referral to get started.</p>
+          ) : (
+            <p>No referrals found matching your search criteria.</p>
+          )}
         </div>
       )}
     </div>

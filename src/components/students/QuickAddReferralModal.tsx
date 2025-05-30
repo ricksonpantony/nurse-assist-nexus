@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
 import { Referral } from "@/hooks/useReferrals";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuickAddReferralModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface QuickAddReferralModalProps {
 
 export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: QuickAddReferralModalProps) => {
   const { addReferral } = useReferrals();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -32,6 +34,11 @@ export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: Quic
     e.preventDefault();
     
     if (!formData.full_name || !formData.email || !formData.phone) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields (Name, Email, Phone)",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -41,7 +48,8 @@ export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: Quic
       onReferralAdded(newReferral);
       handleClose();
     } catch (error) {
-      // Error handled in hook
+      // Error is already handled in the hook
+      console.error('Failed to add referral:', error);
     } finally {
       setIsSubmitting(false);
     }
