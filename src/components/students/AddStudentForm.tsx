@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, Plus } from "lucide-react";
+import { X } from "lucide-react";
 import { Course } from "@/hooks/useCourses";
 import { Student } from "@/hooks/useStudents";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReferrals } from "@/hooks/useReferrals";
 import { QuickAddReferralModal } from "./QuickAddReferralModal";
+import { PersonalInfoForm } from "./form/PersonalInfoForm";
+import { ReferralInfoForm } from "./form/ReferralInfoForm";
+import { CourseInfoForm } from "./form/CourseInfoForm";
+import { PaymentInfoForm } from "./form/PaymentInfoForm";
 
 interface AddStudentFormProps {
   student?: Student;
@@ -28,7 +31,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     email: "",
     phone: "",
     address: "",
-    country: "",
+    country: "India", // Default to India
     passport_id: "",
     course_id: "",
     batch_id: "",
@@ -49,7 +52,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
         email: student.email,
         phone: student.phone,
         address: student.address || "",
-        country: student.country || "",
+        country: student.country || "India", // Default to India if not set
         passport_id: student.passport_id || "",
         course_id: student.course_id || "",
         batch_id: student.batch_id || "",
@@ -83,7 +86,6 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       ...formData,
       class_start_date: formData.class_start_date || null,
       address: formData.address || null,
-      country: formData.country || null,
       passport_id: formData.passport_id || null,
       course_id: formData.course_id || null,
       batch_id: formData.batch_id || null,
@@ -121,224 +123,39 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       {/* Auto-generated ID display for edit mode */}
       {student && (
         <div>
-          <Label>Student ID</Label>
           <Input value={student.id} disabled className="bg-gray-100" />
         </div>
       )}
 
       {/* Personal Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="full_name">Full Name *</Label>
-          <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) => handleInputChange("full_name", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Email *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="phone">Phone *</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="passport_id">Passport ID</Label>
-          <Input
-            id="passport_id"
-            value={formData.passport_id}
-            onChange={(e) => handleInputChange("passport_id", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="address">Address</Label>
-        <Input
-          id="address"
-          value={formData.address}
-          onChange={(e) => handleInputChange("address", e.target.value)}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="country">Country</Label>
-        <Input
-          id="country"
-          value={formData.country}
-          onChange={(e) => handleInputChange("country", e.target.value)}
-        />
-      </div>
+      <PersonalInfoForm 
+        formData={formData} 
+        onFieldChange={handleInputChange} 
+        isMobile={isMobile} 
+      />
 
       {/* Referral Information */}
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="referral_id">Referred By</Label>
-          <Select value={formData.referral_id} onValueChange={handleReferralSelect}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select referral person (Optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="direct">Direct (No Referral)</SelectItem>
-              {referrals.map((referral) => (
-                <SelectItem key={referral.id} value={referral.id}>
-                  {referral.full_name}
-                </SelectItem>
-              ))}
-              <SelectItem value="add_new" className="text-blue-600 font-medium">
-                <div className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add New Referral Person
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Referral Payment Amount - Only show if a referral person is selected */}
-        {formData.referral_id && formData.referral_id !== "direct" && (
-          <div>
-            <Label htmlFor="referral_payment_amount">Referral Payment Amount Paid ($)</Label>
-            <Input
-              id="referral_payment_amount"
-              type="number"
-              value={formData.referral_payment_amount}
-              onChange={(e) => handleInputChange("referral_payment_amount", Number(e.target.value))}
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-            />
-            <p className="text-sm text-gray-500 mt-1">Optional - Payment made to the referral person</p>
-          </div>
-        )}
-      </div>
+      <ReferralInfoForm
+        formData={formData}
+        referrals={referrals}
+        onFieldChange={handleInputChange}
+        onAddNewReferral={() => setShowQuickAddReferral(true)}
+      />
 
       {/* Course Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="course_id">Course *</Label>
-          <Select value={formData.course_id} onValueChange={(value) => handleInputChange("course_id", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="batch_id">Batch ID</Label>
-          <Input
-            id="batch_id"
-            value={formData.batch_id}
-            onChange={(e) => handleInputChange("batch_id", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="join_date">Join Date *</Label>
-          <Input
-            id="join_date"
-            type="date"
-            value={formData.join_date}
-            onChange={(e) => handleInputChange("join_date", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="class_start_date">Class Start Date</Label>
-          <Input
-            id="class_start_date"
-            type="date"
-            value={formData.class_start_date}
-            onChange={(e) => handleInputChange("class_start_date", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="status">Status</Label>
-        <Select 
-          value={formData.status} 
-          onValueChange={(value: Student['status']) => handleInputChange("status", value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Attended Online">Attended Online</SelectItem>
-            <SelectItem value="Attend sessions">Attend sessions</SelectItem>
-            <SelectItem value="Attended F2F">Attended F2F</SelectItem>
-            <SelectItem value="Exam cycle">Exam cycle</SelectItem>
-            <SelectItem value="Awaiting results">Awaiting results</SelectItem>
-            <SelectItem value="Pass">Pass</SelectItem>
-            <SelectItem value="Fail">Fail</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <CourseInfoForm
+        formData={formData}
+        courses={courses}
+        onFieldChange={handleInputChange}
+        isMobile={isMobile}
+      />
 
       {/* Payment Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-3 gap-4"}>
-        <div>
-          <Label htmlFor="total_course_fee">Total Course Fee *</Label>
-          <Input
-            id="total_course_fee"
-            type="number"
-            value={formData.total_course_fee}
-            onChange={(e) => handleInputChange("total_course_fee", Number(e.target.value))}
-            required
-            min="0"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <Label htmlFor="advance_payment">Advance Payment</Label>
-          <Input
-            id="advance_payment"
-            type="number"
-            value={formData.advance_payment}
-            onChange={(e) => handleInputChange("advance_payment", Number(e.target.value))}
-            min="0"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <Label htmlFor="installments">Installments</Label>
-          <Select value={String(formData.installments)} onValueChange={(value) => handleInputChange("installments", Number(value))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <SelectItem key={num} value={String(num)}>{num}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PaymentInfoForm
+        formData={formData}
+        onFieldChange={handleInputChange}
+        isMobile={isMobile}
+      />
 
       {/* Form Actions */}
       <div className={`flex gap-3 pt-4 ${isMobile ? "flex-col" : "justify-end"}`}>

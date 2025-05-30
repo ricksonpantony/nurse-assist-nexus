@@ -1,369 +1,230 @@
 
-import { useState, useMemo } from 'react';
-import { useStudents } from '@/hooks/useStudents';
-import { useCourses } from '@/hooks/useCourses';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Download, Filter, Printer, Users } from 'lucide-react';
-import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Search } from "lucide-react";
+import { useStudents, Student } from "@/hooks/useStudents";
+import { useCourses } from "@/hooks/useCourses";
+import { countries } from "@/utils/countries";
+import * as XLSX from "xlsx";
 
 export const StudentReports = () => {
   const { students } = useStudents();
   const { courses } = useCourses();
-  
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    month: 'all',
-    year: new Date().getFullYear().toString(),
-    status: 'all',
-    course: 'all',
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
 
-  const [sortBy, setSortBy] = useState('join_date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  // Filter and sort students based on criteria
-  const filteredStudents = useMemo(() => {
+  useEffect(() => {
     let filtered = [...students];
 
-    // Filter by join date range
-    if (filters.dateFrom) {
-      filtered = filtered.filter(student => 
-        new Date(student.join_date) >= new Date(filters.dateFrom)
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (student) =>
+          student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.phone.includes(searchTerm)
       );
-    }
-    if (filters.dateTo) {
-      filtered = filtered.filter(student => 
-        new Date(student.join_date) <= new Date(filters.dateTo)
-      );
-    }
-
-    // Filter by specific month/year
-    if (filters.month && filters.month !== 'all' && filters.year) {
-      filtered = filtered.filter(student => {
-        const joinDate = new Date(student.join_date);
-        return joinDate.getMonth() === parseInt(filters.month) - 1 && 
-               joinDate.getFullYear() === parseInt(filters.year);
-      });
     }
 
     // Filter by status
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter(student => student.status === filters.status);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((student) => student.status === statusFilter);
     }
 
     // Filter by course
-    if (filters.course && filters.course !== 'all') {
-      filtered = filtered.filter(student => student.course_id === filters.course);
+    if (courseFilter !== "all") {
+      filtered = filtered.filter((student) => student.course_id === courseFilter);
+    }
+    
+    // Filter by country
+    if (countryFilter !== "all") {
+      filtered = filtered.filter((student) => student.country === countryFilter);
     }
 
-    // Sort students
-    filtered.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortBy) {
-        case 'join_date':
-          aValue = new Date(a.join_date);
-          bValue = new Date(b.join_date);
-          break;
-        case 'full_name':
-          aValue = a.full_name.toLowerCase();
-          bValue = b.full_name.toLowerCase();
-          break;
-        case 'status':
-          aValue = a.status;
-          bValue = b.status;
-          break;
-        default:
-          aValue = a[sortBy as keyof typeof a];
-          bValue = b[sortBy as keyof typeof b];
-      }
+    setFilteredStudents(filtered);
+  }, [students, searchTerm, statusFilter, courseFilter, countryFilter]);
 
-      if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-
-    return filtered;
-  }, [students, filters, sortBy, sortOrder]);
-
-  // Calculate totals
-  const totalStudents = filteredStudents.length;
-  const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
-
-  const getStatusBadge = (status: string) => {
-    const colors = {
-      'Attended Online': 'bg-blue-100 text-blue-800',
-      'Attend sessions': 'bg-green-100 text-green-800',
-      'Attended F2F': 'bg-purple-100 text-purple-800',
-      'Exam cycle': 'bg-yellow-100 text-yellow-800',
-      'Awaiting results': 'bg-orange-100 text-orange-800',
-      'Pass': 'bg-emerald-100 text-emerald-800',
-      'Fail': 'bg-red-100 text-red-800',
-    };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  const getCourseTitle = (courseId: string | null) => {
+    if (!courseId) return "N/A";
+    const course = courses.find((c) => c.id === courseId);
+    return course ? course.title : "Unknown Course";
   };
 
-  const getCourseName = (courseId: string | null) => {
-    if (!courseId) return 'No Course Assigned';
-    const course = courses.find(c => c.id === courseId);
-    return course?.title || 'Unknown Course';
-  };
+  const exportToExcel = () => {
+    // Prepare data for export
+    const dataToExport = filteredStudents.map((student) => ({
+      "Student ID": student.id,
+      "Full Name": student.full_name,
+      "Email": student.email,
+      "Phone": student.phone,
+      "Address": student.address || "",
+      "Country": student.country || "",
+      "Course": getCourseTitle(student.course_id),
+      "Join Date": student.join_date,
+      "Status": student.status,
+      "Course Fee": student.total_course_fee,
+      "Advance Payment": student.advance_payment,
+      "Installments": student.installments,
+    }));
 
-  const handleExport = () => {
-    exportStudentsToExcel(filteredStudents, courses);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      dateFrom: '',
-      dateTo: '',
-      month: 'all',
-      year: new Date().getFullYear().toString(),
-      status: 'all',
-      course: 'all',
-    });
+    // Create worksheet
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    
+    // Generate Excel file
+    XLSX.writeFile(wb, "students_report.xlsx");
   };
 
   return (
-    <div className="space-y-6">
-      {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
-            <Filter className="h-5 w-5" />
-            Report Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Date Range Filters */}
-            <div className="space-y-2">
-              <Label>From Date</Label>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Student Reports</CardTitle>
+        <CardDescription>
+          Comprehensive report of all students with filtering options.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-6 space-y-4">
+          {/* Search and filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
               />
             </div>
-            <div className="space-y-2">
-              <Label>To Date</Label>
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-              />
-            </div>
-
-            {/* Month/Year Filters */}
-            <div className="space-y-2">
-              <Label>Specific Month</Label>
-              <Select value={filters.month} onValueChange={(value) => setFilters(prev => ({ ...prev, month: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Months</SelectItem>
-                  <SelectItem value="1">January</SelectItem>
-                  <SelectItem value="2">February</SelectItem>
-                  <SelectItem value="3">March</SelectItem>
-                  <SelectItem value="4">April</SelectItem>
-                  <SelectItem value="5">May</SelectItem>
-                  <SelectItem value="6">June</SelectItem>
-                  <SelectItem value="7">July</SelectItem>
-                  <SelectItem value="8">August</SelectItem>
-                  <SelectItem value="9">September</SelectItem>
-                  <SelectItem value="10">October</SelectItem>
-                  <SelectItem value="11">November</SelectItem>
-                  <SelectItem value="12">December</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Year</Label>
-              <Input
-                type="number"
-                value={filters.year}
-                onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value }))}
-                min="2020"
-                max="2030"
-              />
-            </div>
-
-            {/* Status Filter - Updated with new status values */}
-            <div className="space-y-2">
-              <Label>Student Status</Label>
-              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Attended Online">Attended Online</SelectItem>
-                  <SelectItem value="Attend sessions">Attend sessions</SelectItem>
-                  <SelectItem value="Attended F2F">Attended F2F</SelectItem>
-                  <SelectItem value="Exam cycle">Exam cycle</SelectItem>
-                  <SelectItem value="Awaiting results">Awaiting results</SelectItem>
-                  <SelectItem value="Pass">Pass</SelectItem>
-                  <SelectItem value="Fail">Fail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Course Filter */}
-            <div className="space-y-2">
-              <Label>Course</Label>
-              <Select value={filters.course} onValueChange={(value) => setFilters(prev => ({ ...prev, course: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All courses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Courses</SelectItem>
-                  {courses.map(course => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Sort Options */}
-            <div className="space-y-2">
-              <Label>Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="join_date">Join Date</SelectItem>
-                  <SelectItem value="full_name">Name</SelectItem>
-                  <SelectItem value="status">Status</SelectItem>
-                  <SelectItem value="total_course_fee">Course Fee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Sort Order</Label>
-              <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">Descending</SelectItem>
-                  <SelectItem value="asc">Ascending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Clear Filters
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Attended Online">Attended Online</SelectItem>
+                <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                <SelectItem value="Pass">Pass</SelectItem>
+                <SelectItem value="Fail">Fail</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={courseFilter} onValueChange={setCourseFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by course" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Courses</SelectItem>
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={countryFilter} onValueChange={setCountryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by country" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Countries</SelectItem>
+                {Array.from(new Set(students.map(s => s.country).filter(Boolean))).sort().map((country) => (
+                  <SelectItem key={country} value={country as string}>
+                    {country}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={exportToExcel} variant="outline" className="hidden md:flex">
+              <Download className="h-4 w-4 mr-2" /> Export
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          <Button onClick={exportToExcel} variant="outline" className="w-full md:hidden">
+            <Download className="h-4 w-4 mr-2" /> Export to Excel
+          </Button>
+        </div>
 
-      {/* Report Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Total Students</p>
-                <p className="text-2xl font-bold">{totalStudents}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100">Total Course Fees</p>
-                <p className="text-2xl font-bold">${totalCourseFees.toLocaleString()}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-          <Download className="h-4 w-4" />
-          Export to Excel
-        </Button>
-        <Button onClick={handlePrint} variant="outline" className="flex items-center gap-2">
-          <Printer className="h-4 w-4" />
-          Print Report
-        </Button>
-      </div>
-
-      {/* Report Table */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Student Report ({totalStudents} students)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Join Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Course Fee</TableHead>
-                  <TableHead>Country</TableHead>
+        {/* Table */}
+        <div className="border rounded-lg overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead>Join Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Course Fee</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredStudents.map((student) => (
+                <TableRow key={student.id}>
+                  <TableCell className="font-mono text-sm">{student.id}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{student.full_name}</div>
+                      <div className="text-xs text-gray-500">{student.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getCourseTitle(student.course_id)}</TableCell>
+                  <TableCell>{student.country || "N/A"}</TableCell>
+                  <TableCell>{new Date(student.join_date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        student.status === "Pass"
+                          ? "bg-green-100 text-green-800"
+                          : student.status === "Fail"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {student.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${student.total_course_fee.toFixed(2)}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student, index) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{student.id}</TableCell>
-                    <TableCell className="font-medium">{student.full_name}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.phone}</TableCell>
-                    <TableCell>{getCourseName(student.course_id)}</TableCell>
-                    <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(student.status)}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
-                    <TableCell>{student.country || 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              ))}
+              {filteredStudents.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    No students found matching the criteria.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
