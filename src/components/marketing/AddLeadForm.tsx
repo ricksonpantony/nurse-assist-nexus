@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -65,16 +64,23 @@ export const AddLeadForm = ({ lead, courses, onClose, onSave }: AddLeadFormProps
     setLoading(true);
 
     try {
+      console.log('AddLeadForm: Submitting form data:', formData);
+      
       const leadData = {
         ...formData,
         expected_joining_date: expectedDate ? format(expectedDate, 'yyyy-MM-dd') : null,
-        referral_id: formData.referral_id === "no-referral" ? null : formData.referral_id || null,
-        interested_course_id: formData.interested_course_id || null,
+        referral_id: formData.referral_id === "no-referral" || formData.referral_id === "" ? null : formData.referral_id,
+        interested_course_id: formData.interested_course_id === "" ? null : formData.interested_course_id,
+        passport_id: formData.passport_id === "" ? null : formData.passport_id,
+        address: formData.address === "" ? null : formData.address,
+        country: formData.country === "" ? null : formData.country,
+        notes: formData.notes === "" ? null : formData.notes,
       };
 
+      console.log('AddLeadForm: Processed lead data:', leadData);
       await onSave(leadData);
     } catch (error) {
-      console.error('Error saving lead:', error);
+      console.error('AddLeadForm: Error saving lead:', error);
     } finally {
       setLoading(false);
     }

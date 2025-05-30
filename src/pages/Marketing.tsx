@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -7,7 +6,7 @@ import { Plus, FileText, Download } from "lucide-react";
 import { AddLeadForm } from "@/components/marketing/AddLeadForm";
 import { LeadsTable } from "@/components/marketing/LeadsTable";
 import { LeadDetailsView } from "@/components/marketing/LeadDetailsView";
-import { TransferToStudentModal } from "@/components/marketing/TransferToStudentModal";
+import { EnhancedTransferModal } from "@/components/marketing/EnhancedTransferModal";
 import { useLeads, Lead } from "@/hooks/useLeads";
 import { useCourses } from "@/hooks/useCourses";
 import { useReferrals } from "@/hooks/useReferrals";
@@ -29,10 +28,12 @@ const Marketing = () => {
 
   const handleAddLead = async (leadData: any) => {
     try {
+      console.log('Marketing page: Adding lead with data:', leadData);
       await addLead(leadData);
       setShowAddForm(false);
     } catch (error) {
-      // Error is handled in the hook
+      console.error('Marketing page: Error adding lead:', error);
+      // Error is already handled in the hook with toast
     }
   };
 
@@ -49,7 +50,8 @@ const Marketing = () => {
         setEditingLead(null);
       }
     } catch (error) {
-      // Error is handled in the hook
+      console.error('Marketing page: Error updating lead:', error);
+      // Error is already handled in the hook with toast
     }
   };
 
@@ -58,7 +60,8 @@ const Marketing = () => {
       try {
         await deleteLead(leadId);
       } catch (error) {
-        // Error is handled in the hook
+        console.error('Marketing page: Error deleting lead:', error);
+        // Error is already handled in the hook with toast
       }
     }
   };
@@ -75,6 +78,9 @@ const Marketing = () => {
 
   const handleTransferToStudent = async (studentData: any) => {
     try {
+      console.log('Marketing page: Transferring student with data:', studentData);
+      
+      // Add the student to the database
       await addStudent(studentData);
       
       // Update lead status to transferred
@@ -87,13 +93,13 @@ const Marketing = () => {
       
       toast({
         title: "Success",
-        description: "Lead has been successfully transferred to student account",
+        description: `Lead ${selectedLead?.lead_id} has been successfully transferred to student account ${studentData.id}`,
       });
     } catch (error) {
-      console.error('Error transferring lead to student:', error);
+      console.error('Marketing page: Error transferring lead to student:', error);
       toast({
         title: "Error",
-        description: "Failed to transfer lead to student account",
+        description: `Failed to transfer lead to student account: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -253,11 +259,12 @@ const Marketing = () => {
         />
       )}
 
-      {/* Transfer to Student Modal */}
+      {/* Enhanced Transfer to Student Modal */}
       {showTransferModal && selectedLead && (
-        <TransferToStudentModal
+        <EnhancedTransferModal
           lead={selectedLead}
           courses={courses}
+          referrals={referrals}
           onClose={() => {
             setShowTransferModal(false);
             setSelectedLead(null);

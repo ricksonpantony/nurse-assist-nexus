@@ -27,12 +27,18 @@ export const useLeads = () => {
   const { toast } = useToast();
 
   const generateLeadId = async () => {
-    const { count } = await supabase
-      .from('leads')
-      .select('*', { count: 'exact', head: true });
-    
-    const nextNumber = (count || 0) + 1;
-    return `LEAD-${String(nextNumber).padStart(4, '0')}`;
+    try {
+      const { count } = await supabase
+        .from('leads')
+        .select('*', { count: 'exact', head: true });
+      
+      const nextNumber = (count || 0) + 1;
+      return `LEAD-${String(nextNumber).padStart(4, '0')}`;
+    } catch (error) {
+      console.error('Error generating lead ID:', error);
+      // Fallback to timestamp-based ID
+      return `LEAD-${Date.now().toString().slice(-4)}`;
+    }
   };
 
   const fetchLeads = async () => {
@@ -43,13 +49,18 @@ export const useLeads = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched leads:', data);
       setLeads(data || []);
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch leads',
+        description: 'Failed to fetch leads. Please refresh the page.',
         variant: 'destructive',
       });
     } finally {
@@ -59,26 +70,56 @@ export const useLeads = () => {
 
   const addLead = async (leadData: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'status' | 'lead_id'>) => {
     try {
+      console.log('Adding lead with data:', leadData);
+      
       const leadId = await generateLeadId();
+      console.log('Generated lead ID:', leadId);
+      
+      const insertData = {
+        ...leadData,
+        lead_id: leadId,
+        status: 'active',
+        // Ensure all required fields are present
+        full_name: leadData.full_name || '',
+        email: leadData.email || '',
+        phone: leadData.phone || '',
+        // Handle optional fields properly
+        passport_id: leadData.passport_id || null,
+        address: leadData.address || null,
+        country: leadData.country || null,
+        referral_id: leadData.referral_id || null,
+        interested_course_id: leadData.interested_course_id || null,
+        expected_joining_date: leadData.expected_joining_date || null,
+        notes: leadData.notes || null,
+      };
+
+      console.log('Inserting lead data:', insertData);
+
       const { data, error } = await supabase
         .from('leads')
-        .insert([{ ...leadData, lead_id: leadId }])
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
 
+      console.log('Successfully added lead:', data);
       setLeads(prev => [data, ...prev]);
+      
       toast({
         title: 'Success',
-        description: 'Lead added successfully',
+        description: `Lead ${leadId} added successfully`,
       });
+      
       return data;
     } catch (error) {
       console.error('Error adding lead:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add lead',
+        description: `Failed to add lead: ${error.message || 'Unknown error'}`,
         variant: 'destructive',
       });
       throw error;
@@ -87,6 +128,8 @@ export const useLeads = () => {
 
   const updateLead = async (id: string, leadData: Partial<Lead>) => {
     try {
+      console.log('Updating lead:', id, leadData);
+      
       const { data, error } = await supabase
         .from('leads')
         .update({ ...leadData, updated_at: new Date().toISOString() })
@@ -94,7 +137,10 @@ export const useLeads = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
       setLeads(prev => prev.map(lead => lead.id === id ? data : lead));
       toast({
@@ -106,7 +152,7 @@ export const useLeads = () => {
       console.error('Error updating lead:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update lead',
+        description: `Failed to update lead: ${error.message || 'Unknown error'}`,
         variant: 'destructive',
       });
       throw error;
@@ -120,7 +166,10 @@ export const useLeads = () => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
 
       setLeads(prev => prev.filter(lead => lead.id !== id));
       toast({
@@ -131,7 +180,7 @@ export const useLeads = () => {
       console.error('Error deleting lead:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete lead',
+        description: `Failed to delete lead: ${error.message || 'Unknown error'}`,
         variant: 'destructive',
       });
       throw error;
