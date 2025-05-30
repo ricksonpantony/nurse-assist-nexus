@@ -1,9 +1,7 @@
-
 import {
   Calendar,
   Users,
   BookOpen,
-  CreditCard,
   BarChart3,
   FileText,
   Settings,
@@ -42,11 +40,6 @@ const menuItems = [
     title: "Courses",
     url: "/courses",
     icon: BookOpen,
-  },
-  {
-    title: "Payments",
-    url: "/payments",
-    icon: CreditCard,
   },
   {
     title: "Marketing",

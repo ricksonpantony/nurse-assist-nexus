@@ -75,14 +75,7 @@ const Marketing = () => {
 
   const handleTransferToStudent = async (studentData: any) => {
     try {
-      // Generate a unique student ID
-      const studentId = `STU${Date.now()}`;
-      const fullStudentData = {
-        ...studentData,
-        id: studentId,
-      };
-
-      await addStudent(fullStudentData);
+      await addStudent(studentData);
       
       // Update lead status to transferred
       if (selectedLead) {
@@ -149,7 +142,7 @@ const Marketing = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
-                className="gap-2"
+                className="gap-2 hover:bg-blue-50 border-blue-200"
                 onClick={handlePrint}
               >
                 <FileText className="h-4 w-4" />
@@ -157,7 +150,7 @@ const Marketing = () => {
               </Button>
               <Button 
                 variant="outline"
-                className="gap-2"
+                className="gap-2 hover:bg-green-50 border-green-200"
                 onClick={handleExport}
               >
                 <Download className="h-4 w-4" />
@@ -165,7 +158,7 @@ const Marketing = () => {
               </Button>
               <Button 
                 onClick={() => setShowAddForm(true)}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
                 Add Lead
@@ -174,29 +167,49 @@ const Marketing = () => {
           </header>
 
           <main className="flex-1 p-6">
-            <div className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
-                  <h3 className="text-lg font-semibold text-gray-900">Total Leads</h3>
-                  <p className="text-3xl font-bold text-blue-600">{leads.length}</p>
+            <div className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Total Leads</h3>
+                      <p className="text-3xl font-bold text-blue-600">{leads.length}</p>
+                    </div>
+                    <div className="w-4 h-16 bg-gradient-to-t from-blue-500 to-blue-300 rounded-full"></div>
+                  </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-500">
-                  <h3 className="text-lg font-semibold text-gray-900">Active Leads</h3>
-                  <p className="text-3xl font-bold text-green-600">
-                    {leads.filter(lead => lead.status === 'active').length}
-                  </p>
+                <div className="bg-gradient-to-br from-white to-green-50 p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Active Leads</h3>
+                      <p className="text-3xl font-bold text-green-600">
+                        {leads.filter(lead => lead.status === 'active').length}
+                      </p>
+                    </div>
+                    <div className="w-4 h-16 bg-gradient-to-t from-green-500 to-green-300 rounded-full"></div>
+                  </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-orange-500">
-                  <h3 className="text-lg font-semibold text-gray-900">Transferred</h3>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {leads.filter(lead => lead.status === 'transferred').length}
-                  </p>
+                <div className="bg-gradient-to-br from-white to-orange-50 p-6 rounded-xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Transferred</h3>
+                      <p className="text-3xl font-bold text-orange-600">
+                        {leads.filter(lead => lead.status === 'transferred').length}
+                      </p>
+                    </div>
+                    <div className="w-4 h-16 bg-gradient-to-t from-orange-500 to-orange-300 rounded-full"></div>
+                  </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
-                  <h3 className="text-lg font-semibold text-gray-900">Conversion Rate</h3>
-                  <p className="text-3xl font-bold text-purple-600">
-                    {leads.length > 0 ? Math.round((leads.filter(lead => lead.status === 'transferred').length / leads.length) * 100) : 0}%
-                  </p>
+                <div className="bg-gradient-to-br from-white to-purple-50 p-6 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Conversion Rate</h3>
+                      <p className="text-3xl font-bold text-purple-600">
+                        {leads.length > 0 ? Math.round((leads.filter(lead => lead.status === 'transferred').length / leads.length) * 100) : 0}%
+                      </p>
+                    </div>
+                    <div className="w-4 h-16 bg-gradient-to-t from-purple-500 to-purple-300 rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </div>

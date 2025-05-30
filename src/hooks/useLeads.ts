@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface Lead {
   id: string;
+  lead_id?: string;
   full_name: string;
   email: string;
   phone: string;
@@ -24,6 +25,15 @@ export const useLeads = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const generateLeadId = async () => {
+    const { count } = await supabase
+      .from('leads')
+      .select('*', { count: 'exact', head: true });
+    
+    const nextNumber = (count || 0) + 1;
+    return `LEAD-${String(nextNumber).padStart(4, '0')}`;
+  };
 
   const fetchLeads = async () => {
     try {
@@ -47,11 +57,12 @@ export const useLeads = () => {
     }
   };
 
-  const addLead = async (leadData: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'status'>) => {
+  const addLead = async (leadData: Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'status' | 'lead_id'>) => {
     try {
+      const leadId = await generateLeadId();
       const { data, error } = await supabase
         .from('leads')
-        .insert([leadData])
+        .insert([{ ...leadData, lead_id: leadId }])
         .select()
         .single();
 
