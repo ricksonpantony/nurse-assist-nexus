@@ -5,23 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { X, FileText, Download, RefreshCw, User, Phone, Mail, MapPin, CreditCard, Calendar, BookOpen } from "lucide-react";
+import { X, FileText, Download, RefreshCw, User, Phone, Mail, MapPin, CreditCard, Calendar, BookOpen, Globe } from "lucide-react";
 import { Student, Payment } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStudentPaymentDetails } from "@/hooks/useStudentPaymentDetails";
 
 interface StudentDetailsViewProps {
   student: Student & { payments: Payment[] };
   courses: Course[];
   onClose: () => void;
   onRefresh: () => void;
+  onEdit?: (student: Student) => void;
+  onDelete?: (studentId: string) => void;
 }
 
-export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: StudentDetailsViewProps) => {
+export const StudentDetailsView = ({ 
+  student, 
+  courses, 
+  onClose, 
+  onRefresh, 
+  onEdit, 
+  onDelete 
+}: StudentDetailsViewProps) => {
   const isMobile = useIsMobile();
   const { referrals } = useReferrals();
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   
   const course = courses.find(c => c.id === student.course_id);
   const referralPerson = referrals.find(r => r.id === student.referral_id);
@@ -65,6 +76,25 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
     // Implement actual export logic here
   };
 
+  const handleEditClick = () => {
+    if (onEdit) {
+      onEdit(student);
+      onClose();
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete(student.id);
+      setShowDeleteConfirmation(false);
+      onClose();
+    }
+  };
+
   const ExportOptionsModal = () => (
     <Dialog open={showExportOptions} onOpenChange={setShowExportOptions}>
       <DialogContent className="sm:max-w-md">
@@ -102,6 +132,22 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
           <p className="text-blue-600">Student ID: {student.id}</p>
         </div>
         <div className="flex gap-2">
+          {onEdit && (
+            <Button variant="outline" size="sm" onClick={handleEditClick}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button variant="outline" size="sm" onClick={handleDeleteClick} className="text-red-500 hover:bg-red-50">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m4-7V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handlePrint}>
             <FileText className="h-4 w-4 mr-2" />
             Print
@@ -143,8 +189,8 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
               </div>
             )}
             {student.country && (
-              <div>
-                <span className="text-sm text-gray-500">Country: </span>
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-gray-500" />
                 <span>{student.country}</span>
               </div>
             )}
@@ -296,6 +342,35 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       </Card>
 
       <ExportOptionsModal />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <Dialog open={showDeleteConfirmation} onOpenChange={setShowDeleteConfirmation}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p>Are you sure you want to delete <strong>{student.full_name}</strong>? This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setShowDeleteConfirmation(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleConfirmDelete}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700"
+                >
+                  Delete Student
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 

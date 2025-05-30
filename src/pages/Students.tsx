@@ -231,6 +231,8 @@ const Students = () => {
             setStudentPayments([]);
           }}
           onRefresh={handleRefreshStudentDetails}
+          onEdit={handleEditStudent}
+          onDelete={handleDeleteStudent}
         />
       )}
 

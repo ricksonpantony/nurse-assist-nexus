@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Student } from "@/hooks/useStudents";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReferrals } from "@/hooks/useReferrals";
 import { QuickAddReferralModal } from "./QuickAddReferralModal";
+import { countries } from "@/utils/countries";
 
 interface AddStudentFormProps {
   student?: Student;
@@ -28,7 +30,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     email: "",
     phone: "",
     address: "",
-    country: "",
+    country: "India", // Default to India
     passport_id: "",
     course_id: "",
     batch_id: "",
@@ -49,7 +51,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
         email: student.email,
         phone: student.phone,
         address: student.address || "",
-        country: student.country || "",
+        country: student.country || "India",
         passport_id: student.passport_id || "",
         course_id: student.course_id || "",
         batch_id: student.batch_id || "",
@@ -83,7 +85,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       ...formData,
       class_start_date: formData.class_start_date || null,
       address: formData.address || null,
-      country: formData.country || null,
+      country: formData.country || "India",
       passport_id: formData.passport_id || null,
       course_id: formData.course_id || null,
       batch_id: formData.batch_id || null,
@@ -180,11 +182,16 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
 
       <div>
         <Label htmlFor="country">Country</Label>
-        <Input
-          id="country"
-          value={formData.country}
-          onChange={(e) => handleInputChange("country", e.target.value)}
-        />
+        <Select value={formData.country} onValueChange={(value) => handleInputChange("country", value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select country" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            {countries.map((country) => (
+              <SelectItem key={country} value={country}>{country}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Referral Information */}
