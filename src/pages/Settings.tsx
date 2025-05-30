@@ -67,8 +67,6 @@ const Settings = () => {
   }
 
   return (
-    <div>
-    {/* <SidebarProvider> */}
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         {/* <AppSidebar /> */}
         {/* <SidebarInset className="flex-1"> */}
@@ -167,8 +165,6 @@ const Settings = () => {
           </div>
         {/* </SidebarInset> */}
       </div>
-    {/* </SidebarProvider> */}
-    </div>
   );
 };
 
