@@ -68,7 +68,7 @@ export const AddLeadForm = ({ lead, courses, onClose, onSave }: AddLeadFormProps
       const leadData = {
         ...formData,
         expected_joining_date: expectedDate ? format(expectedDate, 'yyyy-MM-dd') : null,
-        referral_id: formData.referral_id || null,
+        referral_id: formData.referral_id === "no-referral" ? null : formData.referral_id || null,
         interested_course_id: formData.interested_course_id || null,
       };
 
@@ -173,7 +173,7 @@ export const AddLeadForm = ({ lead, courses, onClose, onSave }: AddLeadFormProps
                   <SelectValue placeholder="Select referral (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Referral</SelectItem>
+                  <SelectItem value="no-referral">No Referral</SelectItem>
                   {referrals.map((referral) => (
                     <SelectItem key={referral.id} value={referral.id}>
                       {referral.full_name}
