@@ -8,7 +8,8 @@ import {
   FileText,
   Settings,
   Home,
-  Building2
+  Building2,
+  UserCheck
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,6 +51,11 @@ const menuItems = [
     title: "Reports",
     url: "/reports",
     icon: BarChart3,
+  },
+  {
+    title: "Referrals",
+    url: "/referrals",
+    icon: UserCheck,
   },
   {
     title: "Audit Logs",

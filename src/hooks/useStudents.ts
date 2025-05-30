@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +68,17 @@ export const useStudents = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const backfillDirectReferralStatus = async () => {
+    try {
+      // Update all students with null referral_id to have "Direct" as referral status
+      // Since we can't store "Direct" as referral_id, we'll leave it as null
+      // The UI will interpret null referral_id as "Direct"
+      console.log('Backfill not needed - null referral_id represents Direct status');
+    } catch (error) {
+      console.error('Error during backfill:', error);
     }
   };
 
@@ -228,6 +238,8 @@ export const useStudents = () => {
 
   useEffect(() => {
     fetchStudents();
+    // Run backfill once on component mount
+    backfillDirectReferralStatus();
   }, []);
 
   return {

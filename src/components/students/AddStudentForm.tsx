@@ -1,13 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { Course } from "@/hooks/useCourses";
 import { Student } from "@/hooks/useStudents";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useReferrals } from "@/hooks/useReferrals";
+import { QuickAddReferralModal } from "./QuickAddReferralModal";
 
 interface AddStudentFormProps {
   student?: Student;
@@ -18,6 +21,8 @@ interface AddStudentFormProps {
 
 export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudentFormProps) => {
   const isMobile = useIsMobile();
+  const { referrals } = useReferrals();
+  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   
   const [formData, setFormData] = useState({
     full_name: "",
@@ -28,6 +33,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
     passport_id: "",
     course_id: "",
     batch_id: "",
+    referral_id: "",
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: "",
     status: "Attend sessions" as Student['status'],
@@ -47,6 +53,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
         passport_id: student.passport_id || "",
         course_id: student.course_id || "",
         batch_id: student.batch_id || "",
+        referral_id: student.referral_id || "",
         join_date: student.join_date,
         class_start_date: student.class_start_date || "",
         status: student.status,
@@ -70,7 +77,7 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prepare data for submission, converting empty strings to null for optional date fields
+    // Prepare data for submission, converting empty strings to null for optional fields
     const submitData: any = {
       ...formData,
       class_start_date: formData.class_start_date || null,
@@ -78,7 +85,8 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
       country: formData.country || null,
       passport_id: formData.passport_id || null,
       course_id: formData.course_id || null,
-      batch_id: formData.batch_id || null
+      batch_id: formData.batch_id || null,
+      referral_id: formData.referral_id || null
     };
 
     // If editing, include the student ID
@@ -91,6 +99,19 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleReferralSelect = (value: string) => {
+    if (value === "add_new") {
+      setShowQuickAddReferral(true);
+    } else {
+      handleInputChange("referral_id", value);
+    }
+  };
+
+  const handleQuickReferralAdded = (newReferral: any) => {
+    handleInputChange("referral_id", newReferral.id);
+    setShowQuickAddReferral(false);
   };
 
   const formContent = (
@@ -162,6 +183,30 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
           value={formData.country}
           onChange={(e) => handleInputChange("country", e.target.value)}
         />
+      </div>
+
+      {/* Referral Information */}
+      <div>
+        <Label htmlFor="referral_id">Referred By</Label>
+        <Select value={formData.referral_id} onValueChange={handleReferralSelect}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select referral person (Optional)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Direct (No Referral)</SelectItem>
+            {referrals.map((referral) => (
+              <SelectItem key={referral.id} value={referral.id}>
+                {referral.full_name}
+              </SelectItem>
+            ))}
+            <SelectItem value="add_new" className="text-blue-600 font-medium">
+              <div className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add New Referral Person
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Course Information */}
@@ -288,40 +333,62 @@ export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudent
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white shadow-lg">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">
-              {student ? "Edit Student" : "Add New Student"}
-            </h2>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
-              <X className="h-5 w-5" />
-            </Button>
+      <>
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">
+                {student ? "Edit Student" : "Add New Student"}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+          <div className="p-4">
+            {formContent}
           </div>
         </div>
-        <div className="p-4">
-          {formContent}
-        </div>
-      </div>
+
+        {/* Quick Add Referral Modal */}
+        {showQuickAddReferral && (
+          <QuickAddReferralModal
+            isOpen={showQuickAddReferral}
+            onClose={() => setShowQuickAddReferral(false)}
+            onReferralAdded={handleQuickReferralAdded}
+          />
+        )}
+      </>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-xl text-blue-900">
-            {student ? "Edit Student" : "Add New Student"}
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent>
-          {formContent}
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle className="text-xl text-blue-900">
+              {student ? "Edit Student" : "Add New Student"}
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          
+          <CardContent>
+            {formContent}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Add Referral Modal */}
+      {showQuickAddReferral && (
+        <QuickAddReferralModal
+          isOpen={showQuickAddReferral}
+          onClose={() => setShowQuickAddReferral(false)}
+          onReferralAdded={handleQuickReferralAdded}
+        />
+      )}
+    </>
   );
 };
