@@ -207,7 +207,7 @@ const Students = () => {
               />
             </main>
           </div>
-        /* {/* </SidebarInset> */} */
+        {/* </SidebarInset> */}
       </div>
 
       {/* Add/Edit Student Form Modal */}
