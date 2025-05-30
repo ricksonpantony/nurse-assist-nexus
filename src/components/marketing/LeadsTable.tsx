@@ -23,8 +23,8 @@ interface LeadsTableProps {
 
 export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView, onTransfer }: LeadsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
 
   const filteredAndSortedLeads = leads
@@ -35,8 +35,8 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
         lead.phone.includes(searchTerm) ||
         (lead.country && lead.country.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesCountry = countryFilter === "" || lead.country === countryFilter;
-      const matchesCourse = courseFilter === "" || lead.interested_course_id === courseFilter;
+      const matchesCountry = countryFilter === "all" || lead.country === countryFilter;
+      const matchesCourse = courseFilter === "all" || lead.interested_course_id === courseFilter;
       
       return matchesSearch && matchesCountry && matchesCourse;
     })
@@ -89,7 +89,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
             <SelectValue placeholder="Filter by Country" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Countries</SelectItem>
+            <SelectItem value="all">All Countries</SelectItem>
             {countries.map((country) => (
               <SelectItem key={country} value={country}>
                 {country}
@@ -103,7 +103,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
             <SelectValue placeholder="Filter by Course" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Courses</SelectItem>
+            <SelectItem value="all">All Courses</SelectItem>
             {courses.map((course) => (
               <SelectItem key={course.id} value={course.id}>
                 {course.title}
