@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -122,6 +123,7 @@ const Marketing = () => {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
           <AppSidebar />
+          <div className="w-8"></div> {/* Blank space */}
           <SidebarInset className="flex-1">
             <div className="flex items-center justify-center h-64">
               <div className="text-lg text-blue-600">Loading leads...</div>
@@ -136,10 +138,10 @@ const Marketing = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <AppSidebar />
+        <div className="w-8"></div> {/* Blank space */}
         <SidebarInset className="flex-1">
           <div className="flex flex-col h-full">
             <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
-              <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
               <div className="flex-1">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
                   Marketing - Lead Management
