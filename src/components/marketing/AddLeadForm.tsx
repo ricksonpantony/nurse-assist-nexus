@@ -91,169 +91,189 @@ export const AddLeadForm = ({ lead, courses, onClose, onSave }: AddLeadFormProps
   };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl text-blue-900">
-              {lead ? 'Edit Lead' : 'Add New Lead'}
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+    <>
+      <style>
+        {`
+          @media (min-width: 1440px) {
+            .custom-dialog-content {
+              max-width: 80% !important; /* Adjust to a percentage for larger screens */
+              margin: 0 auto; /* Center the content */
+            }
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+            .custom-grid-cols-2 {
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; /* More flexible grid */
+            }
+
+            .custom-space-y-4 > * {
+              padding: 1rem; /* Increase padding for better spacing */
+            }
+          }
+        `}
+      </style>
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto custom-dialog-content">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl text-blue-900">
+                {lead ? 'Edit Lead' : 'Add New Lead'}
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4 custom-space-y-4">
+            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
+              <div>
+                <Label htmlFor="full_name">Full Name *</Label>
+                <Input
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="passport_id">Passport/ID Number</Label>
+                <Input
+                  id="passport_id"
+                  value={formData.passport_id}
+                  onChange={(e) => handleInputChange('passport_id', e.target.value)}
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="address">Address</Label>
               <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                required
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
+              <div>
+                <Label htmlFor="country">Country</Label>
+                <Select value={formData.country} onValueChange={(value) => handleInputChange('country', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="referral_id">Referred By</Label>
+                <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select referral (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no-referral">No Referral</SelectItem>
+                    {referrals.map((referral) => (
+                      <SelectItem key={referral.id} value={referral.id}>
+                        {referral.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
+              <div>
+                <Label htmlFor="interested_course_id">Interested Course</Label>
+                <Select value={formData.interested_course_id} onValueChange={(value) => handleInputChange('interested_course_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Expected Joining Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !expectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {expectedDate ? format(expectedDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={expectedDate}
+                      onSelect={setExpectedDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                required
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                rows={3}
+                placeholder="Internal comments or remarks"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                required
-              />
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Saving...' : (lead ? 'Update Lead' : 'Add Lead')}
+              </Button>
             </div>
-            <div>
-              <Label htmlFor="passport_id">Passport/ID Number</Label>
-              <Input
-                id="passport_id"
-                value={formData.passport_id}
-                onChange={(e) => handleInputChange('passport_id', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="country">Country</Label>
-              <Select value={formData.country} onValueChange={(value) => handleInputChange('country', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="referral_id">Referred By</Label>
-              <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select referral (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-referral">No Referral</SelectItem>
-                  {referrals.map((referral) => (
-                    <SelectItem key={referral.id} value={referral.id}>
-                      {referral.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="interested_course_id">Interested Course</Label>
-              <Select value={formData.interested_course_id} onValueChange={(value) => handleInputChange('interested_course_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Expected Joining Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !expectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expectedDate ? format(expectedDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={expectedDate}
-                    onSelect={setExpectedDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              rows={3}
-              placeholder="Internal comments or remarks"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : (lead ? 'Update Lead' : 'Add Lead')}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
