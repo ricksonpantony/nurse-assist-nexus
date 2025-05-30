@@ -67,7 +67,7 @@ const Settings = () => {
   }
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         {/* <AppSidebar /> */}
         {/* <SidebarInset className="flex-1"> */}
           <div className="flex flex-col h-full">
