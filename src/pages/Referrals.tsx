@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Plus, Download, FileText } from "lucide-react";
 import { ReferralsTable } from "@/components/referrals/ReferralsTable";
@@ -90,59 +89,49 @@ const Referrals = () => {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-          <AppSidebar />
-          <SidebarInset className="flex-1">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-lg text-blue-600">Loading referrals...</div>
-            </div>
-          </SidebarInset>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-blue-600">Loading referrals...</div>
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
-            <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
-            <div className="flex-1">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Referral Management</h1>
-              <p className="text-sm text-blue-600">Manage referral partners and track payments</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={handleExportReferrals}
-              >
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-              <Button 
-                onClick={() => setShowAddForm(true)}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
-              >
-                <Plus className="h-4 w-4" />
-                Add Referral
-              </Button>
-            </div>
-          </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
+        <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
+        <div className="flex-1">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Referral Management</h1>
+          <p className="text-sm text-blue-600">Manage referral partners and track payments</p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            className="gap-2"
+            onClick={handleExportReferrals}
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button 
+            onClick={() => setShowAddForm(true)}
+            className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+          >
+            <Plus className="h-4 w-4" />
+            Add Referral
+          </Button>
+        </div>
+      </header>
 
-          <main className="flex-1 p-6">
-            <ReferralsTable
-              referrals={referrals}
-              onEdit={handleEditReferral}
-              onDelete={handleDeleteReferral}
-              onViewHistory={handleViewHistory}
-            />
-          </main>
-        </SidebarInset>
-      </div>
+      <main className="flex-1 p-6">
+        <ReferralsTable
+          referrals={referrals}
+          onEdit={handleEditReferral}
+          onDelete={handleDeleteReferral}
+          onViewHistory={handleViewHistory}
+        />
+      </main>
 
       {/* Add/Edit Referral Form Modal */}
       {showAddForm && (
@@ -168,7 +157,7 @@ const Referrals = () => {
           referralPayments={referralPayments}
         />
       )}
-    </SidebarProvider>
+    </div>
   );
 };
 

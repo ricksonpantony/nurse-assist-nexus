@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AppSidebar } from "@/components/AppSidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -46,70 +45,70 @@ const Settings = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-blue-50 to-purple-50">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <main className="flex-1 p-6 space-y-6">
-            {/* Welcome Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-              <h1 className="text-3xl font-bold mb-2">Settings</h1>
-              <p className="text-blue-100">
-                Welcome back, {userProfile?.full_name || user?.email}! 
-                {userProfile?.role === 'admin' && (
-                  <span className="ml-2 bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
-                    Admin
-                  </span>
-                )}
-              </p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-2">
-              {/* Company Settings */}
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Company Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <CompanySettings userRole={userProfile?.role} />
-                </CardContent>
-              </Card>
-
-              {/* Password Update */}
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
-                    Update Password
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <PasswordUpdate />
-                </CardContent>
-              </Card>
-
-              {/* User Management - Only for Admins */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="flex items-center gap-4 mb-6 p-6">
+        <SidebarTrigger className="text-blue-600 hover:text-blue-800" />
+        <div className="flex-1">
+          {/* Welcome Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+            <h1 className="text-3xl font-bold mb-2">Settings</h1>
+            <p className="text-blue-100">
+              Welcome back, {userProfile?.full_name || user?.email}! 
               {userProfile?.role === 'admin' && (
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm xl:col-span-2">
-                  <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      User Management
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <UserManagement />
-                  </CardContent>
-                </Card>
+                <span className="ml-2 bg-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
+                  Admin
+                </span>
               )}
-            </div>
-          </main>
-        </SidebarInset>
+            </p>
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+
+      <div className="px-6 pb-6">
+        <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-2">
+          {/* Company Settings */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Company Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <CompanySettings userRole={userProfile?.role} />
+            </CardContent>
+          </Card>
+
+          {/* Password Update */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Update Password
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <PasswordUpdate />
+            </CardContent>
+          </Card>
+
+          {/* User Management - Only for Admins */}
+          {userProfile?.role === 'admin' && (
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm xl:col-span-2">
+              <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-t-lg">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  User Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <UserManagement />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

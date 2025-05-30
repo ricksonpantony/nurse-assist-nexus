@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CourseCard } from "@/components/courses/CourseCard";
@@ -57,16 +56,11 @@ const Courses = () => {
     }
 
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-          <AppSidebar />
-          <SidebarInset className="flex-1">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-lg text-blue-600">Loading courses...</div>
-            </div>
-          </SidebarInset>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-blue-600">Loading courses...</div>
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
@@ -129,40 +123,35 @@ const Courses = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
-            <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
-            <div className="flex-1">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Course Management</h1>
-              <p className="text-sm text-blue-600">Create and manage nursing education courses</p>
-            </div>
-            <Button 
-              onClick={() => setShowCreateForm(true)}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Course
-            </Button>
-          </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
+        <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
+        <div className="flex-1">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Course Management</h1>
+          <p className="text-sm text-blue-600">Create and manage nursing education courses</p>
+        </div>
+        <Button 
+          onClick={() => setShowCreateForm(true)}
+          className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+        >
+          <Plus className="h-4 w-4" />
+          Create New Course
+        </Button>
+      </header>
 
-          <main className="flex-1 p-6">
-            {/* Course Cards Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onEdit={() => handleEditCourse(course)}
-                  onDelete={() => handleDeleteCourse(course.id)}
-                />
-              ))}
-            </div>
-          </main>
-        </SidebarInset>
-      </div>
+      <main className="flex-1 p-6">
+        {/* Course Cards Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              onEdit={() => handleEditCourse(course)}
+              onDelete={() => handleDeleteCourse(course.id)}
+            />
+          ))}
+        </div>
+      </main>
 
       {/* Course Creation/Edit Form Modal */}
       {showCreateForm && (
@@ -175,7 +164,7 @@ const Courses = () => {
           onSave={editingCourse ? handleUpdateCourse : handleCreateCourse}
         />
       )}
-    </SidebarProvider>
+    </div>
   );
 };
 
