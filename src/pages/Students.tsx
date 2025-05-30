@@ -158,7 +158,7 @@ const Students = () => {
   return (
     <div>
     {/* <SidebarProvider> */}
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <div className="min-h-screen flex w-full ">
         {/* <AppSidebar /> */}
         {/* <SidebarInset className="flex-1"> */}
           <div className="flex flex-col h-full">
