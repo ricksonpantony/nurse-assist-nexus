@@ -1,0 +1,203 @@
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+export interface Referral {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  address: string | null;
+  bank_name: string | null;
+  bsb: string | null;
+  account_number: string | null;
+  notes: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ReferralPayment {
+  id: string;
+  referral_id: string;
+  student_id: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  notes: string | null;
+  created_at?: string;
+}
+
+export const useReferrals = () => {
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchReferrals = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('referrals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReferrals(data || []);
+    } catch (error) {
+      console.error('Error fetching referrals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch referrals",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addReferral = async (referralData: Omit<Referral, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('referrals')
+        .insert([referralData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setReferrals(prev => [data, ...prev]);
+      toast({
+        title: "Success",
+        description: "Referral added successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error adding referral:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add referral",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updateReferral = async (id: string, referralData: Partial<Referral>) => {
+    try {
+      const cleanData = Object.entries(referralData).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+
+      cleanData.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('referrals')
+        .update(cleanData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setReferrals(prev => prev.map(referral => referral.id === id ? data : referral));
+      toast({
+        title: "Success",
+        description: "Referral updated successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error updating referral:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update referral",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteReferral = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('referrals')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setReferrals(prev => prev.filter(referral => referral.id !== id));
+      toast({
+        title: "Success",
+        description: "Referral deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting referral:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete referral",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const fetchReferralPayments = async (referralId: string): Promise<ReferralPayment[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('referral_payments')
+        .select('*')
+        .eq('referral_id', referralId)
+        .order('payment_date', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching referral payments:', error);
+      return [];
+    }
+  };
+
+  const addReferralPayment = async (paymentData: Omit<ReferralPayment, 'id' | 'created_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('referral_payments')
+        .insert([paymentData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Referral payment added successfully",
+      });
+      return data;
+    } catch (error) {
+      console.error('Error adding referral payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add referral payment",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
+
+  return {
+    referrals,
+    loading,
+    addReferral,
+    updateReferral,
+    deleteReferral,
+    fetchReferralPayments,
+    addReferralPayment,
+    refetch: fetchReferrals
+  };
+};

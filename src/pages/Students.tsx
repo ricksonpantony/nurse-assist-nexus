@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -44,7 +45,6 @@ const Students = () => {
   const handleUpdateStudent = async (updatedStudent: any) => {
     try {
       console.log('Updating student in page:', updatedStudent);
-      // Ensure we have the student ID - use either the provided ID or the editing student's ID
       const studentId = updatedStudent.id || editingStudent?.id;
       
       if (!studentId) {
@@ -63,7 +63,6 @@ const Students = () => {
       setEditingStudent(null);
     } catch (error) {
       console.error('Error in handleUpdateStudent:', error);
-      // Error is handled in the hook
     }
   };
 
@@ -72,6 +71,26 @@ const Students = () => {
       await deleteStudent(studentId);
     } catch (error) {
       // Error is handled in the hook
+    }
+  };
+
+  const handleDeleteMultipleStudents = async (studentIds: string[]) => {
+    try {
+      // Delete students one by one (could be optimized with batch delete)
+      for (const studentId of studentIds) {
+        await deleteStudent(studentId);
+      }
+      
+      toast({
+        title: "Success",
+        description: `Successfully deleted ${studentIds.length} student${studentIds.length > 1 ? 's' : ''}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete some students",
+        variant: "destructive",
+      });
     }
   };
 
@@ -91,13 +110,12 @@ const Students = () => {
     if (selectedStudent) {
       const payments = await fetchStudentPayments(selectedStudent.id);
       setStudentPayments(payments);
-      // Also refresh the students list to get updated data
       refetch();
     }
   };
 
   const handlePaymentAdded = () => {
-    refetch(); // Refresh the students list after payment is added
+    refetch();
   };
 
   const handleExportStudents = () => {
@@ -181,6 +199,7 @@ const Students = () => {
               courses={courses}
               onEdit={handleEditStudent}
               onDelete={handleDeleteStudent}
+              onDeleteMultiple={handleDeleteMultipleStudents}
               onView={handleViewStudent}
               onUpdatePayment={handleUpdatePayment}
             />

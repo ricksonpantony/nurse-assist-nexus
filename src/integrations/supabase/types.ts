@@ -155,6 +155,96 @@ export type Database = {
           },
         ]
       }
+      referral_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          referral_id: string | null
+          student_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          referral_id?: string | null
+          student_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          referral_id?: string | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_payments_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          account_number: string | null
+          address: string | null
+          bank_name: string | null
+          bsb: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          address?: string | null
+          bank_name?: string | null
+          bsb?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          address?: string | null
+          bank_name?: string | null
+          bsb?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           address: string | null
@@ -171,6 +261,7 @@ export type Database = {
           join_date: string
           passport_id: string | null
           phone: string
+          referral_id: string | null
           status: string
           total_course_fee: number
           updated_at: string | null
@@ -190,6 +281,7 @@ export type Database = {
           join_date: string
           passport_id?: string | null
           phone: string
+          referral_id?: string | null
           status: string
           total_course_fee: number
           updated_at?: string | null
@@ -209,6 +301,7 @@ export type Database = {
           join_date?: string
           passport_id?: string | null
           phone?: string
+          referral_id?: string | null
           status?: string
           total_course_fee?: number
           updated_at?: string | null
@@ -219,6 +312,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
         ]

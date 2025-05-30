@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import Students from "./pages/Students";
+import Referrals from "./pages/Referrals";
 import Reports from "./pages/Reports";
 import AuditLogs from "./pages/AuditLogs";
 import Settings from "./pages/Settings";
@@ -34,6 +35,7 @@ const AppContent = () => {
               <Route path="/" element={<Index />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/students" element={<Students />} />
+              <Route path="/referrals" element={<Referrals />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/audit" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />
@@ -58,6 +60,7 @@ const AppContent = () => {
               <Route path="/" element={<Index />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/students" element={<Students />} />
+              <Route path="/referrals" element={<Referrals />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/audit" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />
