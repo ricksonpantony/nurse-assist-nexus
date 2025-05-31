@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +28,9 @@ export interface ReferralPayment {
   notes: string | null;
   created_at?: string;
 }
+
+// Type for inserting new referrals (without auto-generated fields)
+type ReferralInsert = Omit<Referral, 'id' | 'referral_id' | 'created_at' | 'updated_at'>;
 
 export const useReferrals = () => {
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -71,7 +73,7 @@ export const useReferrals = () => {
     }
   };
 
-  const addReferral = async (referralData: Omit<Referral, 'id' | 'referral_id' | 'created_at' | 'updated_at'>) => {
+  const addReferral = async (referralData: ReferralInsert) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
