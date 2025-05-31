@@ -80,7 +80,7 @@ export const useReferrals = () => {
 
       const { data, error } = await supabase
         .from('referrals')
-        .insert([referralData])
+        .insert(referralData)
         .select()
         .single();
 
@@ -216,7 +216,7 @@ export const useReferrals = () => {
 
       const { data, error } = await supabase
         .from('referral_payments')
-        .insert([paymentData])
+        .insert(paymentData)
         .select()
         .single();
 

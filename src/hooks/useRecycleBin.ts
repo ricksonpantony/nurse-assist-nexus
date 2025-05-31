@@ -67,10 +67,46 @@ export const useRecycleBin = () => {
 
   const restoreItem = async (item: RecycleBinItem) => {
     try {
-      // Restore to original table
-      const { error: restoreError } = await supabase
-        .from(item.original_table)
-        .insert(item.record_data);
+      // Use dynamic SQL through RPC function or direct insert with proper typing
+      const tableName = item.original_table as keyof typeof supabase['from'];
+      
+      // For type safety, we'll handle each table case explicitly
+      let restoreError;
+      
+      switch (item.original_table) {
+        case 'students':
+          const { error: studentsError } = await supabase
+            .from('students')
+            .insert(item.record_data);
+          restoreError = studentsError;
+          break;
+        case 'courses':
+          const { error: coursesError } = await supabase
+            .from('courses')
+            .insert(item.record_data);
+          restoreError = coursesError;
+          break;
+        case 'referrals':
+          const { error: referralsError } = await supabase
+            .from('referrals')
+            .insert(item.record_data);
+          restoreError = referralsError;
+          break;
+        case 'payments':
+          const { error: paymentsError } = await supabase
+            .from('payments')
+            .insert(item.record_data);
+          restoreError = paymentsError;
+          break;
+        case 'leads':
+          const { error: leadsError } = await supabase
+            .from('leads')
+            .insert(item.record_data);
+          restoreError = leadsError;
+          break;
+        default:
+          throw new Error(`Unsupported table for restoration: ${item.original_table}`);
+      }
 
       if (restoreError) throw restoreError;
 
