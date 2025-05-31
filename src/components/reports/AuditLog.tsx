@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -180,6 +179,157 @@ export const AuditLog = () => {
       newExpanded.add(id);
     }
     setExpandedRows(newExpanded);
+  };
+
+  const getChangeDescription = (log: AuditLogEntry) => {
+    const tableName = log.table_name;
+    const action = log.action;
+    
+    if (action === 'INSERT') {
+      if (tableName === 'students') {
+        const newValues = log.new_values as any;
+        return `Created student: ${newValues?.full_name || 'Unknown'}`;
+      } else if (tableName === 'payments') {
+        const newValues = log.new_values as any;
+        return `Added payment: $${newValues?.amount || 0} for ${newValues?.stage || 'Unknown stage'}`;
+      } else if (tableName === 'courses') {
+        const newValues = log.new_values as any;
+        return `Created course: ${newValues?.title || 'Unknown'}`;
+      } else if (tableName === 'referrals') {
+        const newValues = log.new_values as any;
+        return `Added referral: ${newValues?.full_name || 'Unknown'}`;
+      } else if (tableName === 'leads') {
+        const newValues = log.new_values as any;
+        return `Created lead: ${newValues?.full_name || 'Unknown'}`;
+      }
+      return 'New record created';
+    }
+    
+    if (action === 'DELETE') {
+      if (tableName === 'students') {
+        const oldValues = log.old_values as any;
+        return `Deleted student: ${oldValues?.full_name || 'Unknown'}`;
+      } else if (tableName === 'payments') {
+        const oldValues = log.old_values as any;
+        return `Deleted payment: $${oldValues?.amount || 0}`;
+      } else if (tableName === 'courses') {
+        const oldValues = log.old_values as any;
+        return `Deleted course: ${oldValues?.title || 'Unknown'}`;
+      } else if (tableName === 'referrals') {
+        const oldValues = log.old_values as any;
+        return `Deleted referral: ${oldValues?.full_name || 'Unknown'}`;
+      } else if (tableName === 'leads') {
+        const oldValues = log.old_values as any;
+        return `Deleted lead: ${oldValues?.full_name || 'Unknown'}`;
+      }
+      return 'Record deleted';
+    }
+    
+    if (action === 'UPDATE') {
+      const oldValues = log.old_values as any;
+      const newValues = log.new_values as any;
+      const changes = [];
+      
+      if (tableName === 'students') {
+        const studentName = newValues?.full_name || oldValues?.full_name || 'Unknown';
+        
+        // Check for status change
+        if (oldValues?.status && newValues?.status && oldValues.status !== newValues.status) {
+          changes.push(`status from "${oldValues.status}" to "${newValues.status}"`);
+        }
+        
+        // Check for fee changes
+        if (oldValues?.total_course_fee !== newValues?.total_course_fee) {
+          changes.push(`course fee from $${oldValues?.total_course_fee || 0} to $${newValues?.total_course_fee || 0}`);
+        }
+        
+        // Check for advance payment changes
+        if (oldValues?.advance_payment !== newValues?.advance_payment) {
+          changes.push(`advance payment from $${oldValues?.advance_payment || 0} to $${newValues?.advance_payment || 0}`);
+        }
+        
+        // Check for course changes
+        if (oldValues?.course_id !== newValues?.course_id) {
+          changes.push(`course from "${oldValues?.course_id || 'None'}" to "${newValues?.course_id || 'None'}"`);
+        }
+        
+        // Check for name changes
+        if (oldValues?.full_name !== newValues?.full_name) {
+          changes.push(`name from "${oldValues?.full_name}" to "${newValues?.full_name}"`);
+        }
+        
+        if (changes.length > 0) {
+          return `Updated ${studentName}: ${changes.join(', ')}`;
+        }
+        return `Updated student: ${studentName}`;
+      }
+      
+      if (tableName === 'payments') {
+        if (oldValues?.amount !== newValues?.amount) {
+          changes.push(`amount from $${oldValues?.amount || 0} to $${newValues?.amount || 0}`);
+        }
+        if (oldValues?.stage !== newValues?.stage) {
+          changes.push(`stage from "${oldValues?.stage}" to "${newValues?.stage}"`);
+        }
+        if (changes.length > 0) {
+          return `Updated payment: ${changes.join(', ')}`;
+        }
+        return 'Updated payment details';
+      }
+      
+      if (tableName === 'courses') {
+        const courseName = newValues?.title || oldValues?.title || 'Unknown';
+        if (oldValues?.fee !== newValues?.fee) {
+          changes.push(`fee from $${oldValues?.fee || 0} to $${newValues?.fee || 0}`);
+        }
+        if (oldValues?.title !== newValues?.title) {
+          changes.push(`title from "${oldValues?.title}" to "${newValues?.title}"`);
+        }
+        if (changes.length > 0) {
+          return `Updated ${courseName}: ${changes.join(', ')}`;
+        }
+        return `Updated course: ${courseName}`;
+      }
+      
+      if (tableName === 'referrals') {
+        const referralName = newValues?.full_name || oldValues?.full_name || 'Unknown';
+        if (oldValues?.full_name !== newValues?.full_name) {
+          changes.push(`name from "${oldValues?.full_name}" to "${newValues?.full_name}"`);
+        }
+        if (oldValues?.email !== newValues?.email) {
+          changes.push(`email from "${oldValues?.email}" to "${newValues?.email}"`);
+        }
+        if (changes.length > 0) {
+          return `Updated ${referralName}: ${changes.join(', ')}`;
+        }
+        return `Updated referral: ${referralName}`;
+      }
+      
+      if (tableName === 'leads') {
+        const leadName = newValues?.full_name || oldValues?.full_name || 'Unknown';
+        if (oldValues?.status !== newValues?.status) {
+          changes.push(`status from "${oldValues?.status}" to "${newValues?.status}"`);
+        }
+        if (oldValues?.full_name !== newValues?.full_name) {
+          changes.push(`name from "${oldValues?.full_name}" to "${newValues?.full_name}"`);
+        }
+        if (changes.length > 0) {
+          return `Updated ${leadName}: ${changes.join(', ')}`;
+        }
+        return `Updated lead: ${leadName}`;
+      }
+      
+      // Generic update message
+      const changedFields = Object.keys(newValues || {}).filter(
+        key => oldValues?.[key] !== newValues?.[key]
+      );
+      if (changedFields.length > 0) {
+        return `Updated ${changedFields.length} field(s): ${changedFields.join(', ')}`;
+      }
+      return 'Record updated';
+    }
+    
+    return 'Unknown action';
   };
 
   const renderValueComparison = (oldVal: any, newVal: any, key: string) => {
@@ -506,10 +656,8 @@ export const AuditLog = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-gray-600">
-                          {log.action === 'INSERT' && 'New record created'}
-                          {log.action === 'UPDATE' && Object.keys(log.old_values || {}).length + ' fields modified'}
-                          {log.action === 'DELETE' && <span className="text-red-600 font-medium">Record deleted</span>}
+                        <div className="text-sm text-gray-700 max-w-xs">
+                          {getChangeDescription(log)}
                         </div>
                       </TableCell>
                     </TableRow>
