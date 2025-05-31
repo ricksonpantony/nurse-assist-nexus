@@ -163,10 +163,14 @@ export const useCourses = () => {
         throw new Error('Course not found');
       }
 
-      // Move to recycle bin first
-      await moveToRecycleBin('courses', id, courseToDelete);
+      // Try to move to recycle bin, but continue with deletion even if it fails
+      try {
+        await moveToRecycleBin('courses', id, courseToDelete);
+      } catch (recycleBinError) {
+        console.warn('Failed to move to recycle bin, proceeding with direct deletion:', recycleBinError);
+      }
 
-      // Then delete from original table
+      // Delete from original table
       const { error } = await supabase
         .from('courses')
         .delete()
@@ -177,7 +181,7 @@ export const useCourses = () => {
       setCourses(prev => prev.filter(course => course.id !== id));
       toast({
         title: "Success",
-        description: "Course moved to recycle bin",
+        description: "Course deleted successfully",
       });
       return true;
     } catch (error) {
