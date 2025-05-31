@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { countries } from '@/utils/countries';
@@ -34,6 +33,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
 
   useEffect(() => {
     if (student) {
+      console.log('Loading student data for editing:', student);
       // Format dates for input fields
       const updatedStudent = { ...student };
       if (updatedStudent.join_date) {
@@ -48,12 +48,13 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
+    console.log('Form field changed:', name, value);
     
     // Convert numeric fields to numbers
     if (type === 'number') {
       setFormData(prev => ({
         ...prev,
-        [name]: value === '' ? '' : Number(value)
+        [name]: value === '' ? 0 : Number(value)
       }));
     } else {
       setFormData(prev => ({
@@ -64,6 +65,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
   };
 
   const handleSelectChange = (value, name) => {
+    console.log('Select field changed:', name, value);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -72,6 +74,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     setIsLoading(true);
     
     try {
@@ -85,8 +88,19 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         setIsLoading(false);
         return;
       }
+
+      // Ensure numeric fields are properly converted
+      const processedData = {
+        ...formData,
+        total_course_fee: Number(formData.total_course_fee) || 0,
+        advance_payment: Number(formData.advance_payment) || 0,
+        installments: Number(formData.installments) || 1,
+      };
+
+      console.log('Processed form data before save:', processedData);
       
-      await onSave(formData);
+      await onSave(processedData);
+      
       toast({
         title: "Success",
         description: student ? "Student updated successfully" : "Student added successfully",
@@ -105,7 +119,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{student ? 'Edit Student' : 'Add New Student'}</DialogTitle>
         </DialogHeader>
@@ -116,9 +130,10 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
               <Input
                 id="full_name"
                 name="full_name"
-                value={formData.full_name}
+                value={formData.full_name || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter full name"
               />
             </div>
             <div className="space-y-2">
@@ -127,9 +142,10 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 id="email"
                 name="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter email address"
               />
             </div>
             <div className="space-y-2">
@@ -137,9 +153,10 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
               <Input
                 id="phone"
                 name="phone"
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter phone number"
               />
             </div>
             <div className="space-y-2">
@@ -149,6 +166,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 name="passport_id"
                 value={formData.passport_id || ''}
                 onChange={handleChange}
+                placeholder="Enter passport ID"
               />
             </div>
             <div className="space-y-2">
@@ -161,7 +179,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 <SelectTrigger>
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg z-50">
                   {countries.map((country) => (
                     <SelectItem key={country} value={country}>
                       {country}
@@ -177,6 +195,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 name="address"
                 value={formData.address || ''}
                 onChange={handleChange}
+                placeholder="Enter address"
               />
             </div>
           </div>
@@ -192,7 +211,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 <SelectTrigger>
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
                   <SelectItem value="">None</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
@@ -209,6 +228,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 name="batch_id"
                 value={formData.batch_id || ''}
                 onChange={handleChange}
+                placeholder="Enter batch ID"
               />
             </div>
             <div className="space-y-2">
@@ -239,14 +259,14 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
               <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
               <Select 
                 name="status" 
-                value={formData.status} 
+                value={formData.status || 'Attended Online'} 
                 onValueChange={(value) => handleSelectChange(value, 'status')}
                 required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
                   <SelectItem value="Attended Online">Attended Online</SelectItem>
                   <SelectItem value="Attend sessions">Attend sessions</SelectItem>
                   <SelectItem value="Attended F2F">Attended F2F</SelectItem>
@@ -263,9 +283,12 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 id="total_course_fee"
                 name="total_course_fee"
                 type="number"
-                value={formData.total_course_fee}
+                min="0"
+                step="0.01"
+                value={formData.total_course_fee || 0}
                 onChange={handleChange}
                 required
+                placeholder="Enter total course fee"
               />
             </div>
             <div className="space-y-2">
@@ -274,8 +297,11 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 id="advance_payment"
                 name="advance_payment"
                 type="number"
+                min="0"
+                step="0.01"
                 value={formData.advance_payment || 0}
                 onChange={handleChange}
+                placeholder="Enter advance payment"
               />
             </div>
             <div className="space-y-2">
@@ -287,6 +313,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 min="1"
                 value={formData.installments || 1}
                 onChange={handleChange}
+                placeholder="Number of installments"
               />
             </div>
           </div>

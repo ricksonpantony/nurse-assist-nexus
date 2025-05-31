@@ -29,6 +29,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   useEffect(() => {
     if (lead) {
+      console.log('Loading lead data for editing:', lead);
       // Format dates for input fields
       const updatedLead = { ...lead };
       if (updatedLead.expected_joining_date) {
@@ -40,6 +41,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log('Form field changed:', name, value);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -47,6 +49,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
   };
 
   const handleSelectChange = (value, name) => {
+    console.log('Select field changed:', name, value);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -55,6 +58,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     setIsLoading(true);
     
     try {
@@ -68,8 +72,11 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
         setIsLoading(false);
         return;
       }
+
+      console.log('Processed form data before save:', formData);
       
       await onSave(formData);
+      
       toast({
         title: "Success",
         description: lead ? "Lead updated successfully" : "Lead added successfully",
@@ -88,7 +95,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{lead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
         </DialogHeader>
@@ -99,9 +106,10 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
               <Input
                 id="full_name"
                 name="full_name"
-                value={formData.full_name}
+                value={formData.full_name || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter full name"
               />
             </div>
             <div className="space-y-2">
@@ -110,9 +118,10 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 id="email"
                 name="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter email address"
               />
             </div>
             <div className="space-y-2">
@@ -120,9 +129,10 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
               <Input
                 id="phone"
                 name="phone"
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={handleChange}
                 required
+                placeholder="Enter phone number"
               />
             </div>
             <div className="space-y-2">
@@ -132,6 +142,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 name="passport_id"
                 value={formData.passport_id || ''}
                 onChange={handleChange}
+                placeholder="Enter passport ID"
               />
             </div>
             <div className="space-y-2">
@@ -144,7 +155,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg z-50">
                   {countries.map((country) => (
                     <SelectItem key={country} value={country}>
                       {country}
@@ -160,6 +171,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 name="address"
                 value={formData.address || ''}
                 onChange={handleChange}
+                placeholder="Enter address"
               />
             </div>
             <div className="space-y-2">
@@ -172,7 +184,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
                   <SelectItem value="">None</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
@@ -190,6 +202,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 type="date"
                 value={formData.expected_joining_date || ''}
                 onChange={handleChange}
+                placeholder="Select expected joining date"
               />
             </div>
           </div>
@@ -202,6 +215,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
               value={formData.notes || ''}
               onChange={handleChange}
               rows={3}
+              placeholder="Enter any additional notes"
             />
           </div>
 
