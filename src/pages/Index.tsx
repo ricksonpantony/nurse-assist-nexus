@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,21 +7,23 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useStudents } from "@/hooks/useStudents";
 import { useCourses } from "@/hooks/useCourses";
+import { useLeads } from "@/hooks/useLeads";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { EnrollmentChart } from "@/components/dashboard/EnrollmentChart";
 import { CourseDistributionChart } from "@/components/dashboard/CourseDistributionChart";
 import { StatusDistributionChart } from "@/components/dashboard/StatusDistributionChart";
-import { StudentEngagement } from "@/components/dashboard/StudentEngagement";
+import { MarketingLeadOverview } from "@/components/dashboard/MarketingLeadOverview";
 
 const Index = () => {
   const { user } = useAuth();
   const { students, loading: studentsLoading } = useStudents();
   const { courses, loading: coursesLoading } = useCourses();
+  const { leads, loading: leadsLoading } = useLeads();
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  const loading = studentsLoading || coursesLoading;
+  const loading = studentsLoading || coursesLoading || leadsLoading;
 
   // Fetch user profile to get the full name
   useEffect(() => {
@@ -97,8 +98,8 @@ const Index = () => {
         loading={loading}
       />
 
-      {/* Student Engagement Section */}
-      <StudentEngagement students={students} loading={loading} />
+      {/* Marketing Leads & Exam Overview Section */}
+      <MarketingLeadOverview students={students} leads={leads} loading={loading} />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
