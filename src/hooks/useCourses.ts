@@ -2,13 +2,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRecycleBin } from "@/hooks/useRecycleBin";
 
 export interface Course {
   id: string;
   title: string;
   description: string | null;
   fee: number;
-  period_months: number;  // Changed from periodMonths to period_months to match DB
+  period_months: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -17,6 +18,7 @@ export const useCourses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { moveToRecycleBin } = useRecycleBin();
 
   const fetchCourses = async () => {
     try {
@@ -80,7 +82,6 @@ export const useCourses = () => {
 
       if (error) throw error;
 
-      // If the course fee was updated, update all enrolled students' fees
       if (courseData.fee !== undefined) {
         console.log(`Updating student fees for course ${id} to $${courseData.fee}`);
         
@@ -123,8 +124,49 @@ export const useCourses = () => {
     }
   };
 
+  const checkCourseAssignments = async (courseId: string): Promise<{ canDelete: boolean; studentCount: number }> => {
+    try {
+      const { count, error } = await supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .eq('course_id', courseId);
+
+      if (error) throw error;
+
+      return {
+        canDelete: (count || 0) === 0,
+        studentCount: count || 0
+      };
+    } catch (error) {
+      console.error('Error checking course assignments:', error);
+      return { canDelete: false, studentCount: 0 };
+    }
+  };
+
   const deleteCourse = async (id: string) => {
     try {
+      // Check if course is assigned to students
+      const { canDelete, studentCount } = await checkCourseAssignments(id);
+      
+      if (!canDelete) {
+        toast({
+          title: "Cannot Delete Course",
+          description: `This course is currently assigned to ${studentCount} student(s). Please update the student details before deleting.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Get the course data before deleting
+      const courseToDelete = courses.find(course => course.id === id);
+      if (!courseToDelete) {
+        throw new Error('Course not found');
+      }
+
+      // Move to recycle bin first
+      await moveToRecycleBin('courses', id, courseToDelete);
+
+      // Then delete from original table
       const { error } = await supabase
         .from('courses')
         .delete()
@@ -135,8 +177,9 @@ export const useCourses = () => {
       setCourses(prev => prev.filter(course => course.id !== id));
       toast({
         title: "Success",
-        description: "Course deleted successfully",
+        description: "Course moved to recycle bin",
       });
+      return true;
     } catch (error) {
       console.error('Error deleting course:', error);
       toast({
@@ -144,7 +187,7 @@ export const useCourses = () => {
         description: "Failed to delete course",
         variant: "destructive",
       });
-      throw error;
+      return false;
     }
   };
 
@@ -158,6 +201,7 @@ export const useCourses = () => {
     addCourse,
     updateCourse,
     deleteCourse,
+    checkCourseAssignments,
     refetch: fetchCourses
   };
 };

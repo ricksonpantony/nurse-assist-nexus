@@ -39,10 +39,12 @@ const Courses = () => {
   };
 
   const handleDeleteCourse = async (courseId: string) => {
-    try {
-      await deleteCourse(courseId);
-    } catch (error) {
-      // Error is handled in the hook
+    if (window.confirm("Are you sure you want to delete this course?")) {
+      try {
+        await deleteCourse(courseId);
+      } catch (error) {
+        // Error is handled in the hook
+      }
     }
   };
 
@@ -66,7 +68,6 @@ const Courses = () => {
 
   const courseContent = (
     <>
-      {/* Header */}
       <div className={`${isMobile ? 'mb-4' : 'mb-6'} ${isMobile ? 'bg-gradient-to-r from-blue-600 to-blue-700 -mx-3 -mt-2 p-4 text-white' : 'bg-gradient-to-r from-white via-blue-50 to-white p-6 rounded-lg shadow-lg'}`}>
         <div className="flex flex-col gap-3">
           <div className="flex-1">
@@ -88,7 +89,6 @@ const Courses = () => {
         </div>
       </div>
 
-      {/* Course Cards Grid */}
       <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
         {courses.map((course) => (
           <CourseCard
@@ -107,7 +107,6 @@ const Courses = () => {
       <>
         {courseContent}
         
-        {/* Course Creation/Edit Form Modal */}
         {showCreateForm && (
           <CreateCourseForm
             course={editingCourse}
@@ -140,7 +139,6 @@ const Courses = () => {
       </header>
 
       <main className="flex-1 p-6">
-        {/* Course Cards Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
             <CourseCard
@@ -153,7 +151,6 @@ const Courses = () => {
         </div>
       </main>
 
-      {/* Course Creation/Edit Form Modal */}
       {showCreateForm && (
         <CreateCourseForm
           course={editingCourse}

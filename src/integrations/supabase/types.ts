@@ -224,6 +224,39 @@ export type Database = {
           },
         ]
       }
+      recycle_bin: {
+        Row: {
+          deleted_at: string
+          deleted_by: string | null
+          id: string
+          original_id: string
+          original_table: string
+          permanently_deleted_at: string | null
+          record_data: Json
+          restored_at: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by?: string | null
+          id?: string
+          original_id: string
+          original_table: string
+          permanently_deleted_at?: string | null
+          record_data: Json
+          restored_at?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string | null
+          id?: string
+          original_id?: string
+          original_table?: string
+          permanently_deleted_at?: string | null
+          record_data?: Json
+          restored_at?: string | null
+        }
+        Relationships: []
+      }
       referral_payments: {
         Row: {
           amount: number
@@ -284,6 +317,7 @@ export type Database = {
           id: string
           notes: string | null
           phone: string
+          referral_id: string
           updated_at: string
         }
         Insert: {
@@ -297,6 +331,7 @@ export type Database = {
           id?: string
           notes?: string | null
           phone: string
+          referral_id: string
           updated_at?: string
         }
         Update: {
@@ -310,6 +345,7 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string
+          referral_id?: string
           updated_at?: string
         }
         Relationships: []

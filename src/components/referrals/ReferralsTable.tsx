@@ -28,10 +28,8 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
       
       for (const referral of referrals) {
         try {
-          // Count students referred by this referral
           const referredStudents = students.filter(student => student.referral_id === referral.id);
           
-          // Get total payments for this referral
           const { data: payments, error } = await supabase
             .from('referral_payments')
             .select('amount')
@@ -67,17 +65,17 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
   const filteredReferrals = referrals.filter(referral => 
     referral.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     referral.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    referral.phone.includes(searchTerm)
+    referral.phone.includes(searchTerm) ||
+    referral.referral_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      {/* Search Controls */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search referrals by name, email, or phone..."
+            placeholder="Search referrals by ID, name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -85,11 +83,11 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
         </div>
       </div>
 
-      {/* Referrals Table */}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-blue-50">
+              <TableHead className="font-semibold text-blue-900">Referral ID</TableHead>
               <TableHead className="font-semibold text-blue-900">Name</TableHead>
               <TableHead className="font-semibold text-blue-900">Email</TableHead>
               <TableHead className="font-semibold text-blue-900">Phone</TableHead>
@@ -104,6 +102,7 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
               
               return (
                 <TableRow key={referral.id} className="hover:bg-blue-50 transition-colors">
+                  <TableCell className="font-medium text-blue-600">{referral.referral_id}</TableCell>
                   <TableCell className="font-medium">{referral.full_name}</TableCell>
                   <TableCell className="text-gray-600">{referral.email}</TableCell>
                   <TableCell>{referral.phone}</TableCell>

@@ -10,7 +10,8 @@ import {
   Home,
   Building2,
   UserCheck,
-  Target
+  Target,
+  Trash2
 } from "lucide-react";
 import {
   Sidebar,
@@ -60,6 +61,11 @@ const menuItems = [
     icon: UserCheck,
   },
   {
+    title: "Recycle Bin",
+    url: "/recycle-bin",
+    icon: Trash2,
+  },
+  {
     title: "Audit Logs",
     url: "/audit",
     icon: FileText,
@@ -76,7 +82,6 @@ export function AppSidebar() {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  // Fetch user profile to get the full name
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user?.id) {
@@ -93,7 +98,6 @@ export function AppSidebar() {
     fetchUserProfile();
   }, [user]);
 
-  // Get display name: profile name first, then email as fallback
   const getDisplayName = () => {
     if (userProfile?.full_name) {
       return userProfile.full_name;
@@ -143,7 +147,6 @@ export function AppSidebar() {
       
       <SidebarFooter className="border-t border-blue-700/30 p-4 bg-gradient-to-r from-blue-900 to-blue-800">
         <div className="space-y-3">
-          {/* User Info */}
           <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3 backdrop-blur-sm">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-white to-blue-100 text-blue-600 text-sm font-bold shadow-lg">
               {getDisplayName().charAt(0).toUpperCase()}
@@ -159,8 +162,22 @@ export function AppSidebar() {
             </div>
           </div>
           
-          {/* Logout Button */}
           <LogoutButton />
+          
+          {/* Footer Credits */}
+          <div className="text-center pt-2 border-t border-blue-700/30">
+            <p className="text-xs text-blue-300">
+              Developed by{" "}
+              <a 
+                href="https://www.alltechzone.au" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-200 hover:text-white hover:underline transition-colors"
+              >
+                Alltechzone
+              </a>
+            </p>
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>

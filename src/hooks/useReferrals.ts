@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRecycleBin } from "@/hooks/useRecycleBin";
 
 export interface Referral {
   id: string;
+  referral_id: string;
   full_name: string;
   email: string;
   phone: string;
@@ -32,12 +34,12 @@ export const useReferrals = () => {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { moveToRecycleBin } = useRecycleBin();
 
   const fetchReferrals = async () => {
     try {
       setLoading(true);
       
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('User not authenticated');
@@ -69,9 +71,8 @@ export const useReferrals = () => {
     }
   };
 
-  const addReferral = async (referralData: Omit<Referral, 'id' | 'created_at' | 'updated_at'>) => {
+  const addReferral = async (referralData: Omit<Referral, 'id' | 'referral_id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -104,7 +105,6 @@ export const useReferrals = () => {
 
   const updateReferral = async (id: string, referralData: Partial<Referral>) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -147,12 +147,21 @@ export const useReferrals = () => {
 
   const deleteReferral = async (id: string) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
+      // Get the referral data before deleting
+      const referralToDelete = referrals.find(ref => ref.id === id);
+      if (!referralToDelete) {
+        throw new Error('Referral not found');
+      }
+
+      // Move to recycle bin first
+      await moveToRecycleBin('referrals', id, referralToDelete);
+
+      // Then delete from original table
       const { error } = await supabase
         .from('referrals')
         .delete()
@@ -163,7 +172,7 @@ export const useReferrals = () => {
       setReferrals(prev => prev.filter(referral => referral.id !== id));
       toast({
         title: "Success",
-        description: "Referral deleted successfully",
+        description: "Referral moved to recycle bin",
       });
     } catch (error: any) {
       console.error('Error deleting referral:', error);
@@ -178,7 +187,6 @@ export const useReferrals = () => {
 
   const fetchReferralPayments = async (referralId: string): Promise<ReferralPayment[]> => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('User not authenticated');
@@ -201,7 +209,6 @@ export const useReferrals = () => {
 
   const addReferralPayment = async (paymentData: Omit<ReferralPayment, 'id' | 'created_at'>) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
