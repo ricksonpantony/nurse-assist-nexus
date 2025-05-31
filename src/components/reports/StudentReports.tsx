@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Download, Filter, Printer, Users } from 'lucide-react';
 import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
+import { countries } from '@/utils/countries';
 
 export const StudentReports = () => {
   const { students } = useStudents();
@@ -23,6 +24,7 @@ export const StudentReports = () => {
     year: new Date().getFullYear().toString(),
     status: 'all',
     course: 'all',
+    country: 'all',
   });
 
   const [sortBy, setSortBy] = useState('join_date');
@@ -63,6 +65,11 @@ export const StudentReports = () => {
       filtered = filtered.filter(student => student.course_id === filters.course);
     }
 
+    // Filter by country
+    if (filters.country && filters.country !== 'all') {
+      filtered = filtered.filter(student => student.country === filters.country);
+    }
+
     // Sort students
     filtered.sort((a, b) => {
       let aValue, bValue;
@@ -79,6 +86,10 @@ export const StudentReports = () => {
         case 'status':
           aValue = a.status;
           bValue = b.status;
+          break;
+        case 'country':
+          aValue = (a.country || '').toLowerCase();
+          bValue = (b.country || '').toLowerCase();
           break;
         default:
           aValue = a[sortBy as keyof typeof a];
@@ -134,8 +145,19 @@ export const StudentReports = () => {
       year: new Date().getFullYear().toString(),
       status: 'all',
       course: 'all',
+      country: 'all',
     });
   };
+
+  // Get unique countries from students for the filter dropdown
+  const uniqueCountries = useMemo(() => {
+    const studentCountries = students
+      .map(student => student.country)
+      .filter(country => country && country.trim() !== '')
+      .filter((country, index, array) => array.indexOf(country) === index)
+      .sort();
+    return studentCountries;
+  }, [students]);
 
   return (
     <div className="space-y-6">
@@ -202,7 +224,7 @@ export const StudentReports = () => {
               />
             </div>
 
-            {/* Status Filter - Updated with new status values */}
+            {/* Status Filter */}
             <div className="space-y-2">
               <Label>Student Status</Label>
               <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
@@ -240,6 +262,24 @@ export const StudentReports = () => {
               </Select>
             </div>
 
+            {/* Country Filter */}
+            <div className="space-y-2">
+              <Label>Country</Label>
+              <Select value={filters.country} onValueChange={(value) => setFilters(prev => ({ ...prev, country: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All countries" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {uniqueCountries.map(country => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Sort Options */}
             <div className="space-y-2">
               <Label>Sort By</Label>
@@ -251,6 +291,7 @@ export const StudentReports = () => {
                   <SelectItem value="join_date">Join Date</SelectItem>
                   <SelectItem value="full_name">Name</SelectItem>
                   <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="country">Country</SelectItem>
                   <SelectItem value="total_course_fee">Course Fee</SelectItem>
                 </SelectContent>
               </Select>
