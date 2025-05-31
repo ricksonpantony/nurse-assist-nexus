@@ -95,6 +95,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
         installments: Number(formData.installments) || 1,
+        // Remove course_id if it's "none" to store as null/empty
+        course_id: formData.course_id === 'none' ? '' : formData.course_id,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -205,14 +207,14 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
               <Label htmlFor="course_id">Course</Label>
               <Select 
                 name="course_id" 
-                value={formData.course_id || ''} 
+                value={formData.course_id || 'none'} 
                 onValueChange={(value) => handleSelectChange(value, 'course_id')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}

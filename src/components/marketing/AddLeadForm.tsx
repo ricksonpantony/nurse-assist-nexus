@@ -73,9 +73,15 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
         return;
       }
 
-      console.log('Processed form data before save:', formData);
+      // Process data - remove course_id if it's "none"
+      const processedData = {
+        ...formData,
+        interested_course_id: formData.interested_course_id === 'none' ? '' : formData.interested_course_id,
+      };
+
+      console.log('Processed form data before save:', processedData);
       
-      await onSave(formData);
+      await onSave(processedData);
       
       toast({
         title: "Success",
@@ -178,14 +184,14 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
               <Label htmlFor="interested_course_id">Interested Course</Label>
               <Select 
                 name="interested_course_id" 
-                value={formData.interested_course_id || ''} 
+                value={formData.interested_course_id || 'none'} 
                 onValueChange={(value) => handleSelectChange(value, 'interested_course_id')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}
