@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRecycleBin } from "@/hooks/useRecycleBin";
 
 export interface Student {
   id: string;
@@ -41,6 +42,7 @@ export const useStudents = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { moveToRecycleBin } = useRecycleBin();
 
   const fetchStudents = async () => {
     try {
@@ -249,17 +251,40 @@ export const useStudents = () => {
 
   const deleteStudent = async (id: string) => {
     try {
-      const { error } = await supabase
+      console.log('Deleting student with ID:', id);
+      
+      // First, get the student data before deletion
+      const { data: studentData, error: fetchError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching student for deletion:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('Student data to move to recycle bin:', studentData);
+
+      // Move to recycle bin first
+      await moveToRecycleBin('students', id, studentData);
+
+      // Then delete from the original table
+      const { error: deleteError } = await supabase
         .from('students')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting student from database:', deleteError);
+        throw deleteError;
+      }
       
       setStudents(prev => prev.filter(student => student.id !== id));
       toast({
         title: "Success",
-        description: "Student deleted successfully",
+        description: "Student moved to recycle bin successfully",
       });
     } catch (error) {
       console.error('Error deleting student:', error);

@@ -1,19 +1,15 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Edit, Trash2, CreditCard, Search, User, Download } from "lucide-react";
-import { Course } from "@/hooks/useCourses";
-import { Student } from "@/hooks/useStudents";
+import { Edit2, Eye, Trash2, CreditCard, Phone, Mail, MapPin } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import type { Student } from "@/hooks/useStudents";
 
 interface StudentsTableProps {
   students: Student[];
-  courses: Course[];
+  courses: any[];
   onEdit: (student: Student) => void;
   onDelete: (studentId: string) => void;
   onDeleteMultiple: (studentIds: string[]) => void;
@@ -30,58 +26,14 @@ export const StudentsTable = ({
   onView, 
   onUpdatePayment 
 }: StudentsTableProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'multiple', ids: string[] }>({ type: 'single', ids: [] });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Attended Online":
-        return "bg-green-100 text-green-800";
-      case "Attend sessions":
-        return "bg-blue-100 text-blue-800";
-      case "Attended F2F":
-        return "bg-purple-100 text-purple-800";
-      case "Exam cycle":
-        return "bg-orange-100 text-orange-800";
-      case "Awaiting results":
-        return "bg-yellow-100 text-yellow-800";
-      case "Pass":
-        return "bg-emerald-100 text-emerald-800";
-      case "Fail":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || student.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getCourseTitle = (courseId: string | null) => {
-    if (!courseId) return "No Course Assigned";
-    const course = courses.find(c => c.id === courseId);
-    return course?.title || "Unknown Course";
-  };
-
-  const formatDateToDDMMYYYY = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedStudents(filteredStudents.map(student => student.id));
+      setSelectedStudents(students.map(s => s.id));
     } else {
       setSelectedStudents([]);
     }
@@ -95,195 +47,239 @@ export const StudentsTable = ({
     }
   };
 
-  const handleDeleteSelected = () => {
-    if (selectedStudents.length === 0) return;
-    
-    setDeleteTarget({ type: 'multiple', ids: selectedStudents });
-    setShowDeleteConfirmation(true);
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'Attended Online': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Attend sessions': 'bg-purple-100 text-purple-800 border-purple-200',
+      'Attended F2F': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      'Exam cycle': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'Awaiting results': 'bg-orange-100 text-orange-800 border-orange-200',
+      'Pass': 'bg-green-100 text-green-800 border-green-200',
+      'Fail': 'bg-red-100 text-red-800 border-red-200',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const handleDeleteSingle = (studentId: string) => {
-    setDeleteTarget({ type: 'single', ids: [studentId] });
-    setShowDeleteConfirmation(true);
+  const handleDeleteClick = (studentId: string) => {
+    console.log('Delete button clicked for student:', studentId);
+    setStudentToDelete(studentId);
+    setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    if (deleteTarget.type === 'multiple') {
-      onDeleteMultiple(deleteTarget.ids);
-      setSelectedStudents([]);
-    } else {
-      onDelete(deleteTarget.ids[0]);
+  const handleConfirmDelete = () => {
+    if (studentToDelete) {
+      console.log('Confirming delete for student:', studentToDelete);
+      onDelete(studentToDelete);
+      setStudentToDelete(null);
     }
-    setShowDeleteConfirmation(false);
   };
 
-  const getSelectedStudentNames = () => {
-    return deleteTarget.ids.map(id => {
-      const student = students.find(s => s.id === id);
-      return student ? student.full_name : 'Unknown Student';
+  const handleBulkDeleteClick = () => {
+    if (selectedStudents.length > 0) {
+      console.log('Bulk delete clicked for students:', selectedStudents);
+      setShowBulkDeleteModal(true);
+    }
+  };
+
+  const handleConfirmBulkDelete = () => {
+    console.log('Confirming bulk delete for students:', selectedStudents);
+    onDeleteMultiple(selectedStudents);
+    setSelectedStudents([]);
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const allSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
-  const someSelected = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
-
   return (
-    <>
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Bulk Actions Bar */}
-        {selectedStudents.length > 0 && (
-          <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="font-medium">
-                {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Selected
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteSelected}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Selected
-              </Button>
-            </div>
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+      {selectedStudents.length > 0 && (
+        <div className="bg-blue-50 p-2 flex items-center justify-between">
+          <div className="text-sm text-blue-700 font-medium pl-2">
+            {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
           </div>
-        )}
-
-        {/* Search and Filter Controls */}
-        <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
-          <div className="flex gap-4 items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search students by name, email, or ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Attended Online">Attended Online</SelectItem>
-                <SelectItem value="Attend sessions">Attend sessions</SelectItem>
-                <SelectItem value="Attended F2F">Attended F2F</SelectItem>
-                <SelectItem value="Exam cycle">Exam cycle</SelectItem>
-                <SelectItem value="Awaiting results">Awaiting results</SelectItem>
-                <SelectItem value="Pass">Pass</SelectItem>
-                <SelectItem value="Fail">Fail</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2">
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleBulkDeleteClick}
+              className="gap-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected
+            </Button>
           </div>
         </div>
-
-        {/* Students Table */}
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-blue-50">
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all students"
-                    className={someSelected ? "data-[state=checked]:bg-blue-600" : ""}
-                  />
-                </TableHead>
-                <TableHead className="font-semibold text-blue-900">Student ID</TableHead>
-                <TableHead className="font-semibold text-blue-900">Name</TableHead>
-                <TableHead className="font-semibold text-blue-900">Email</TableHead>
-                <TableHead className="font-semibold text-blue-900">Course</TableHead>
-                <TableHead className="font-semibold text-blue-900">Status</TableHead>
-                <TableHead className="font-semibold text-blue-900">Course Fee</TableHead>
-                <TableHead className="font-semibold text-blue-900">Join Date</TableHead>
-                <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id} className="hover:bg-blue-50 transition-colors">
+      )}
+      
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-blue-50">
+              <TableHead className="w-[50px]">
+                <Checkbox 
+                  checked={students.length > 0 && selectedStudents.length === students.length}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
+              <TableHead className="font-semibold text-blue-900">Student ID</TableHead>
+              <TableHead className="font-semibold text-blue-900">Name</TableHead>
+              <TableHead className="font-semibold text-blue-900">Contact</TableHead>
+              <TableHead className="font-semibold text-blue-900">Course</TableHead>
+              <TableHead className="font-semibold text-blue-900">Join Date</TableHead>
+              <TableHead className="font-semibold text-blue-900">Status</TableHead>
+              <TableHead className="font-semibold text-blue-900">Payment</TableHead>
+              <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((student) => {
+              const course = courses.find(c => c.id === student.course_id);
+              const isSelected = selectedStudents.includes(student.id);
+              
+              return (
+                <TableRow key={student.id} className={`hover:bg-blue-50 transition-colors ${isSelected ? 'bg-blue-100' : ''}`}>
                   <TableCell>
-                    <Checkbox
-                      checked={selectedStudents.includes(student.id)}
-                      onCheckedChange={(checked) => handleSelectStudent(student.id, checked as boolean)}
-                      aria-label={`Select ${student.full_name}`}
+                    <Checkbox 
+                      checked={isSelected}
+                      onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
                     />
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{student.id}</TableCell>
-                  <TableCell className="font-medium">{student.full_name}</TableCell>
-                  <TableCell className="text-gray-600">{student.email}</TableCell>
-                  <TableCell>{getCourseTitle(student.course_id)}</TableCell>
+                  <TableCell className="font-medium">{student.id}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(student.status)}>
+                    <div className="font-medium">{student.full_name}</div>
+                    <div className="text-xs text-gray-500">{student.passport_id || 'No Passport ID'}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Phone className="h-3 w-3 mr-1" />
+                        {student.phone}
+                      </div>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Mail className="h-3 w-3 mr-1" />
+                        {student.email}
+                      </div>
+                      {student.address && (
+                        <div className="flex items-center text-xs text-gray-600">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {student.country || 'N/A'}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {course ? (
+                      <div>
+                        <div className="font-medium">{course.title}</div>
+                        <div className="text-xs text-gray-500">{course.period_months} months</div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">No course assigned</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div>{formatDate(student.join_date)}</div>
+                    {student.class_start_date && (
+                      <div className="text-xs text-gray-500">
+                        Class: {formatDate(student.class_start_date)}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`${getStatusColor(student.status)}`}>
                       {student.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-semibold text-green-600">
-                    ${student.total_course_fee}
-                  </TableCell>
-                  <TableCell>{formatDateToDDMMYYYY(student.join_date)}</TableCell>
                   <TableCell>
-                    <div className="flex gap-2 justify-center">
+                    <div className="font-medium">${student.total_course_fee.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">
+                      Advance: ${student.advance_payment?.toLocaleString() || 0}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
                       <Button 
-                        variant="outline" 
+                        variant="ghost" 
                         size="sm" 
                         onClick={() => onView(student)}
-                        className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200"
+                        className="text-blue-600 hover:bg-blue-50"
                       >
-                        <User className="h-4 w-4" />
-                        View Account
+                        <Eye className="h-4 w-4" />
                       </Button>
                       <Button 
-                        variant="outline" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onEdit(student)}
+                        className="text-green-600 hover:bg-green-50"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
                         size="sm" 
                         onClick={() => onUpdatePayment(student)}
-                        className="gap-1 text-green-600 hover:bg-green-50 border-green-200"
+                        className="text-purple-600 hover:bg-purple-50"
                       >
                         <CreditCard className="h-4 w-4" />
-                        Update Payment
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => onEdit(student)}>
-                        <Edit className="h-4 w-4 text-orange-600" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteSingle(student.id)}>
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDeleteClick(student.id)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {filteredStudents.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <p>No students found matching your criteria.</p>
-          </div>
-        )}
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
 
+      {students.length === 0 && (
+        <div className="p-8 text-center text-gray-500">
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <p className="text-lg">No students found</p>
+          <p className="text-sm">Add a new student to get started</p>
+        </div>
+      )}
+
+      {/* Single Delete Modal */}
       <DeleteConfirmationModal
-        isOpen={showDeleteConfirmation}
-        onClose={() => setShowDeleteConfirmation(false)}
-        onConfirm={confirmDelete}
-        count={deleteTarget.ids.length}
-        studentNames={getSelectedStudentNames()}
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setStudentToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        count={1}
+        studentNames={studentToDelete ? [students.find(s => s.id === studentToDelete)?.full_name || ''] : []}
       />
-    </>
+
+      {/* Bulk Delete Modal */}
+      <DeleteConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={handleConfirmBulkDelete}
+        count={selectedStudents.length}
+        studentNames={selectedStudents.map(id => 
+          students.find(s => s.id === id)?.full_name || ''
+        )}
+      />
+    </div>
   );
 };
