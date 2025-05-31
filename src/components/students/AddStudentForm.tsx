@@ -46,6 +46,20 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     }
   }, [student]);
 
+  // Auto-populate course fee when course is selected
+  useEffect(() => {
+    if (formData.course_id && formData.course_id !== 'none') {
+      const selectedCourse = courses.find(course => course.id === formData.course_id);
+      if (selectedCourse && selectedCourse.fee) {
+        console.log('Auto-populating course fee:', selectedCourse.fee);
+        setFormData(prev => ({
+          ...prev,
+          total_course_fee: selectedCourse.fee
+        }));
+      }
+    }
+  }, [formData.course_id, courses]);
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     console.log('Form field changed:', name, value);
@@ -89,14 +103,18 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         return;
       }
 
-      // Ensure numeric fields are properly converted
+      // Ensure numeric fields are properly converted and handle empty date fields
       const processedData = {
         ...formData,
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
         installments: Number(formData.installments) || 1,
         // Remove course_id if it's "none" to store as null/empty
-        course_id: formData.course_id === 'none' ? '' : formData.course_id,
+        course_id: formData.course_id === 'none' ? null : formData.course_id,
+        // Handle empty dates - set to null instead of empty string
+        class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
+        // Ensure join_date is never empty
+        join_date: formData.join_date || new Date().toISOString().split('T')[0],
       };
 
       console.log('Processed form data before save:', processedData);
@@ -217,7 +235,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                   <SelectItem value="none">None</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
-                      {course.title}
+                      {course.title} - ${course.fee}
                     </SelectItem>
                   ))}
                 </SelectContent>

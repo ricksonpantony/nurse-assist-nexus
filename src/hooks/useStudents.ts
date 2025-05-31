@@ -105,10 +105,22 @@ export const useStudents = () => {
       const referralPaymentAmount = studentData.referral_payment_amount || 0;
       const { referral_payment_amount, ...cleanStudentData } = studentData;
       
-      // Prepare the data for insertion - ensure we don't include notes field
+      // Prepare the data for insertion - ensure proper data types and null handling
       const insertData = {
         ...cleanStudentData,
-        id: newStudentId
+        id: newStudentId,
+        // Handle null values properly for database insertion
+        course_id: cleanStudentData.course_id || null,
+        batch_id: cleanStudentData.batch_id || null,
+        referral_id: cleanStudentData.referral_id || null,
+        passport_id: cleanStudentData.passport_id || null,
+        address: cleanStudentData.address || null,
+        country: cleanStudentData.country || null,
+        class_start_date: cleanStudentData.class_start_date || null,
+        // Ensure numeric fields are properly typed
+        total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
+        advance_payment: Number(cleanStudentData.advance_payment) || 0,
+        installments: Number(cleanStudentData.installments) || 1,
       };
       
       console.log('Clean insert data:', insertData);
