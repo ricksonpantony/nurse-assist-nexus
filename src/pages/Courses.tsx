@@ -1,17 +1,24 @@
-
 import { useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CourseCard } from "@/components/courses/CourseCard";
 import { CreateCourseForm } from "@/components/courses/CreateCourseForm";
+import { DeleteCourseDialog } from "@/components/courses/DeleteCourseDialog";
 import { useCourses } from "@/hooks/useCourses";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Courses = () => {
-  const { courses, loading, addCourse, updateCourse, deleteCourse } = useCourses();
+  const { courses, loading, addCourse, updateCourse, deleteCourse, checkCourseAssignments } = useCourses();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    courseId: "",
+    courseName: "",
+    canDelete: true,
+    studentCount: 0
+  });
   const isMobile = useIsMobile();
 
   const handleCreateCourse = async (courseData: any) => {
@@ -38,13 +45,35 @@ const Courses = () => {
     }
   };
 
-  const handleDeleteCourse = async (courseId: string) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      try {
-        await deleteCourse(courseId);
-      } catch (error) {
-        // Error is handled in the hook
-      }
+  const handleDeleteCourse = async (courseId: string, courseName: string) => {
+    try {
+      // Check if course can be deleted
+      const { canDelete, studentCount } = await checkCourseAssignments(courseId);
+      
+      setDeleteDialog({
+        open: true,
+        courseId,
+        courseName,
+        canDelete,
+        studentCount
+      });
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
+  const confirmDeleteCourse = async () => {
+    try {
+      await deleteCourse(deleteDialog.courseId);
+      setDeleteDialog({
+        open: false,
+        courseId: "",
+        courseName: "",
+        canDelete: true,
+        studentCount: 0
+      });
+    } catch (error) {
+      // Error is handled in the hook
     }
   };
 
@@ -95,7 +124,7 @@ const Courses = () => {
             key={course.id}
             course={course}
             onEdit={() => handleEditCourse(course)}
-            onDelete={() => handleDeleteCourse(course.id)}
+            onDelete={() => handleDeleteCourse(course.id, course.title)}
           />
         ))}
       </div>
@@ -117,6 +146,15 @@ const Courses = () => {
             onSave={editingCourse ? handleUpdateCourse : handleCreateCourse}
           />
         )}
+
+        <DeleteCourseDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+          courseName={deleteDialog.courseName}
+          canDelete={deleteDialog.canDelete}
+          studentCount={deleteDialog.studentCount}
+          onConfirm={confirmDeleteCourse}
+        />
       </>
     );
   }
@@ -145,7 +183,7 @@ const Courses = () => {
               key={course.id}
               course={course}
               onEdit={() => handleEditCourse(course)}
-              onDelete={() => handleDeleteCourse(course.id)}
+              onDelete={() => handleDeleteCourse(course.id, course.title)}
             />
           ))}
         </div>
@@ -161,6 +199,15 @@ const Courses = () => {
           onSave={editingCourse ? handleUpdateCourse : handleCreateCourse}
         />
       )}
+
+      <DeleteCourseDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        courseName={deleteDialog.courseName}
+        canDelete={deleteDialog.canDelete}
+        studentCount={deleteDialog.studentCount}
+        onConfirm={confirmDeleteCourse}
+      />
     </div>
   );
 };
