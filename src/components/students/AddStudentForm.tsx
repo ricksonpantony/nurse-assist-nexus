@@ -1,415 +1,306 @@
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, Plus } from "lucide-react";
-import { Course } from "@/hooks/useCourses";
-import { Student } from "@/hooks/useStudents";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useReferrals } from "@/hooks/useReferrals";
-import { QuickAddReferralModal } from "./QuickAddReferralModal";
+import { useToast } from '@/hooks/use-toast';
+import { countries } from '@/utils/countries';
 
-interface AddStudentFormProps {
-  student?: Student;
-  courses: Course[];
-  onClose: () => void;
-  onSave: (student: any) => void;
-}
-
-export const AddStudentForm = ({ student, courses, onClose, onSave }: AddStudentFormProps) => {
-  const isMobile = useIsMobile();
-  const { referrals } = useReferrals();
-  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    country: "",
-    passport_id: "",
-    course_id: "",
-    batch_id: "",
-    referral_id: "",
-    referral_payment_amount: 0,
+export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }) => {
+  const initialState = student ? { ...student } : {
+    full_name: '',
+    email: '',
+    phone: '',
+    passport_id: '',
+    address: '',
+    country: 'India', // Default to India
+    course_id: '',
+    batch_id: '',
+    referral_id: '',
     join_date: new Date().toISOString().split('T')[0],
-    class_start_date: "",
-    status: "Attend sessions" as Student['status'],
+    class_start_date: '',
+    status: 'Attended Online',
     total_course_fee: 0,
     advance_payment: 0,
-    installments: 1
-  });
+    installments: 1,
+  };
+
+  const [formData, setFormData] = useState(initialState);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (student) {
-      setFormData({
-        full_name: student.full_name,
-        email: student.email,
-        phone: student.phone,
-        address: student.address || "",
-        country: student.country || "",
-        passport_id: student.passport_id || "",
-        course_id: student.course_id || "",
-        batch_id: student.batch_id || "",
-        referral_id: student.referral_id || "",
-        referral_payment_amount: 0, // Reset for editing
-        join_date: student.join_date,
-        class_start_date: student.class_start_date || "",
-        status: student.status,
-        total_course_fee: student.total_course_fee,
-        advance_payment: student.advance_payment,
-        installments: student.installments
-      });
+      // Format dates for input fields
+      const updatedStudent = { ...student };
+      if (updatedStudent.join_date) {
+        updatedStudent.join_date = new Date(updatedStudent.join_date).toISOString().split('T')[0];
+      }
+      if (updatedStudent.class_start_date) {
+        updatedStudent.class_start_date = new Date(updatedStudent.class_start_date).toISOString().split('T')[0];
+      }
+      setFormData(updatedStudent);
     }
   }, [student]);
 
-  // Auto-populate course fee when course is selected (only if not manually edited)
-  useEffect(() => {
-    if (formData.course_id && !student) {
-      const selectedCourse = courses.find(c => c.id === formData.course_id);
-      if (selectedCourse) {
-        setFormData(prev => ({ ...prev, total_course_fee: selectedCourse.fee }));
-      }
-    }
-  }, [formData.course_id, courses, student]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange = (e) => {
+    const { name, value, type } = e.target;
     
-    // Prepare data for submission, converting empty strings to null for optional fields
-    const submitData: any = {
-      ...formData,
-      class_start_date: formData.class_start_date || null,
-      address: formData.address || null,
-      country: formData.country || null,
-      passport_id: formData.passport_id || null,
-      course_id: formData.course_id || null,
-      batch_id: formData.batch_id || null,
-      referral_id: formData.referral_id === "direct" ? null : formData.referral_id || null,
-      referral_payment_amount: formData.referral_payment_amount || 0
-    };
-
-    // If editing, include the student ID
-    if (student) {
-      submitData.id = student.id;
-    }
-    
-    onSave(submitData);
-  };
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleReferralSelect = (value: string) => {
-    if (value === "add_new") {
-      setShowQuickAddReferral(true);
+    // Convert numeric fields to numbers
+    if (type === 'number') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? '' : Number(value)
+      }));
     } else {
-      handleInputChange("referral_id", value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
-  const handleQuickReferralAdded = (newReferral: any) => {
-    handleInputChange("referral_id", newReferral.id);
-    setShowQuickAddReferral(false);
+  const handleSelectChange = (value, name) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const formContent = (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Auto-generated ID display for edit mode */}
-      {student && (
-        <div>
-          <Label>Student ID</Label>
-          <Input value={student.id} disabled className="bg-gray-100" />
-        </div>
-      )}
-
-      {/* Personal Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="full_name">Full Name *</Label>
-          <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) => handleInputChange("full_name", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Email *</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            required
-          />
-        </div>
-      </div>
-
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="phone">Phone *</Label>
-          <Input
-            id="phone"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="passport_id">Passport ID</Label>
-          <Input
-            id="passport_id"
-            value={formData.passport_id}
-            onChange={(e) => handleInputChange("passport_id", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="address">Address</Label>
-        <Input
-          id="address"
-          value={formData.address}
-          onChange={(e) => handleInputChange("address", e.target.value)}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="country">Country</Label>
-        <Input
-          id="country"
-          value={formData.country}
-          onChange={(e) => handleInputChange("country", e.target.value)}
-        />
-      </div>
-
-      {/* Referral Information */}
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="referral_id">Referred By</Label>
-          <Select value={formData.referral_id} onValueChange={handleReferralSelect}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select referral person (Optional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="direct">Direct (No Referral)</SelectItem>
-              {referrals.map((referral) => (
-                <SelectItem key={referral.id} value={referral.id}>
-                  {referral.full_name}
-                </SelectItem>
-              ))}
-              <SelectItem value="add_new" className="text-blue-600 font-medium">
-                <div className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add New Referral Person
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Referral Payment Amount - Only show if a referral person is selected */}
-        {formData.referral_id && formData.referral_id !== "direct" && (
-          <div>
-            <Label htmlFor="referral_payment_amount">Referral Payment Amount Paid ($)</Label>
-            <Input
-              id="referral_payment_amount"
-              type="number"
-              value={formData.referral_payment_amount}
-              onChange={(e) => handleInputChange("referral_payment_amount", Number(e.target.value))}
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-            />
-            <p className="text-sm text-gray-500 mt-1">Optional - Payment made to the referral person</p>
-          </div>
-        )}
-      </div>
-
-      {/* Course Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="course_id">Course *</Label>
-          <Select value={formData.course_id} onValueChange={(value) => handleInputChange("course_id", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="batch_id">Batch ID</Label>
-          <Input
-            id="batch_id"
-            value={formData.batch_id}
-            onChange={(e) => handleInputChange("batch_id", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-2 gap-4"}>
-        <div>
-          <Label htmlFor="join_date">Join Date *</Label>
-          <Input
-            id="join_date"
-            type="date"
-            value={formData.join_date}
-            onChange={(e) => handleInputChange("join_date", e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="class_start_date">Class Start Date</Label>
-          <Input
-            id="class_start_date"
-            type="date"
-            value={formData.class_start_date}
-            onChange={(e) => handleInputChange("class_start_date", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="status">Status</Label>
-        <Select 
-          value={formData.status} 
-          onValueChange={(value: Student['status']) => handleInputChange("status", value)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Attended Online">Attended Online</SelectItem>
-            <SelectItem value="Attend sessions">Attend sessions</SelectItem>
-            <SelectItem value="Attended F2F">Attended F2F</SelectItem>
-            <SelectItem value="Exam cycle">Exam cycle</SelectItem>
-            <SelectItem value="Awaiting results">Awaiting results</SelectItem>
-            <SelectItem value="Pass">Pass</SelectItem>
-            <SelectItem value="Fail">Fail</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Payment Information */}
-      <div className={isMobile ? "space-y-4" : "grid grid-cols-3 gap-4"}>
-        <div>
-          <Label htmlFor="total_course_fee">Total Course Fee *</Label>
-          <Input
-            id="total_course_fee"
-            type="number"
-            value={formData.total_course_fee}
-            onChange={(e) => handleInputChange("total_course_fee", Number(e.target.value))}
-            required
-            min="0"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <Label htmlFor="advance_payment">Advance Payment</Label>
-          <Input
-            id="advance_payment"
-            type="number"
-            value={formData.advance_payment}
-            onChange={(e) => handleInputChange("advance_payment", Number(e.target.value))}
-            min="0"
-            step="0.01"
-          />
-        </div>
-        <div>
-          <Label htmlFor="installments">Installments</Label>
-          <Select value={String(formData.installments)} onValueChange={(value) => handleInputChange("installments", Number(value))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                <SelectItem key={num} value={String(num)}>{num}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className={`flex gap-3 pt-4 ${isMobile ? "flex-col" : "justify-end"}`}>
-        <Button type="button" variant="outline" onClick={onClose} className={isMobile ? "w-full" : ""}>
-          Cancel
-        </Button>
-        <Button type="submit" className={`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 ${isMobile ? "w-full" : ""}`}>
-          {student ? "Update Student" : "Add Student"}
-        </Button>
-      </div>
-    </form>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">
-                {student ? "Edit Student" : "Add New Student"}
-              </h2>
-              <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-          <div className="p-4">
-            {formContent}
-          </div>
-        </div>
-
-        {/* Quick Add Referral Modal */}
-        {showQuickAddReferral && (
-          <QuickAddReferralModal
-            isOpen={showQuickAddReferral}
-            onClose={() => setShowQuickAddReferral(false)}
-            onReferralAdded={handleQuickReferralAdded}
-          />
-        )}
-      </>
-    );
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      // Validate required fields
+      if (!formData.full_name || !formData.email || !formData.phone) {
+        toast({
+          title: "Error",
+          description: "Please fill in all required fields (name, email, phone)",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      await onSave(formData);
+      toast({
+        title: "Success",
+        description: student ? "Student updated successfully" : "Student added successfully",
+      });
+    } catch (error) {
+      console.error('Error saving student:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${student ? 'update' : 'add'} student: ${error.message || 'Unknown error'}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-xl text-blue-900">
-              {student ? "Edit Student" : "Add New Student"}
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          
-          <CardContent>
-            {formContent}
-          </CardContent>
-        </Card>
-      </div>
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>{student ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
+              <Input
+                id="full_name"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passport_id">Passport ID</Label>
+              <Input
+                id="passport_id"
+                name="passport_id"
+                value={formData.passport_id || ''}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
+              <Select 
+                name="country" 
+                value={formData.country || 'India'} 
+                onValueChange={(value) => handleSelectChange(value, 'country')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                name="address"
+                value={formData.address || ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
 
-      {/* Quick Add Referral Modal */}
-      {showQuickAddReferral && (
-        <QuickAddReferralModal
-          isOpen={showQuickAddReferral}
-          onClose={() => setShowQuickAddReferral(false)}
-          onReferralAdded={handleQuickReferralAdded}
-        />
-      )}
-    </>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="course_id">Course</Label>
+              <Select 
+                name="course_id" 
+                value={formData.course_id || ''} 
+                onValueChange={(value) => handleSelectChange(value, 'course_id')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="batch_id">Batch</Label>
+              <Input
+                id="batch_id"
+                name="batch_id"
+                value={formData.batch_id || ''}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="join_date">Join Date <span className="text-red-500">*</span></Label>
+              <Input
+                id="join_date"
+                name="join_date"
+                type="date"
+                value={formData.join_date || new Date().toISOString().split('T')[0]}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="class_start_date">Class Start Date</Label>
+              <Input
+                id="class_start_date"
+                name="class_start_date"
+                type="date"
+                value={formData.class_start_date || ''}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+              <Select 
+                name="status" 
+                value={formData.status} 
+                onValueChange={(value) => handleSelectChange(value, 'status')}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Attended Online">Attended Online</SelectItem>
+                  <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                  <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                  <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                  <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                  <SelectItem value="Pass">Pass</SelectItem>
+                  <SelectItem value="Fail">Fail</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="total_course_fee">Total Course Fee <span className="text-red-500">*</span></Label>
+              <Input
+                id="total_course_fee"
+                name="total_course_fee"
+                type="number"
+                value={formData.total_course_fee}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="advance_payment">Advance Payment</Label>
+              <Input
+                id="advance_payment"
+                name="advance_payment"
+                type="number"
+                value={formData.advance_payment || 0}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="installments">Installments</Label>
+              <Input
+                id="installments"
+                name="installments"
+                type="number"
+                min="1"
+                value={formData.installments || 1}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : student ? 'Update Student' : 'Add Student'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

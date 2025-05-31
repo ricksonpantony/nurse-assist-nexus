@@ -1,279 +1,220 @@
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, X } from "lucide-react";
-import { format } from "date-fns";
-import { countries } from "@/utils/countries";
-import { Lead } from "@/hooks/useLeads";
-import { Course } from "@/hooks/useCourses";
-import { useReferrals } from "@/hooks/useReferrals";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
+import { countries } from '@/utils/countries';
 
-interface AddLeadFormProps {
-  lead?: Lead | null;
-  courses: Course[];
-  onClose: () => void;
-  onSave: (leadData: any) => Promise<void>;
-}
+export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
+  const initialState = lead ? { ...lead } : {
+    full_name: '',
+    email: '',
+    phone: '',
+    passport_id: '',
+    address: '',
+    country: 'India', // Default to India
+    referral_id: '',
+    interested_course_id: '',
+    expected_joining_date: '',
+    notes: '',
+  };
 
-export const AddLeadForm = ({ lead, courses, onClose, onSave }: AddLeadFormProps) => {
-  const { referrals } = useReferrals();
-  const [formData, setFormData] = useState({
-    full_name: "",
-    email: "",
-    phone: "",
-    passport_id: "",
-    address: "",
-    country: "",
-    referral_id: "",
-    interested_course_id: "",
-    expected_joining_date: "",
-    notes: "",
-  });
-  const [expectedDate, setExpectedDate] = useState<Date>();
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState(initialState);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (lead) {
-      setFormData({
-        full_name: lead.full_name || "",
-        email: lead.email || "",
-        phone: lead.phone || "",
-        passport_id: lead.passport_id || "",
-        address: lead.address || "",
-        country: lead.country || "",
-        referral_id: lead.referral_id || "",
-        interested_course_id: lead.interested_course_id || "",
-        expected_joining_date: lead.expected_joining_date || "",
-        notes: lead.notes || "",
-      });
-      if (lead.expected_joining_date) {
-        setExpectedDate(new Date(lead.expected_joining_date));
+      // Format dates for input fields
+      const updatedLead = { ...lead };
+      if (updatedLead.expected_joining_date) {
+        updatedLead.expected_joining_date = new Date(updatedLead.expected_joining_date).toISOString().split('T')[0];
       }
+      setFormData(updatedLead);
     }
   }, [lead]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (value, name) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
+    setIsLoading(true);
+    
     try {
-      console.log('AddLeadForm: Submitting form data:', formData);
+      // Validate required fields
+      if (!formData.full_name || !formData.email || !formData.phone) {
+        toast({
+          title: "Error",
+          description: "Please fill in all required fields (name, email, phone)",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
       
-      const leadData = {
-        ...formData,
-        expected_joining_date: expectedDate ? format(expectedDate, 'yyyy-MM-dd') : null,
-        referral_id: formData.referral_id === "no-referral" || formData.referral_id === "" ? null : formData.referral_id,
-        interested_course_id: formData.interested_course_id === "" ? null : formData.interested_course_id,
-        passport_id: formData.passport_id === "" ? null : formData.passport_id,
-        address: formData.address === "" ? null : formData.address,
-        country: formData.country === "" ? null : formData.country,
-        notes: formData.notes === "" ? null : formData.notes,
-      };
-
-      console.log('AddLeadForm: Processed lead data:', leadData);
-      await onSave(leadData);
+      await onSave(formData);
+      toast({
+        title: "Success",
+        description: lead ? "Lead updated successfully" : "Lead added successfully",
+      });
     } catch (error) {
-      console.error('AddLeadForm: Error saving lead:', error);
+      console.error('Error saving lead:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${lead ? 'update' : 'add'} lead: ${error.message || 'Unknown error'}`,
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   return (
-    <>
-      <style>
-        {`
-          @media (min-width: 1440px) {
-            .custom-dialog-content {
-              max-width: 80% !important; /* Adjust to a percentage for larger screens */
-              margin: 0 auto; /* Center the content */
-            }
-
-            .custom-grid-cols-2 {
-              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important; /* More flexible grid */
-            }
-
-            .custom-space-y-4 > * {
-              padding: 1rem; /* Increase padding for better spacing */
-            }
-          }
-        `}
-      </style>
-      <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto custom-dialog-content">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl text-blue-900">
-                {lead ? 'Edit Lead' : 'Add New Lead'}
-              </DialogTitle>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
+    <Dialog open={true} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>{lead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
+              <Input
+                id="full_name"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+              />
             </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4 custom-space-y-4">
-            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
-              <div>
-                <Label htmlFor="full_name">Full Name *</Label>
-                <Input
-                  id="full_name"
-                  value={formData.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
             </div>
-
-            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="passport_id">Passport/ID Number</Label>
-                <Input
-                  id="passport_id"
-                  value={formData.passport_id}
-                  onChange={(e) => handleInputChange('passport_id', e.target.value)}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
             </div>
-
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="passport_id">Passport ID</Label>
+              <Input
+                id="passport_id"
+                name="passport_id"
+                value={formData.passport_id || ''}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
+              <Select 
+                name="country" 
+                value={formData.country || 'India'} 
+                onValueChange={(value) => handleSelectChange(value, 'country')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Input
                 id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                name="address"
+                value={formData.address || ''}
+                onChange={handleChange}
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <Select value={formData.country} onValueChange={(value) => handleInputChange('country', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="referral_id">Referred By</Label>
-                <Select value={formData.referral_id} onValueChange={(value) => handleInputChange('referral_id', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select referral (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no-referral">No Referral</SelectItem>
-                    {referrals.map((referral) => (
-                      <SelectItem key={referral.id} value={referral.id}>
-                        {referral.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="interested_course_id">Interested Course</Label>
+              <Select 
+                name="interested_course_id" 
+                value={formData.interested_course_id || ''} 
+                onValueChange={(value) => handleSelectChange(value, 'interested_course_id')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 custom-grid-cols-2">
-              <div>
-                <Label htmlFor="interested_course_id">Interested Course</Label>
-                <Select value={formData.interested_course_id} onValueChange={(value) => handleInputChange('interested_course_id', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Expected Joining Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !expectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {expectedDate ? format(expectedDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={expectedDate}
-                      onSelect={setExpectedDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                rows={3}
-                placeholder="Internal comments or remarks"
+            <div className="space-y-2">
+              <Label htmlFor="expected_joining_date">Expected Joining Date</Label>
+              <Input
+                id="expected_joining_date"
+                name="expected_joining_date"
+                type="date"
+                value={formData.expected_joining_date || ''}
+                onChange={handleChange}
               />
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : (lead ? 'Update Lead' : 'Add Lead')}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes || ''}
+              onChange={handleChange}
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Saving...' : lead ? 'Update Lead' : 'Add Lead'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
