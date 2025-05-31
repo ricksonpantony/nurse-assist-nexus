@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Search, History, UserPlus } from "lucide-react";
 import { Referral } from "@/hooks/useReferrals";
@@ -70,88 +71,113 @@ export const ReferralsTable = ({ referrals, onEdit, onDelete, onViewHistory }: R
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100 border-b">
+    <Card className="bg-white/70 backdrop-blur-sm border-blue-200/50 shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-blue-800 to-indigo-800 bg-clip-text text-transparent">
+          Referral Partners
+        </CardTitle>
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search referrals by ID, name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 border-blue-200 focus:border-blue-400 bg-white/80"
           />
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50">
-              <TableHead className="font-semibold text-blue-900">Referral ID</TableHead>
-              <TableHead className="font-semibold text-blue-900">Name</TableHead>
-              <TableHead className="font-semibold text-blue-900">Email</TableHead>
-              <TableHead className="font-semibold text-blue-900">Phone</TableHead>
-              <TableHead className="font-semibold text-blue-900">Total Students Referred</TableHead>
-              <TableHead className="font-semibold text-blue-900">Total Referral Payment Received</TableHead>
-              <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredReferrals.map((referral) => {
-              const stats = referralStats[referral.id] || { studentCount: 0, totalPayments: 0 };
-              
-              return (
-                <TableRow key={referral.id} className="hover:bg-blue-50 transition-colors">
-                  <TableCell className="font-medium text-blue-600">{referral.referral_id}</TableCell>
-                  <TableCell className="font-medium">{referral.full_name}</TableCell>
-                  <TableCell className="text-gray-600">{referral.email}</TableCell>
-                  <TableCell>{referral.phone}</TableCell>
-                  <TableCell className="text-center">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
-                      {stats.studentCount}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
-                      ${stats.totalPayments.toFixed(2)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2 justify-center">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => onViewHistory(referral)}
-                        className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200"
-                      >
-                        <History className="h-4 w-4" />
-                        View
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => onEdit(referral)}>
-                        <Edit className="h-4 w-4 text-orange-600" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => onDelete(referral.id)}>
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      {filteredReferrals.length === 0 && (
-        <div className="p-8 text-center text-gray-500">
-          <UserPlus className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          {referrals.length === 0 ? (
-            <p>No referrals found. Add your first referral to get started.</p>
-          ) : (
-            <p>No referrals found matching your search criteria.</p>
-          )}
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-blue-50/50 border-b border-blue-200/30">
+                <TableHead className="font-semibold text-blue-900">Referral ID</TableHead>
+                <TableHead className="font-semibold text-blue-900">Name</TableHead>
+                <TableHead className="font-semibold text-blue-900">Email</TableHead>
+                <TableHead className="font-semibold text-blue-900">Phone</TableHead>
+                <TableHead className="font-semibold text-blue-900">Total Students Referred</TableHead>
+                <TableHead className="font-semibold text-blue-900">Total Referral Payment Received</TableHead>
+                <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredReferrals.map((referral) => {
+                const stats = referralStats[referral.id] || { studentCount: 0, totalPayments: 0 };
+                
+                return (
+                  <TableRow key={referral.id} className="hover:bg-blue-50/30 transition-colors border-b border-blue-100/30">
+                    <TableCell className="font-medium text-blue-600">{referral.referral_id}</TableCell>
+                    <TableCell className="font-medium text-gray-800">{referral.full_name}</TableCell>
+                    <TableCell className="text-gray-600">{referral.email}</TableCell>
+                    <TableCell className="text-gray-600">{referral.phone}</TableCell>
+                    <TableCell className="text-center">
+                      <span className="bg-blue-100/80 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {stats.studentCount}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="bg-green-100/80 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                        ${stats.totalPayments.toFixed(2)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => onViewHistory(referral)}
+                          className="gap-1 text-blue-600 hover:bg-blue-50 border-blue-200 hover:border-blue-300 transition-all duration-200"
+                        >
+                          <History className="h-4 w-4" />
+                          View
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => onEdit(referral)}
+                          className="text-orange-600 hover:bg-orange-50 transition-colors"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => onDelete(referral.id)}
+                          className="text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
-      )}
-    </div>
+
+        {filteredReferrals.length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            <div className="flex flex-col items-center space-y-4">
+              <UserPlus className="h-16 w-16 text-gray-300" />
+              <div>
+                {referrals.length === 0 ? (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">No referrals yet</h3>
+                    <p className="text-gray-500">Add your first referral partner to get started.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">No matching results</h3>
+                    <p className="text-gray-500">No referrals found matching your search criteria.</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
