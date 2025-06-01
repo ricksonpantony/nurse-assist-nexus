@@ -86,12 +86,39 @@ export const useStudents = () => {
 
   const generateStudentId = async () => {
     const year = new Date().getFullYear();
-    const { count } = await supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true });
     
-    const nextNumber = (count || 0) + 1;
-    return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+    try {
+      // Get all existing student IDs that match the current year pattern
+      const { data, error } = await supabase
+        .from('students')
+        .select('id')
+        .like('id', `ATZ-${year}-%`);
+
+      if (error) throw error;
+
+      // Extract the numeric parts and find the highest number
+      let maxNumber = 0;
+      if (data && data.length > 0) {
+        data.forEach(student => {
+          const match = student.id.match(/ATZ-\d{4}-(\d{3})$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNumber) {
+              maxNumber = num;
+            }
+          }
+        });
+      }
+
+      // Generate the next ID
+      const nextNumber = maxNumber + 1;
+      return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+    } catch (error) {
+      console.error('Error generating student ID:', error);
+      // Fallback to timestamp-based ID if there's an error
+      const timestamp = Date.now().toString().slice(-3);
+      return `ATZ-${year}-${timestamp}`;
+    }
   };
 
   const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'> & { referral_payment_amount?: number }) => {
