@@ -58,9 +58,9 @@ const Index = () => {
   // Get display name: profile name first, then email as fallback
   const getDisplayName = () => {
     if (userProfile?.first_name || userProfile?.last_name) {
-      return userProfile?.first_name || '' + " " + userProfile?.last_name || '';
+      return (userProfile?.first_name || '') + " " + (userProfile?.last_name || '');
     }
-    return userProfile?.full_name || user?.email || 'Admin';
+    return userProfile?.full_name || '';
   };
 
   return (
