@@ -164,153 +164,159 @@ export const StudentDetailsView = ({
           <div className="print-subtitle">Student Account Overview</div>
         </div>
 
-        {/* Personal Information Section */}
-        <div className="print-section">
-          <div className="print-section-title">Personal Information</div>
-          <div className="print-grid-2">
-            <div className="print-field">
-              <div className="print-field-label">Full Name</div>
-              <div className="print-field-value">{student.full_name}</div>
+        {/* Main Content Grid - Organize sections more efficiently */}
+        <div className="print-major-section">
+          {/* Personal and Academic Information - Side by side */}
+          <div className="print-grid-2" style={{ marginBottom: '8pt' }}>
+            {/* Personal Information */}
+            <div className="print-section">
+              <div className="print-section-title">Personal Information</div>
+              <div className="print-grid-2">
+                <div className="print-field">
+                  <div className="print-field-label">Full Name</div>
+                  <div className="print-field-value">{student.full_name}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Student ID</div>
+                  <div className="print-field-value">{student.id}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Email</div>
+                  <div className="print-field-value">{student.email}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Phone</div>
+                  <div className="print-field-value">{student.phone}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Passport ID</div>
+                  <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Country</div>
+                  <div className="print-field-value">{student.country || 'Not specified'}</div>
+                </div>
+              </div>
+              {student.address && (
+                <div className="print-field" style={{ marginTop: '4pt' }}>
+                  <div className="print-field-label">Address</div>
+                  <div className="print-field-value">{student.address}</div>
+                </div>
+              )}
             </div>
-            <div className="print-field">
-              <div className="print-field-label">Student ID</div>
-              <div className="print-field-value">{student.id}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Email</div>
-              <div className="print-field-value">{student.email}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Phone</div>
-              <div className="print-field-value">{student.phone}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Passport ID</div>
-              <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Country</div>
-              <div className="print-field-value">{student.country || 'Not specified'}</div>
-            </div>
-          </div>
-          {student.address && (
-            <div className="print-field">
-              <div className="print-field-label">Address</div>
-              <div className="print-field-value">{student.address}</div>
-            </div>
-          )}
-        </div>
 
-        {/* Academic Information Section */}
-        <div className="print-section">
-          <div className="print-section-title">Academic Information</div>
-          <div className="print-grid-2">
-            <div className="print-field">
-              <div className="print-field-label">Course</div>
-              <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Current Status</div>
-              <div className="print-field-value">
-                <span className="print-badge">{student.status}</span>
+            {/* Academic Information */}
+            <div className="print-section">
+              <div className="print-section-title">Academic Information</div>
+              <div className="print-grid-2">
+                <div className="print-field">
+                  <div className="print-field-label">Course</div>
+                  <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Current Status</div>
+                  <div className="print-field-value">
+                    <span className="print-badge">{student.status}</span>
+                  </div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Join Date</div>
+                  <div className="print-field-value">{formatDate(student.join_date)}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Class Start Date</div>
+                  <div className="print-field-value">{formatDate(student.class_start_date)}</div>
+                </div>
               </div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Join Date</div>
-              <div className="print-field-value">{formatDate(student.join_date)}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Class Start Date</div>
-              <div className="print-field-value">{formatDate(student.class_start_date)}</div>
-            </div>
-          </div>
-          {student.batch_id && (
-            <div className="print-field">
-              <div className="print-field-label">Batch ID</div>
-              <div className="print-field-value">{student.batch_id}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Referral Information Section */}
-        <div className="print-section">
-          <div className="print-section-title">Referral Information</div>
-          {selectedReferralId === "direct" || !selectedReferralId ? (
-            <div className="print-field">
-              <div className="print-field-label">Status</div>
-              <div className="print-field-value">Direct (No Referral)</div>
-            </div>
-          ) : selectedReferral ? (
-            <div className="print-grid-2">
-              <div className="print-field">
-                <div className="print-field-label">Referral Name</div>
-                <div className="print-field-value">{selectedReferral.full_name}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Referral ID</div>
-                <div className="print-field-value">{selectedReferral.referral_id}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Email</div>
-                <div className="print-field-value">{selectedReferral.email}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Phone</div>
-                <div className="print-field-value">{selectedReferral.phone}</div>
-              </div>
-            </div>
-          ) : (
-            <div className="print-field">
-              <div className="print-field-label">Status</div>
-              <div className="print-field-value">Referral not found</div>
-            </div>
-          )}
-        </div>
-
-        {/* Payment Information Section */}
-        <div className="print-section">
-          <div className="print-section-title">Payment Information</div>
-          <div className="print-payment-summary">
-            <div className="print-payment-box">
-              <div className="print-payment-label">Total Course Fee</div>
-              <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
-            </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Total Paid</div>
-              <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
-            </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Remaining Balance</div>
-              <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
+              {student.batch_id && (
+                <div className="print-field" style={{ marginTop: '4pt' }}>
+                  <div className="print-field-label">Batch ID</div>
+                  <div className="print-field-value">{student.batch_id}</div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Payment History */}
-          {student.payments && student.payments.length > 0 && (
-            <div>
-              <div className="print-section-title">Payment History</div>
-              <table className="print-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Stage</th>
-                    <th>Amount</th>
-                    <th>Payment Mode</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {student.payments.map((payment: any, index: number) => (
-                    <tr key={index}>
-                      <td>{formatDate(payment.payment_date)}</td>
-                      <td>{payment.stage}</td>
-                      <td>${payment.amount.toLocaleString()}</td>
-                      <td>{payment.payment_mode}</td>
+          {/* Referral Information - Compact */}
+          <div className="print-section" style={{ marginBottom: '8pt' }}>
+            <div className="print-section-title">Referral Information</div>
+            {selectedReferralId === "direct" || !selectedReferralId ? (
+              <div className="print-field">
+                <div className="print-field-label">Status</div>
+                <div className="print-field-value">Direct (No Referral)</div>
+              </div>
+            ) : selectedReferral ? (
+              <div className="print-grid-4">
+                <div className="print-field">
+                  <div className="print-field-label">Name</div>
+                  <div className="print-field-value">{selectedReferral.full_name}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">ID</div>
+                  <div className="print-field-value">{selectedReferral.referral_id}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Email</div>
+                  <div className="print-field-value">{selectedReferral.email}</div>
+                </div>
+                <div className="print-field">
+                  <div className="print-field-label">Phone</div>
+                  <div className="print-field-value">{selectedReferral.phone}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="print-field">
+                <div className="print-field-label">Status</div>
+                <div className="print-field-value">Referral not found</div>
+              </div>
+            )}
+          </div>
+
+          {/* Payment Information */}
+          <div className="print-section">
+            <div className="print-section-title">Payment Summary</div>
+            <div className="print-payment-summary">
+              <div className="print-payment-box">
+                <div className="print-payment-label">Total Course Fee</div>
+                <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
+              </div>
+              <div className="print-payment-box">
+                <div className="print-payment-label">Total Paid</div>
+                <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
+              </div>
+              <div className="print-payment-box">
+                <div className="print-payment-label">Balance</div>
+                <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
+              </div>
+            </div>
+
+            {/* Payment History Table - Compact */}
+            {student.payments && student.payments.length > 0 && (
+              <div>
+                <div className="print-section-title" style={{ marginTop: '6pt', marginBottom: '4pt' }}>Payment History</div>
+                <table className="print-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Stage</th>
+                      <th>Amount</th>
+                      <th>Payment Mode</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {student.payments.map((payment: any, index: number) => (
+                      <tr key={index}>
+                        <td>{formatDate(payment.payment_date)}</td>
+                        <td>{payment.stage}</td>
+                        <td>${payment.amount.toLocaleString()}</td>
+                        <td>{payment.payment_mode}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
