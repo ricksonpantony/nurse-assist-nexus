@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ interface StudentsTableProps {
   onDeleteMultiple: (studentIds: string[]) => void;
   onView: (student: Student) => void;
   onUpdatePayment: (student: Student) => void;
+  selectedStudents?: string[];
+  onStudentSelection?: (studentIds: string[]) => void;
 }
 
 export const StudentsTable = ({ 
@@ -24,27 +27,31 @@ export const StudentsTable = ({
   onDelete, 
   onDeleteMultiple,
   onView, 
-  onUpdatePayment 
+  onUpdatePayment,
+  selectedStudents = [],
+  onStudentSelection
 }: StudentsTableProps) => {
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [localSelectedStudents, setLocalSelectedStudents] = useState<string[]>(selectedStudents);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
+  useEffect(() => {
+    setLocalSelectedStudents(selectedStudents);
+  }, [selectedStudents]);
+
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedStudents(students.map(s => s.id));
-    } else {
-      setSelectedStudents([]);
-    }
+    const newSelection = checked ? students.map(s => s.id) : [];
+    setLocalSelectedStudents(newSelection);
+    onStudentSelection?.(newSelection);
   };
 
   const handleSelectStudent = (studentId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedStudents(prev => [...prev, studentId]);
-    } else {
-      setSelectedStudents(prev => prev.filter(id => id !== studentId));
-    }
+    const newSelection = checked 
+      ? [...localSelectedStudents, studentId]
+      : localSelectedStudents.filter(id => id !== studentId);
+    setLocalSelectedStudents(newSelection);
+    onStudentSelection?.(newSelection);
   };
 
   const getStatusColor = (status: string) => {
@@ -75,16 +82,17 @@ export const StudentsTable = ({
   };
 
   const handleBulkDeleteClick = () => {
-    if (selectedStudents.length > 0) {
-      console.log('Bulk delete clicked for students:', selectedStudents);
+    if (localSelectedStudents.length > 0) {
+      console.log('Bulk delete clicked for students:', localSelectedStudents);
       setShowBulkDeleteModal(true);
     }
   };
 
   const handleConfirmBulkDelete = () => {
-    console.log('Confirming bulk delete for students:', selectedStudents);
-    onDeleteMultiple(selectedStudents);
-    setSelectedStudents([]);
+    console.log('Confirming bulk delete for students:', localSelectedStudents);
+    onDeleteMultiple(localSelectedStudents);
+    setLocalSelectedStudents([]);
+    onStudentSelection?.([]);
   };
 
   const formatDate = (dateString: string | null) => {
@@ -99,10 +107,10 @@ export const StudentsTable = ({
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      {selectedStudents.length > 0 && (
+      {localSelectedStudents.length > 0 && (
         <div className="bg-blue-50 p-2 flex items-center justify-between">
           <div className="text-sm text-blue-700 font-medium pl-2">
-            {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
+            {localSelectedStudents.length} student{localSelectedStudents.length > 1 ? 's' : ''} selected
           </div>
           <div className="flex gap-2">
             <Button 
@@ -124,7 +132,7 @@ export const StudentsTable = ({
             <TableRow className="bg-blue-50">
               <TableHead className="w-[50px]">
                 <Checkbox 
-                  checked={students.length > 0 && selectedStudents.length === students.length}
+                  checked={students.length > 0 && localSelectedStudents.length === students.length}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -141,7 +149,7 @@ export const StudentsTable = ({
           <TableBody>
             {students.map((student) => {
               const course = courses.find(c => c.id === student.course_id);
-              const isSelected = selectedStudents.includes(student.id);
+              const isSelected = localSelectedStudents.includes(student.id);
               
               return (
                 <TableRow key={student.id} className={`hover:bg-blue-50 transition-colors ${isSelected ? 'bg-blue-100' : ''}`}>
@@ -275,8 +283,8 @@ export const StudentsTable = ({
         isOpen={showBulkDeleteModal}
         onClose={() => setShowBulkDeleteModal(false)}
         onConfirm={handleConfirmBulkDelete}
-        count={selectedStudents.length}
-        studentNames={selectedStudents.map(id => 
+        count={localSelectedStudents.length}
+        studentNames={localSelectedStudents.map(id => 
           students.find(s => s.id === id)?.full_name || ''
         )}
       />

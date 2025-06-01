@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X, SortAsc, SortDesc } from "lucide-react";
+import { Search, Filter, X, SortAsc, SortDesc, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface StudentsFilterProps {
@@ -13,12 +13,20 @@ interface StudentsFilterProps {
   onStatusFilterChange: (value: string) => void;
   courseFilter: string;
   onCourseFilterChange: (value: string) => void;
+  countryFilter: string;
+  onCountryFilterChange: (value: string) => void;
+  batchFilter: string;
+  onBatchFilterChange: (value: string) => void;
   sortBy: string;
   onSortByChange: (value: string) => void;
   sortOrder: 'asc' | 'desc';
   onSortOrderChange: (value: 'asc' | 'desc') => void;
   onClearFilters: () => void;
+  onPrintSelected: () => void;
   courses: any[];
+  countries: string[];
+  batches: string[];
+  selectedStudentsCount: number;
 }
 
 export const StudentsFilter = ({
@@ -28,12 +36,20 @@ export const StudentsFilter = ({
   onStatusFilterChange,
   courseFilter,
   onCourseFilterChange,
+  countryFilter,
+  onCountryFilterChange,
+  batchFilter,
+  onBatchFilterChange,
   sortBy,
   onSortByChange,
   sortOrder,
   onSortOrderChange,
   onClearFilters,
-  courses
+  onPrintSelected,
+  courses,
+  countries,
+  batches,
+  selectedStudentsCount
 }: StudentsFilterProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -52,16 +68,17 @@ export const StudentsFilter = ({
     { value: 'join_date', label: 'Join Date' },
     { value: 'status', label: 'Status' },
     { value: 'total_course_fee', label: 'Course Fee' },
-    { value: 'id', label: 'Student ID' }
+    { value: 'id', label: 'Student ID' },
+    { value: 'country', label: 'Country' }
   ];
 
-  const hasActiveFilters = searchTerm || statusFilter !== 'all' || courseFilter !== 'all';
+  const hasActiveFilters = searchTerm || statusFilter !== 'all' || courseFilter !== 'all' || countryFilter !== 'all' || batchFilter !== 'all';
 
   return (
     <Card className="mb-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardContent className="p-4">
         <div className="flex flex-col gap-4">
-          {/* Search Bar - Always Visible */}
+          {/* Search Bar and Actions - Always Visible */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -80,6 +97,16 @@ export const StudentsFilter = ({
               <Filter className="h-4 w-4" />
               Filters
             </Button>
+            {selectedStudentsCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={onPrintSelected}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              >
+                <Printer className="h-4 w-4" />
+                Print Selected ({selectedStudentsCount})
+              </Button>
+            )}
             {hasActiveFilters && (
               <Button
                 variant="outline"
@@ -94,7 +121,7 @@ export const StudentsFilter = ({
 
           {/* Advanced Filters - Collapsible */}
           {isExpanded && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t">
               {/* Status Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Status</label>
@@ -125,6 +152,42 @@ export const StudentsFilter = ({
                     {courses.map(course => (
                       <SelectItem key={course.id} value={course.id}>
                         {course.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Country Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Country</label>
+                <Select value={countryFilter} onValueChange={onCountryFilterChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map(country => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Batch Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Batch</label>
+                <Select value={batchFilter} onValueChange={onBatchFilterChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All batches" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Batches</SelectItem>
+                    {batches.map(batch => (
+                      <SelectItem key={batch} value={batch}>
+                        {batch}
                       </SelectItem>
                     ))}
                   </SelectContent>

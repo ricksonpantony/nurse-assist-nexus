@@ -1,9 +1,11 @@
+
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
 import { StudentsFilter } from "@/components/students/StudentsFilter";
+import { StudentsPrintView } from "@/components/students/StudentsPrintView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
@@ -18,6 +20,7 @@ const Students = () => {
   const { students, loading, deleteStudent, refetch } = useStudents();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
   const { toast } = useToast();
 
@@ -25,8 +28,21 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [batchFilter, setBatchFilter] = useState("all");
   const [sortBy, setSortBy] = useState("join_date");
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+
+  // Get unique countries and batches for filters
+  const { countries, batches } = useMemo(() => {
+    const uniqueCountries = [...new Set(students.filter(s => s.country).map(s => s.country))].sort();
+    const uniqueBatches = [...new Set(students.filter(s => s.batch_id).map(s => s.batch_id))].sort();
+    return { 
+      countries: uniqueCountries as string[], 
+      batches: uniqueBatches as string[] 
+    };
+  }, [students]);
 
   // Filter and sort students
   const filteredAndSortedStudents = useMemo(() => {
@@ -54,6 +70,16 @@ const Students = () => {
       filtered = filtered.filter(student => student.course_id === courseFilter);
     }
 
+    // Apply country filter
+    if (countryFilter !== "all") {
+      filtered = filtered.filter(student => student.country === countryFilter);
+    }
+
+    // Apply batch filter
+    if (batchFilter !== "all") {
+      filtered = filtered.filter(student => student.batch_id === batchFilter);
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       let aValue: any;
@@ -76,6 +102,10 @@ const Students = () => {
           aValue = a.total_course_fee;
           bValue = b.total_course_fee;
           break;
+        case 'country':
+          aValue = a.country || '';
+          bValue = b.country || '';
+          break;
         case 'id':
           aValue = a.id;
           bValue = b.id;
@@ -93,7 +123,12 @@ const Students = () => {
     });
 
     return filtered;
-  }, [students, searchTerm, statusFilter, courseFilter, sortBy, sortOrder]);
+  }, [students, searchTerm, statusFilter, courseFilter, countryFilter, batchFilter, sortBy, sortOrder]);
+
+  // Get selected students for printing
+  const selectedStudentsForPrint = useMemo(() => {
+    return filteredAndSortedStudents.filter(student => selectedStudents.includes(student.id));
+  }, [filteredAndSortedStudents, selectedStudents]);
 
   const handleAddStudent = () => {
     navigate('/students/manage');
@@ -173,8 +208,32 @@ const Students = () => {
     setSearchTerm("");
     setStatusFilter("all");
     setCourseFilter("all");
+    setCountryFilter("all");
+    setBatchFilter("all");
     setSortBy("join_date");
     setSortOrder("desc");
+    setSelectedStudents([]);
+  };
+
+  const handlePrintSelected = () => {
+    if (selectedStudents.length === 0) {
+      toast({
+        title: "No Students Selected",
+        description: "Please select students to print",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPrintView(true);
+    // Use setTimeout to ensure the component is rendered before printing
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
+  };
+
+  const handleStudentSelection = (studentIds: string[]) => {
+    setSelectedStudents(studentIds);
   };
 
   if (loading) {
@@ -184,6 +243,15 @@ const Students = () => {
           <div className="text-lg text-blue-600">Loading students...</div>
         </div>
       </div>
+    );
+  }
+
+  if (showPrintView) {
+    return (
+      <StudentsPrintView 
+        students={selectedStudentsForPrint} 
+        courses={courses}
+      />
     );
   }
 
@@ -230,12 +298,20 @@ const Students = () => {
             onStatusFilterChange={setStatusFilter}
             courseFilter={courseFilter}
             onCourseFilterChange={setCourseFilter}
+            countryFilter={countryFilter}
+            onCountryFilterChange={setCountryFilter}
+            batchFilter={batchFilter}
+            onBatchFilterChange={setBatchFilter}
             sortBy={sortBy}
             onSortByChange={setSortBy}
             sortOrder={sortOrder}
             onSortOrderChange={setSortOrder}
             onClearFilters={handleClearFilters}
+            onPrintSelected={handlePrintSelected}
             courses={courses}
+            countries={countries}
+            batches={batches}
+            selectedStudentsCount={selectedStudents.length}
           />
 
           <StudentsTable
@@ -246,6 +322,8 @@ const Students = () => {
             onDeleteMultiple={handleDeleteMultipleStudents}
             onView={handleViewStudent}
             onUpdatePayment={handleUpdatePayment}
+            selectedStudents={selectedStudents}
+            onStudentSelection={handleStudentSelection}
           />
 
           {filteredAndSortedStudents.length === 0 && students.length > 0 && (
