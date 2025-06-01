@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
@@ -87,6 +88,29 @@ const Students = () => {
     }
   };
 
+  const handleViewStudent = (student: any) => {
+    // This function is now handled by the navigation in StudentsTable
+    // but we need to provide it as a prop to satisfy the interface
+    console.log('View student:', student);
+  };
+
+  const handleUpdatePayment = (student: any) => {
+    console.log('Update payment for student:', student);
+    setPaymentUpdateStudent(student);
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentAdded = () => {
+    console.log('Payment added successfully');
+    refetch(); // Refresh the students data
+    setShowPaymentModal(false);
+    setPaymentUpdateStudent(null);
+    toast({
+      title: "Success",
+      description: "Payment added successfully",
+    });
+  };
+
   const handleExportStudents = () => {
     if (students.length === 0) {
       toast({
@@ -161,6 +185,7 @@ const Students = () => {
             onEdit={handleEditStudent}
             onDelete={handleDeleteStudent}
             onDeleteMultiple={handleDeleteMultipleStudents}
+            onView={handleViewStudent}
             onUpdatePayment={handleUpdatePayment}
           />
         </main>
