@@ -71,7 +71,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
     try {
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-
+console.log(formData.first_name)
       // Update user profile
       const { error: profileError } = await supabase
         .from('user_profiles')
