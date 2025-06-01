@@ -1,9 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
 import { AddLeadForm } from "@/components/marketing/AddLeadForm";
 import { LeadsTable } from "@/components/marketing/LeadsTable";
-import { LeadDetailsView } from "@/components/marketing/LeadDetailsView";
 import { EnhancedTransferModal } from "@/components/marketing/EnhancedTransferModal";
 import { useLeads, Lead } from "@/hooks/useLeads";
 import { useCourses } from "@/hooks/useCourses";
@@ -11,6 +11,7 @@ import { useReferrals } from "@/hooks/useReferrals";
 import { useStudents } from "@/hooks/useStudents";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const Marketing = () => {
   const { leads, loading, addLead, updateLead, deleteLead } = useLeads();
@@ -18,9 +19,9 @@ const Marketing = () => {
   const { referrals } = useReferrals();
   const { addStudent } = useStudents();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showDetailsView, setShowDetailsView] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -66,8 +67,7 @@ const Marketing = () => {
   };
 
   const handleViewLead = (lead: Lead) => {
-    setSelectedLead(lead);
-    setShowDetailsView(true);
+    navigate(`/marketing/preview/${lead.id}`);
   };
 
   const handleTransferLead = (lead: Lead) => {
@@ -378,19 +378,6 @@ const Marketing = () => {
             setEditingLead(null);
           }}
           onSave={editingLead ? handleUpdateLead : handleAddLead}
-        />
-      )}
-
-      {/* Lead Details View Modal */}
-      {showDetailsView && selectedLead && (
-        <LeadDetailsView
-          lead={selectedLead}
-          courses={courses}
-          referrals={referrals}
-          onClose={() => {
-            setShowDetailsView(false);
-            setSelectedLead(null);
-          }}
         />
       )}
 

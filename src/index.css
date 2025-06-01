@@ -144,6 +144,12 @@
     visibility: hidden !important;
   }
   
+  /* Show only print content - specifically for marketing lead details */
+  .print-content {
+    display: block !important;
+    visibility: visible !important;
+  }
+  
   /* Compact print header */
   .print-header {
     display: block !important;
