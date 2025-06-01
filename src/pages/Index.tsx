@@ -60,7 +60,7 @@ const Index = () => {
     if (userProfile?.first_name || userProfile?.last_name) {
       return userProfile?.first_name || '' + " " + userProfile?.last_name || '';
     }
-    return user?.full_name || user?.email || 'Admin';
+    return userProfile?.full_name || user?.email || 'Admin';
   };
 
   return (
