@@ -42,7 +42,13 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
     if (referralPerson) {
       setShowExportOptions(true);
     } else {
+      // Hide all non-printable elements before printing
+      document.body.classList.add('printing-mode');
       window.print();
+      // Restore normal view after printing
+      setTimeout(() => {
+        document.body.classList.remove('printing-mode');
+      }, 1000);
     }
   };
 
@@ -61,12 +67,16 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
     } else {
       console.log('Exporting without referral details');
     }
+    document.body.classList.add('printing-mode');
     window.print();
+    setTimeout(() => {
+      document.body.classList.remove('printing-mode');
+    }, 1000);
   };
 
   const ExportOptionsModal = () => (
     <Dialog open={showExportOptions} onOpenChange={setShowExportOptions}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md print:hidden">
         <DialogHeader>
           <DialogTitle>Export Options</DialogTitle>
         </DialogHeader>
@@ -93,7 +103,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
   );
 
   const PrintableContent = () => (
-    <div className="print:block print:p-8 print:bg-white print:text-black print:shadow-none">
+    <div className="student-printable-content">
       {/* Header */}
       <div className="text-center mb-8 print:mb-6">
         <h1 className="text-3xl font-bold text-blue-900 print:text-black mb-2">
@@ -293,7 +303,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
 
   const content = (
     <div className="space-y-6">
-      {/* Header with Actions */}
+      {/* Header with Actions - Only show in screen view */}
       <div className="flex justify-between items-start print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-blue-900">{student.full_name}</h2>
@@ -312,6 +322,10 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            <X className="h-4 w-4 mr-2" />
+            Close
+          </Button>
         </div>
       </div>
 
@@ -322,7 +336,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-white overflow-y-auto print:relative print:inset-auto print:z-auto">
         <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white shadow-lg print:hidden">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Student Details</h2>
@@ -331,7 +345,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
             </Button>
           </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 print:p-0">
           {content}
         </div>
       </div>
@@ -340,16 +354,16 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible print:shadow-none print:border-none">
         <DialogHeader className="print:hidden">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl text-blue-900">Student Details</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            {/* Remove the close button from here since it's now in the content header */}
           </div>
         </DialogHeader>
-        {content}
+        <div className="print:p-0">
+          {content}
+        </div>
       </DialogContent>
     </Dialog>
   );
