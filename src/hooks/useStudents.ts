@@ -8,18 +8,18 @@ export interface Student {
   full_name: string;
   email: string;
   phone: string;
-  passport_id: string | null;
   address: string | null;
   country: string | null;
+  passport_id: string | null;
   course_id: string | null;
-  status: "Attended Online" | "Attend sessions" | "Attended F2F" | "Exam cycle" | "Awaiting results" | "Pass" | "Fail";
+  batch_id: string | null;
+  referral_id: string | null;
+  join_date: string;
+  class_start_date: string | null;
+  status: 'Attended Online' | 'Attend sessions' | 'Attended F2F' | 'Exam cycle' | 'Awaiting results' | 'Pass' | 'Fail';
   total_course_fee: number;
   advance_payment: number;
   installments: number;
-  join_date: string | null;
-  class_start_date: string | null;
-  batch_id: string | null;
-  referral_id: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -27,15 +27,16 @@ export interface Student {
 export interface Payment {
   id: string;
   student_id: string;
-  amount: number;
   payment_date: string;
   stage: string;
+  amount: number;
   payment_mode: string;
   created_at?: string;
 }
 
-// Type for inserting new students (without auto-generated fields)
-type StudentInsert = Omit<Student, 'id' | 'created_at' | 'updated_at'>;
+const isValidStatus = (status: string): status is Student['status'] => {
+  return ['Attended Online', 'Attend sessions', 'Attended F2F', 'Exam cycle', 'Awaiting results', 'Pass', 'Fail'].includes(status);
+};
 
 export const useStudents = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -46,66 +47,141 @@ export const useStudents = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('User not authenticated');
-        setStudents([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('students')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      setStudents(data || []);
-    } catch (error: any) {
+      // Transform the data to ensure proper typing
+      const transformedData: Student[] = (data || []).map(item => ({
+        ...item,
+        status: isValidStatus(item.status) ? item.status : 'Pass'
+      }));
+      
+      setStudents(transformedData);
+    } catch (error) {
       console.error('Error fetching students:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch student data. Please try again.",
+        description: "Failed to fetch students",
         variant: "destructive",
       });
-      setStudents([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const addStudent = async (studentData: StudentInsert & { referral_payment_amount?: number }) => {
+  const backfillDirectReferralStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      // Update all students with null referral_id to have "Direct" as referral status
+      // Since we can't store "Direct" as referral_id, we'll leave it as null
+      // The UI will interpret null referral_id as "Direct"
+      console.log('Backfill not needed - null referral_id represents Direct status');
+    } catch (error) {
+      console.error('Error during backfill:', error);
+    }
+  };
 
+  const generateStudentId = async () => {
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from('students')
+      .select('*', { count: 'exact', head: true });
+    
+    const nextNumber = (count || 0) + 1;
+    return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+  };
+
+  const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'> & { referral_payment_amount?: number }) => {
+    try {
+      const newStudentId = await generateStudentId();
+      
+      console.log('Generated student ID:', newStudentId);
+      console.log('Student data to insert:', studentData);
+      
+      // Extract referral payment amount before saving student
+      const referralPaymentAmount = studentData.referral_payment_amount || 0;
       const { referral_payment_amount, ...cleanStudentData } = studentData;
-
+      
+      // Prepare the data for insertion - ensure proper data types and null handling
+      const insertData = {
+        ...cleanStudentData,
+        id: newStudentId,
+        // Handle null values properly for database insertion
+        course_id: cleanStudentData.course_id || null,
+        batch_id: cleanStudentData.batch_id || null,
+        referral_id: cleanStudentData.referral_id || null,
+        passport_id: cleanStudentData.passport_id || null,
+        address: cleanStudentData.address || null,
+        country: cleanStudentData.country || null,
+        class_start_date: cleanStudentData.class_start_date || null,
+        // Ensure numeric fields are properly typed
+        total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
+        advance_payment: Number(cleanStudentData.advance_payment) || 0,
+        installments: Number(cleanStudentData.installments) || 1,
+      };
+      
+      console.log('Clean insert data:', insertData);
+      
       const { data, error } = await supabase
         .from('students')
-        .insert(cleanStudentData)
+        .insert([insertData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
 
-      setStudents(prev => [data, ...prev]);
+      console.log('Student inserted successfully:', data);
+
+      // Add advance payment if provided
+      if (studentData.advance_payment > 0) {
+        await supabase
+          .from('payments')
+          .insert([{
+            student_id: newStudentId,
+            payment_date: new Date().toISOString().split('T')[0],
+            stage: 'Advance',
+            amount: studentData.advance_payment,
+            payment_mode: 'Credit Card'
+          }]);
+      }
+
+      // Add referral payment if provided and referral exists
+      if (referralPaymentAmount > 0 && studentData.referral_id && studentData.referral_id !== "direct") {
+        await supabase
+          .from('referral_payments')
+          .insert([{
+            referral_id: studentData.referral_id,
+            student_id: newStudentId,
+            amount: referralPaymentAmount,
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_method: 'Bank Transfer',
+            notes: `Payment for referring student ${data.full_name}`
+          }]);
+      }
+      
+      // Transform the returned data
+      const transformedData: Student = {
+        ...data,
+        status: isValidStatus(data.status) ? data.status : 'Pass'
+      };
+      
+      setStudents(prev => [transformedData, ...prev]);
       toast({
         title: "Success",
-        description: "Student added successfully",
+        description: `Student added successfully with ID: ${newStudentId}`,
       });
-      return data;
-    } catch (error: any) {
+      return transformedData;
+    } catch (error) {
       console.error('Error adding student:', error);
       toast({
         title: "Error",
-        description: "Failed to add student. Please try again.",
+        description: `Failed to add student: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
       throw error;
@@ -114,22 +190,26 @@ export const useStudents = () => {
 
   const updateStudent = async (id: string, studentData: Partial<Student> & { referral_payment_amount?: number }) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
+      console.log('Updating student with ID:', id);
+      console.log('Update data:', studentData);
+      
+      // Extract referral payment amount before updating student
+      const referralPaymentAmount = studentData.referral_payment_amount || 0;
       const { referral_payment_amount, ...cleanStudentData } = studentData;
-
+      
+      // Remove undefined values and prepare clean update object
       const cleanData = Object.entries(cleanStudentData).reduce((acc, [key, value]) => {
         if (value !== undefined) {
           acc[key] = value;
         }
         return acc;
       }, {} as any);
-
+      
+      // Add updated_at timestamp
       cleanData.updated_at = new Date().toISOString();
-
+      
+      console.log('Clean update data:', cleanData);
+      
       const { data, error } = await supabase
         .from('students')
         .update(cleanData)
@@ -137,19 +217,44 @@ export const useStudents = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
-      setStudents(prev => prev.map(student => student.id === id ? data : student));
+      // Add referral payment if provided and referral exists
+      if (referralPaymentAmount > 0 && cleanData.referral_id && cleanData.referral_id !== "direct") {
+        await supabase
+          .from('referral_payments')
+          .insert([{
+            referral_id: cleanData.referral_id,
+            student_id: id,
+            amount: referralPaymentAmount,
+            payment_date: new Date().toISOString().split('T')[0],
+            payment_method: 'Bank Transfer',
+            notes: `Payment for referring student ${data.full_name}`
+          }]);
+      }
+      
+      console.log('Update successful, returned data:', data);
+      
+      // Transform the returned data
+      const transformedData: Student = {
+        ...data,
+        status: isValidStatus(data.status) ? data.status : 'Pass'
+      };
+      
+      setStudents(prev => prev.map(student => student.id === id ? transformedData : student));
       toast({
         title: "Success",
         description: "Student updated successfully",
       });
-      return data;
-    } catch (error: any) {
+      return transformedData;
+    } catch (error) {
       console.error('Error updating student:', error);
       toast({
         title: "Error",
-        description: "Failed to update student. Please try again.",
+        description: "Failed to update student",
         variant: "destructive",
       });
       throw error;
@@ -158,38 +263,46 @@ export const useStudents = () => {
 
   const deleteStudent = async (id: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
+      console.log('Deleting student with ID:', id);
+      
+      // First, get the student data before deletion
+      const { data: studentData, error: fetchError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching student for deletion:', fetchError);
+        throw fetchError;
       }
 
-      // Get the student data before deleting
-      const studentToDelete = students.find(student => student.id === id);
-      if (!studentToDelete) {
-        throw new Error('Student not found');
-      }
+      console.log('Student data to move to recycle bin:', studentData);
 
       // Move to recycle bin first
-      await moveToRecycleBin('students', id, studentToDelete);
+      await moveToRecycleBin('students', id, studentData);
 
-      // Then delete from original table
-      const { error } = await supabase
+      // Then delete from the original table
+      const { error: deleteError } = await supabase
         .from('students')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
-
+      if (deleteError) {
+        console.error('Error deleting student from database:', deleteError);
+        throw deleteError;
+      }
+      
       setStudents(prev => prev.filter(student => student.id !== id));
       toast({
         title: "Success",
-        description: "Student moved to recycle bin",
+        description: "Student moved to recycle bin successfully",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting student:', error);
       toast({
         title: "Error",
-        description: "Failed to delete student. Please try again.",
+        description: "Failed to delete student",
         variant: "destructive",
       });
       throw error;
@@ -198,59 +311,24 @@ export const useStudents = () => {
 
   const fetchStudentPayments = async (studentId: string): Promise<Payment[]> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('User not authenticated');
-        return [];
-      }
-
       const { data, error } = await supabase
         .from('payments')
         .select('*')
         .eq('student_id', studentId)
-        .order('payment_date', { ascending: false });
+        .order('payment_date', { ascending: true });
 
       if (error) throw error;
       return data || [];
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching student payments:', error);
       return [];
     }
   };
 
-  const addStudentPayment = async (paymentData: Omit<Payment, 'id' | 'created_at'>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      const { data, error } = await supabase
-        .from('payments')
-        .insert(paymentData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Payment added successfully",
-      });
-      return data;
-    } catch (error: any) {
-      console.error('Error adding payment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add payment. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   useEffect(() => {
     fetchStudents();
+    // Run backfill once on component mount
+    backfillDirectReferralStatus();
   }, []);
 
   return {
@@ -260,7 +338,6 @@ export const useStudents = () => {
     updateStudent,
     deleteStudent,
     fetchStudentPayments,
-    addStudentPayment,
     refetch: fetchStudents
   };
 };

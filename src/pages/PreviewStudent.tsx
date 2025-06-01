@@ -6,7 +6,6 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { StudentDetailsView } from "@/components/students/StudentDetailsView";
 import { useCourses } from "@/hooks/useCourses";
 import { useStudents } from "@/hooks/useStudents";
-import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 
 const PreviewStudent = () => {
@@ -14,7 +13,6 @@ const PreviewStudent = () => {
   const { id } = useParams();
   const { courses } = useCourses();
   const { students, fetchStudentPayments, refetch } = useStudents();
-  const { referrals } = useReferrals();
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentPayments, setStudentPayments] = useState([]);
   const { toast } = useToast();
