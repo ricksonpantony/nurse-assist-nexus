@@ -1,11 +1,9 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Edit2, Trash2, CreditCard, Phone, Mail, MapPin } from "lucide-react";
+import { Edit2, Eye, Trash2, CreditCard, Phone, Mail, MapPin } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import type { Student } from "@/hooks/useStudents";
 
@@ -28,7 +26,6 @@ export const StudentsTable = ({
   onView, 
   onUpdatePayment 
 }: StudentsTableProps) => {
-  const navigate = useNavigate();
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
@@ -63,25 +60,10 @@ export const StudentsTable = ({
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, studentId: string) => {
-    e.stopPropagation();
+  const handleDeleteClick = (studentId: string) => {
     console.log('Delete button clicked for student:', studentId);
     setStudentToDelete(studentId);
     setShowDeleteModal(true);
-  };
-
-  const handleEditClick = (e: React.MouseEvent, student: Student) => {
-    e.stopPropagation();
-    onEdit(student);
-  };
-
-  const handlePaymentClick = (e: React.MouseEvent, student: Student) => {
-    e.stopPropagation();
-    onUpdatePayment(student);
-  };
-
-  const handleRowClick = (student: Student) => {
-    navigate(`/student/${student.id}`);
   };
 
   const handleConfirmDelete = () => {
@@ -116,10 +98,10 @@ export const StudentsTable = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white border-l border-r border-b overflow-hidden">
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {selectedStudents.length > 0 && (
-        <div className="bg-blue-50 p-3 flex items-center justify-between border-b">
-          <div className="text-sm text-blue-700 font-medium">
+        <div className="bg-blue-50 p-2 flex items-center justify-between">
+          <div className="text-sm text-blue-700 font-medium pl-2">
             {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
           </div>
           <div className="flex gap-2">
@@ -136,24 +118,24 @@ export const StudentsTable = ({
         </div>
       )}
       
-      <div className="flex-1 overflow-auto">
+      <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-white z-10">
-            <TableRow className="bg-gray-50 border-b">
+          <TableHeader>
+            <TableRow className="bg-blue-50">
               <TableHead className="w-[50px]">
                 <Checkbox 
                   checked={students.length > 0 && selectedStudents.length === students.length}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
-              <TableHead className="font-semibold text-gray-900">Student ID</TableHead>
-              <TableHead className="font-semibold text-gray-900">Name</TableHead>
-              <TableHead className="font-semibold text-gray-900">Contact</TableHead>
-              <TableHead className="font-semibold text-gray-900">Course</TableHead>
-              <TableHead className="font-semibold text-gray-900">Join Date</TableHead>
-              <TableHead className="font-semibold text-gray-900">Status</TableHead>
-              <TableHead className="font-semibold text-gray-900">Payment</TableHead>
-              <TableHead className="font-semibold text-gray-900 text-center">Actions</TableHead>
+              <TableHead className="font-semibold text-blue-900">Student ID</TableHead>
+              <TableHead className="font-semibold text-blue-900">Name</TableHead>
+              <TableHead className="font-semibold text-blue-900">Contact</TableHead>
+              <TableHead className="font-semibold text-blue-900">Course</TableHead>
+              <TableHead className="font-semibold text-blue-900">Join Date</TableHead>
+              <TableHead className="font-semibold text-blue-900">Status</TableHead>
+              <TableHead className="font-semibold text-blue-900">Payment</TableHead>
+              <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -162,12 +144,8 @@ export const StudentsTable = ({
               const isSelected = selectedStudents.includes(student.id);
               
               return (
-                <TableRow 
-                  key={student.id} 
-                  className={`hover:bg-blue-50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-100' : ''}`}
-                  onClick={() => handleRowClick(student)}
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableRow key={student.id} className={`hover:bg-blue-50 transition-colors ${isSelected ? 'bg-blue-100' : ''}`}>
+                  <TableCell>
                     <Checkbox 
                       checked={isSelected}
                       onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
@@ -225,12 +203,20 @@ export const StudentsTable = ({
                       Advance: ${student.advance_payment?.toLocaleString() || 0}
                     </div>
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell>
                     <div className="flex gap-1">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={(e) => handleEditClick(e, student)}
+                        onClick={() => onView(student)}
+                        className="text-blue-600 hover:bg-blue-50"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onEdit(student)}
                         className="text-green-600 hover:bg-green-50"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -238,7 +224,7 @@ export const StudentsTable = ({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={(e) => handlePaymentClick(e, student)}
+                        onClick={() => onUpdatePayment(student)}
                         className="text-purple-600 hover:bg-purple-50"
                       >
                         <CreditCard className="h-4 w-4" />
@@ -246,7 +232,7 @@ export const StudentsTable = ({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={(e) => handleDeleteClick(e, student.id)}
+                        onClick={() => handleDeleteClick(student.id)}
                         className="text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -261,16 +247,14 @@ export const StudentsTable = ({
       </div>
 
       {students.length === 0 && (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
-          <div className="text-center">
-            <div className="mb-4">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-            <p className="text-lg">No students found</p>
-            <p className="text-sm">Add a new student to get started</p>
+        <div className="p-8 text-center text-gray-500">
+          <div className="mb-4">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
           </div>
+          <p className="text-lg">No students found</p>
+          <p className="text-sm">Add a new student to get started</p>
         </div>
       )}
 
