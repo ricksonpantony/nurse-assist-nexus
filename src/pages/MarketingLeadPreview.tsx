@@ -176,7 +176,7 @@ const MarketingLeadPreview = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Duration</p>
-                      <p className="font-medium">{course.duration}</p>
+                      <p className="font-medium">{course.period_months} months</p>
                     </div>
                     {lead.expected_joining_date && (
                       <div>
