@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, Download, FileText, AlertCircle } from "lucide-react";
+import { Upload, Download, FileText, AlertCircle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseExcelFile, generateSampleExcel, parseDateFromExcel, StudentImportData } from "@/utils/excelUtils";
 import { Course } from "@/hooks/useCourses";
@@ -22,8 +22,26 @@ interface ImportStudentsModalProps {
 export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete }: ImportStudentsModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [importResults, setImportResults] = useState<{ success: number; errors: string[] } | null>(null);
+  const [importResults, setImportResults] = useState<{ success: number; errors: string[]; referralsCreated: number } | null>(null);
   const { toast } = useToast();
+
+  const statusOptions = [
+    'Attended Online',
+    'Attend sessions', 
+    'Attended F2F',
+    'Exam cycle',
+    'Awaiting results',
+    'Pass',
+    'Fail'
+  ];
+
+  const paymentModes = [
+    'Credit Card',
+    'Bank Transfer',
+    'Cash',
+    'Cheque',
+    'Online Payment'
+  ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -36,8 +54,8 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
   const handleDownloadSample = () => {
     generateSampleExcel();
     toast({
-      title: "Sample Downloaded",
-      description: "Sample Excel file has been downloaded to your device",
+      title: "Template Downloaded",
+      description: "Comprehensive student import template with samples has been downloaded",
     });
   };
 
@@ -49,6 +67,60 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     
     const nextNumber = (count || 0) + 1;
     return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+  };
+
+  const generateReferralId = async () => {
+    const { data } = await supabase
+      .from('referrals')
+      .select('referral_id')
+      .order('referral_id', { ascending: false })
+      .limit(1);
+    
+    const lastId = data?.[0]?.referral_id || 'REF-000';
+    const lastNumber = parseInt(lastId.split('-')[1]) || 0;
+    const nextNumber = lastNumber + 1;
+    return `REF-${String(nextNumber).padStart(3, '0')}`;
+  };
+
+  const findOrCreateReferral = async (row: StudentImportData) => {
+    if (!row.referred_by_name || row.referred_by_name.trim() === '') {
+      return null; // Direct referral
+    }
+
+    // First, try to find existing referral by name
+    const { data: existingReferral } = await supabase
+      .from('referrals')
+      .select('*')
+      .ilike('full_name', row.referred_by_name.trim())
+      .single();
+
+    if (existingReferral) {
+      return existingReferral.id;
+    }
+
+    // Create new referral if not found
+    const referralId = await generateReferralId();
+    const { data: newReferral, error } = await supabase
+      .from('referrals')
+      .insert([{
+        referral_id: referralId,
+        full_name: row.referred_by_name.trim(),
+        email: row.referral_email || '',
+        phone: row.referral_phone || '',
+        address: row.referral_address || '',
+        bank_name: row.referral_bank_name || '',
+        account_number: row.referral_account_number || '',
+        bsb: row.referral_bsb || '',
+        notes: 'Auto-created during student import'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create referral: ${error.message}`);
+    }
+
+    return newReferral.id;
   };
 
   const handleImport = async () => {
@@ -64,6 +136,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     setIsProcessing(true);
     const errors: string[] = [];
     let successCount = 0;
+    let referralsCreated = 0;
 
     try {
       const data = await parseExcelFile(file);
@@ -71,6 +144,11 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       for (let i = 0; i < data.length; i++) {
         const row = data[i];
         try {
+          // Skip sample data
+          if (row.sample_id?.startsWith('SAMPLE_') || row.full_name?.includes('(SAMPLE - DO NOT EDIT)')) {
+            continue;
+          }
+
           // Find course by title and get its fee
           let courseId = null;
           let courseFee = 0;
@@ -78,8 +156,22 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             const course = courses.find(c => c.title.toLowerCase() === row.course_title.toLowerCase());
             if (course) {
               courseId = course.id;
-              courseFee = course.fee; // Automatically set course fee from selected course
+              courseFee = course.fee;
+            } else {
+              errors.push(`Row ${i + 1}: Course "${row.course_title}" not found`);
+              continue;
             }
+          }
+
+          // Handle referral
+          let referralId = null;
+          try {
+            referralId = await findOrCreateReferral(row);
+            if (referralId && !row.referral_email) {
+              referralsCreated++;
+            }
+          } catch (error) {
+            errors.push(`Row ${i + 1} referral: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
 
           // Generate student ID
@@ -97,10 +189,11 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             course_id: courseId,
             join_date: parseDateFromExcel(row.join_date),
             class_start_date: row.class_start_date ? parseDateFromExcel(row.class_start_date) : null,
-            status: row.status || 'enrolled',
-            total_course_fee: courseFee, // Use course fee from selected course
+            status: statusOptions.includes(row.status) ? row.status : 'Attend sessions',
+            total_course_fee: row.total_course_fee || courseFee,
             advance_payment: row.advance_payment || 0,
             installments: row.installments || 1,
+            referral_id: referralId,
           };
 
           // Insert student
@@ -113,54 +206,50 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             continue;
           }
 
-          // Process payments - only if payment amount exists and is greater than 0
+          // Process payments
           const payments = [];
           
-          // Advance payment
           if (row.advance_payment_amount && row.advance_payment_amount > 0) {
             payments.push({
               student_id: studentId,
               stage: 'Advance',
               amount: row.advance_payment_amount,
-              payment_mode: row.advance_payment_mode || 'Bank Transfer',
+              payment_mode: paymentModes.includes(row.advance_payment_mode || '') ? row.advance_payment_mode : 'Bank Transfer',
               payment_date: row.advance_payment_date ? parseDateFromExcel(row.advance_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
-          // Second payment
           if (row.second_payment_amount && row.second_payment_amount > 0) {
             payments.push({
               student_id: studentId,
               stage: 'Second',
               amount: row.second_payment_amount,
-              payment_mode: row.second_payment_mode || 'Bank Transfer',
+              payment_mode: paymentModes.includes(row.second_payment_mode || '') ? row.second_payment_mode : 'Bank Transfer',
               payment_date: row.second_payment_date ? parseDateFromExcel(row.second_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
-          // Third payment
           if (row.third_payment_amount && row.third_payment_amount > 0) {
             payments.push({
               student_id: studentId,
               stage: 'Third',
               amount: row.third_payment_amount,
-              payment_mode: row.third_payment_mode || 'Bank Transfer',
+              payment_mode: paymentModes.includes(row.third_payment_mode || '') ? row.third_payment_mode : 'Bank Transfer',
               payment_date: row.third_payment_date ? parseDateFromExcel(row.third_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
-          // Final payment
           if (row.final_payment_amount && row.final_payment_amount > 0) {
             payments.push({
               student_id: studentId,
               stage: 'Final',
               amount: row.final_payment_amount,
-              payment_mode: row.final_payment_mode || 'Bank Transfer',
+              payment_mode: paymentModes.includes(row.final_payment_mode || '') ? row.final_payment_mode : 'Bank Transfer',
               payment_date: row.final_payment_date ? parseDateFromExcel(row.final_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
-          // Insert payments only if there are valid payments
+          // Insert payments
           if (payments.length > 0) {
             const { error: paymentError } = await supabase
               .from('payments')
@@ -171,18 +260,36 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             }
           }
 
+          // Add referral payment if specified
+          if (referralId && row.referral_payment_amount && row.referral_payment_amount > 0) {
+            const { error: referralPaymentError } = await supabase
+              .from('referral_payments')
+              .insert([{
+                referral_id: referralId,
+                student_id: studentId,
+                amount: row.referral_payment_amount,
+                payment_date: parseDateFromExcel(row.join_date),
+                payment_method: 'Bank Transfer',
+                notes: `Payment for referring student ${row.full_name}`
+              }]);
+
+            if (referralPaymentError) {
+              errors.push(`Row ${i + 1} referral payment: ${referralPaymentError.message}`);
+            }
+          }
+
           successCount++;
         } catch (error) {
           errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
-      setImportResults({ success: successCount, errors });
+      setImportResults({ success: successCount, errors, referralsCreated });
       
       if (successCount > 0) {
         toast({
           title: "Import Completed",
-          description: `Successfully imported ${successCount} students`,
+          description: `Successfully imported ${successCount} students${referralsCreated > 0 ? ` and created ${referralsCreated} referrals` : ''}`,
         });
         onImportComplete();
       }
@@ -206,33 +313,49 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Import Students from Excel
+            Import Students - Comprehensive Template
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Download Sample Section */}
+          {/* Download Template Section */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Download Sample File
+                Download Comprehensive Template
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                Download a sample Excel file to see the required format and column structure.
+                Download the complete student import template with all necessary fields including referral details, payment information, and sample data.
               </p>
               <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
-                Download Sample Excel
+                Download Template with Samples
               </Button>
             </CardContent>
           </Card>
+
+          {/* Template Information */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Template Features:</strong>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li>• <strong>Complete Student Data:</strong> All personal, course, and contact information</li>
+                <li>• <strong>Referral Management:</strong> Automatic referral creation if name not found</li>
+                <li>• <strong>Payment Tracking:</strong> Multiple payment stages with dates and methods</li>
+                <li>• <strong>Sample Data:</strong> 3 locked, uneditable sample rows for reference</li>
+                <li>• <strong>Status Options:</strong> {statusOptions.join(', ')}</li>
+                <li>• <strong>Payment Modes:</strong> {paymentModes.join(', ')}</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
 
           {/* File Upload Section */}
           <Card>
@@ -261,18 +384,19 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             </CardContent>
           </Card>
 
-          {/* Format Information */}
+          {/* Important Guidelines */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Important Notes:</strong>
+              <strong>Import Guidelines:</strong>
               <ul className="mt-2 space-y-1 text-sm">
                 <li>• Use DD-MM-YYYY format for all dates</li>
-                <li>• Course fee will be automatically set based on the selected course</li>
-                <li>• If payment amount is empty or 0, no payment record will be created for that stage</li>
-                <li>• If payment mode is not specified, it will default to "Bank Transfer"</li>
-                <li>• Course title must match exactly with existing courses in the system</li>
-                <li>• All required fields (name, email, phone, course title) must be filled</li>
+                <li>• Sample data rows are automatically excluded from import</li>
+                <li>• If referral name is provided but not found, a new referral account will be created</li>
+                <li>• Course fee is automatically set based on selected course</li>
+                <li>• Empty payment amounts will not create payment records</li>
+                <li>• Course title must match existing courses exactly</li>
+                <li>• Required fields: full_name, email, phone, course_title, join_date</li>
               </ul>
             </AlertDescription>
           </Alert>
@@ -286,11 +410,14 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               <CardContent>
                 <div className="space-y-2">
                   <p className="text-green-600">✓ Successfully imported: {importResults.success} students</p>
+                  {importResults.referralsCreated > 0 && (
+                    <p className="text-blue-600">✓ Created new referrals: {importResults.referralsCreated}</p>
+                  )}
                   
                   {importResults.errors.length > 0 && (
                     <div>
                       <p className="text-red-600 font-medium">Errors encountered:</p>
-                      <div className="max-h-32 overflow-y-auto bg-red-50 p-2 rounded mt-1">
+                      <div className="max-h-40 overflow-y-auto bg-red-50 p-2 rounded mt-1">
                         {importResults.errors.map((error, index) => (
                           <p key={index} className="text-sm text-red-700">{error}</p>
                         ))}

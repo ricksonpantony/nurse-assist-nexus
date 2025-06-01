@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -203,7 +202,7 @@ const Students = () => {
               onClick={() => setShowImportModal(true)}
             >
               <Upload className="h-4 w-4" />
-              Import
+              Import Template
             </Button>
             <Button 
               variant="outline"
