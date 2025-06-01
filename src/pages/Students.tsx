@@ -1,10 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
 import { AddStudentForm } from "@/components/students/AddStudentForm";
-import { StudentDetailsView } from "@/components/students/StudentDetailsView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
@@ -14,15 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 
 const Students = () => {
   const { courses } = useCourses();
-  const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments, refetch } = useStudents();
+  const { students, loading, addStudent, updateStudent, deleteStudent, refetch } = useStudents();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showAccountView, setShowAccountView] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
-  const [studentPayments, setStudentPayments] = useState([]);
   const { toast } = useToast();
 
   const handleAddStudent = async (studentData: any) => {
@@ -90,30 +85,6 @@ const Students = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleViewStudentAccount = async (student: any) => {
-    setSelectedStudent(student);
-    const payments = await fetchStudentPayments(student.id);
-    setStudentPayments(payments);
-    setShowAccountView(true);
-  };
-
-  const handleUpdatePayment = (student: any) => {
-    setPaymentUpdateStudent(student);
-    setShowPaymentModal(true);
-  };
-
-  const handleRefreshStudentAccount = async () => {
-    if (selectedStudent) {
-      const payments = await fetchStudentPayments(selectedStudent.id);
-      setStudentPayments(payments);
-      refetch();
-    }
-  };
-
-  const handlePaymentAdded = () => {
-    refetch();
   };
 
   const handleExportStudents = () => {
@@ -190,7 +161,6 @@ const Students = () => {
             onEdit={handleEditStudent}
             onDelete={handleDeleteStudent}
             onDeleteMultiple={handleDeleteMultipleStudents}
-            onView={handleViewStudentAccount}
             onUpdatePayment={handleUpdatePayment}
           />
         </main>
@@ -206,20 +176,6 @@ const Students = () => {
             setEditingStudent(null);
           }}
           onSave={editingStudent ? handleUpdateStudent : handleAddStudent}
-        />
-      )}
-
-      {/* Student Account View Modal */}
-      {showAccountView && selectedStudent && (
-        <StudentDetailsView
-          student={{ ...selectedStudent, payments: studentPayments }}
-          courses={courses}
-          onClose={() => {
-            setShowAccountView(false);
-            setSelectedStudent(null);
-            setStudentPayments([]);
-          }}
-          onRefresh={handleRefreshStudentAccount}
         />
       )}
 

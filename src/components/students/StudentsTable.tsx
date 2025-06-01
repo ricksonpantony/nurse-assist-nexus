@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ export const StudentsTable = ({
   onView, 
   onUpdatePayment 
 }: StudentsTableProps) => {
+  const navigate = useNavigate();
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export const StudentsTable = ({
   };
 
   const handleRowClick = (student: Student) => {
-    onView(student);
+    navigate(`/student/${student.id}`);
   };
 
   const handleConfirmDelete = () => {
