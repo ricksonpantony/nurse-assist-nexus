@@ -1,19 +1,25 @@
-
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, Edit, User, BookOpen, Users, Calendar, StickyNote } from "lucide-react";
+import { ArrowLeft, Printer, Edit, User, BookOpen, Users, Calendar, StickyNote, UserPlus } from "lucide-react";
 import { useLeads, getLeadStatusColor } from "@/hooks/useLeads";
 import { useCourses } from "@/hooks/useCourses";
 import { useReferrals } from "@/hooks/useReferrals";
+import { useStudents } from "@/hooks/useStudents";
+import { EnhancedTransferModal } from "@/components/marketing/EnhancedTransferModal";
+import { useToast } from "@/hooks/use-toast";
 
 const MarketingLeadPreview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { leads, loading } = useLeads();
+  const { leads, loading, updateLead } = useLeads();
   const { courses } = useCourses();
   const { referrals } = useReferrals();
+  const { addStudent } = useStudents();
+  const { toast } = useToast();
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   if (loading) {
     return (
@@ -48,6 +54,35 @@ const MarketingLeadPreview = () => {
     window.print();
   };
 
+  const handleTransferToStudent = async (studentData: any) => {
+    try {
+      console.log('Transferring lead to student with data:', studentData);
+      
+      // Add the student
+      await addStudent(studentData);
+      
+      // Update lead status to "Converted to Student"
+      await updateLead(lead.id, {
+        lead_status: 'Converted to Student'
+      });
+
+      toast({
+        title: 'Success',
+        description: `Lead ${lead.lead_id} successfully transferred to student account`,
+      });
+
+      setShowTransferModal(false);
+      navigate('/marketing');
+    } catch (error) {
+      console.error('Error transferring lead to student:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to transfer lead to student account',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
@@ -75,6 +110,15 @@ const MarketingLeadPreview = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTransferModal(true)}
+              className="gap-2 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-700 hover:from-green-100 hover:to-emerald-100"
+            >
+              <UserPlus className="h-4 w-4" />
+              Transfer to Student
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -262,6 +306,17 @@ const MarketingLeadPreview = () => {
           </div>
         </main>
       </div>
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <EnhancedTransferModal
+          lead={lead}
+          courses={courses}
+          referrals={referrals}
+          onClose={() => setShowTransferModal(false)}
+          onTransfer={handleTransferToStudent}
+        />
+      )}
     </div>
   );
 };
