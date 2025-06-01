@@ -302,7 +302,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
   );
 
   const content = (
-    <div className="">
+    <div className="space-y-6">
       {/* Header with Actions - Only show in screen view */}
       <div className="flex justify-between items-start print:hidden">
         <div>
@@ -322,15 +322,15 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          {/* <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" size="sm" onClick={onClose}>
             <X className="h-4 w-4 mr-2" />
             Close
-          </Button> */}
+          </Button>
         </div>
       </div>
 
       <PrintableContent />
-      {/* <ExportOptionsModal /> */}
+      <ExportOptionsModal />
     </div>
   );
 
