@@ -33,7 +33,6 @@ export const StudentDetailsView = ({
   const { toast } = useToast();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
-  const [isPrintMode, setIsPrintMode] = useState(false);
   const [selectedReferralId, setSelectedReferralId] = useState(student.referral_id || "direct");
   const [referralPaymentAmount, setReferralPaymentAmount] = useState("");
 
@@ -67,11 +66,7 @@ export const StudentDetailsView = ({
   };
 
   const handlePrint = () => {
-    setIsPrintMode(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrintMode(false);
-    }, 100);
+    window.print();
   };
 
   const handleDeleteStudent = async () => {
@@ -159,440 +154,420 @@ export const StudentDetailsView = ({
   const totalPaid = student.payments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
   const remainingBalance = student.total_course_fee - totalPaid;
 
-  const printContent = (
-    <div className="print-content">
-      {/* Print Header */}
-      <div className="print-header">
-        <div className="print-title">Nurse Assist International (NAI)</div>
-        <div className="print-subtitle">Student Account Overview</div>
-      </div>
-
-      {/* Personal Information Section */}
-      <div className="print-section">
-        <div className="print-section-title">Personal Information</div>
-        <div className="print-grid-2">
-          <div className="print-field">
-            <div className="print-field-label">Full Name</div>
-            <div className="print-field-value">{student.full_name}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Student ID</div>
-            <div className="print-field-value">{student.id}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Email</div>
-            <div className="print-field-value">{student.email}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Phone</div>
-            <div className="print-field-value">{student.phone}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Passport ID</div>
-            <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Country</div>
-            <div className="print-field-value">{student.country || 'Not specified'}</div>
-          </div>
+  return (
+    <>
+      {/* Print Content - Always rendered but only visible during print */}
+      <div className="print-content hidden print:block">
+        {/* Print Header */}
+        <div className="print-header">
+          <div className="print-title">Nurse Assist International (NAI)</div>
+          <div className="print-subtitle">Student Account Overview</div>
         </div>
-        {student.address && (
-          <div className="print-field">
-            <div className="print-field-label">Address</div>
-            <div className="print-field-value">{student.address}</div>
-          </div>
-        )}
-      </div>
 
-      {/* Academic Information Section */}
-      <div className="print-section">
-        <div className="print-section-title">Academic Information</div>
-        <div className="print-grid-2">
-          <div className="print-field">
-            <div className="print-field-label">Course</div>
-            <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Current Status</div>
-            <div className="print-field-value">
-              <span className="print-badge">{student.status}</span>
-            </div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Join Date</div>
-            <div className="print-field-value">{formatDate(student.join_date)}</div>
-          </div>
-          <div className="print-field">
-            <div className="print-field-label">Class Start Date</div>
-            <div className="print-field-value">{formatDate(student.class_start_date)}</div>
-          </div>
-        </div>
-        {student.batch_id && (
-          <div className="print-field">
-            <div className="print-field-label">Batch ID</div>
-            <div className="print-field-value">{student.batch_id}</div>
-          </div>
-        )}
-      </div>
-
-      {/* Referral Information Section */}
-      <div className="print-section">
-        <div className="print-section-title">Referral Information</div>
-        {selectedReferralId === "direct" || !selectedReferralId ? (
-          <div className="print-field">
-            <div className="print-field-label">Status</div>
-            <div className="print-field-value">Direct (No Referral)</div>
-          </div>
-        ) : selectedReferral ? (
+        {/* Personal Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Personal Information</div>
           <div className="print-grid-2">
             <div className="print-field">
-              <div className="print-field-label">Referral Name</div>
-              <div className="print-field-value">{selectedReferral.full_name}</div>
+              <div className="print-field-label">Full Name</div>
+              <div className="print-field-value">{student.full_name}</div>
             </div>
             <div className="print-field">
-              <div className="print-field-label">Referral ID</div>
-              <div className="print-field-value">{selectedReferral.referral_id}</div>
+              <div className="print-field-label">Student ID</div>
+              <div className="print-field-value">{student.id}</div>
             </div>
             <div className="print-field">
               <div className="print-field-label">Email</div>
-              <div className="print-field-value">{selectedReferral.email}</div>
+              <div className="print-field-value">{student.email}</div>
             </div>
             <div className="print-field">
               <div className="print-field-label">Phone</div>
-              <div className="print-field-value">{selectedReferral.phone}</div>
+              <div className="print-field-value">{student.phone}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Passport ID</div>
+              <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Country</div>
+              <div className="print-field-value">{student.country || 'Not specified'}</div>
             </div>
           </div>
-        ) : (
-          <div className="print-field">
-            <div className="print-field-label">Status</div>
-            <div className="print-field-value">Referral not found</div>
-          </div>
-        )}
-      </div>
-
-      {/* Payment Information Section */}
-      <div className="print-section">
-        <div className="print-section-title">Payment Information</div>
-        <div className="print-payment-summary">
-          <div className="print-payment-box">
-            <div className="print-payment-label">Total Course Fee</div>
-            <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
-          </div>
-          <div className="print-payment-box">
-            <div className="print-payment-label">Total Paid</div>
-            <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
-          </div>
-          <div className="print-payment-box">
-            <div className="print-payment-label">Remaining Balance</div>
-            <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
-          </div>
+          {student.address && (
+            <div className="print-field">
+              <div className="print-field-label">Address</div>
+              <div className="print-field-value">{student.address}</div>
+            </div>
+          )}
         </div>
 
-        {/* Payment History */}
-        {student.payments && student.payments.length > 0 && (
-          <div>
-            <div className="print-section-title">Payment History</div>
-            <table className="print-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Stage</th>
-                  <th>Amount</th>
-                  <th>Payment Mode</th>
-                </tr>
-              </thead>
-              <tbody>
-                {student.payments.map((payment: any, index: number) => (
-                  <tr key={index}>
-                    <td>{formatDate(payment.payment_date)}</td>
-                    <td>{payment.stage}</td>
-                    <td>${payment.amount.toLocaleString()}</td>
-                    <td>{payment.payment_mode}</td>
+        {/* Academic Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Academic Information</div>
+          <div className="print-grid-2">
+            <div className="print-field">
+              <div className="print-field-label">Course</div>
+              <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Current Status</div>
+              <div className="print-field-value">
+                <span className="print-badge">{student.status}</span>
+              </div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Join Date</div>
+              <div className="print-field-value">{formatDate(student.join_date)}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Class Start Date</div>
+              <div className="print-field-value">{formatDate(student.class_start_date)}</div>
+            </div>
+          </div>
+          {student.batch_id && (
+            <div className="print-field">
+              <div className="print-field-label">Batch ID</div>
+              <div className="print-field-value">{student.batch_id}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Referral Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Referral Information</div>
+          {selectedReferralId === "direct" || !selectedReferralId ? (
+            <div className="print-field">
+              <div className="print-field-label">Status</div>
+              <div className="print-field-value">Direct (No Referral)</div>
+            </div>
+          ) : selectedReferral ? (
+            <div className="print-grid-2">
+              <div className="print-field">
+                <div className="print-field-label">Referral Name</div>
+                <div className="print-field-value">{selectedReferral.full_name}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Referral ID</div>
+                <div className="print-field-value">{selectedReferral.referral_id}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Email</div>
+                <div className="print-field-value">{selectedReferral.email}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Phone</div>
+                <div className="print-field-value">{selectedReferral.phone}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="print-field">
+              <div className="print-field-label">Status</div>
+              <div className="print-field-value">Referral not found</div>
+            </div>
+          )}
+        </div>
+
+        {/* Payment Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Payment Information</div>
+          <div className="print-payment-summary">
+            <div className="print-payment-box">
+              <div className="print-payment-label">Total Course Fee</div>
+              <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
+            </div>
+            <div className="print-payment-box">
+              <div className="print-payment-label">Total Paid</div>
+              <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
+            </div>
+            <div className="print-payment-box">
+              <div className="print-payment-label">Remaining Balance</div>
+              <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
+            </div>
+          </div>
+
+          {/* Payment History */}
+          {student.payments && student.payments.length > 0 && (
+            <div>
+              <div className="print-section-title">Payment History</div>
+              <table className="print-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Stage</th>
+                    <th>Amount</th>
+                    <th>Payment Mode</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {student.payments.map((payment: any, index: number) => (
+                    <tr key={index}>
+                      <td>{formatDate(payment.payment_date)}</td>
+                      <td>{payment.stage}</td>
+                      <td>${payment.amount.toLocaleString()}</td>
+                      <td>{payment.payment_mode}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Regular Screen Content - Hidden during print */}
+      <div className={`bg-white ${isPageView ? 'rounded-lg shadow-lg' : ''} print:hidden`}>
+        {/* Header - Hidden in print mode */}
+        <div className={`flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50 ${isPageView ? 'rounded-t-lg' : ''}`}>
+          <div>
+            <h2 className="text-2xl font-bold text-blue-900">Student Account</h2>
+            <p className="text-blue-600">Complete student information and payment history</p>
           </div>
-        )}
-      </div>
-
-      {/* Print Footer */}
-      <div className="print-footer">
-        <div className="print-footer-content">
-          📞 +61 478 320 397&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✉️ admin@nurseassistinternational.com<br/>
-          📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney<br/>
-          📍 2/2 Sorrel Street, Parramatta 2150, Sydney
-        </div>
-      </div>
-      <div className="print-page-info">
-        Printed: {new Date().toLocaleDateString()}
-      </div>
-    </div>
-  );
-
-  const regularContent = (
-    <div className={`bg-white ${isPageView ? 'rounded-lg shadow-lg' : ''}`}>
-      {/* Header - Hidden in print mode */}
-      <div className={`flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50 ${isPageView ? 'rounded-t-lg' : ''} print:hidden`}>
-        <div>
-          <h2 className="text-2xl font-bold text-blue-900">Student Account</h2>
-          <p className="text-blue-600">Complete student information and payment history</p>
-        </div>
-        <div className="flex gap-2">
-          {!isPageView && (
-            <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
-              <Printer className="h-4 w-4" />
-              Print
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={onRefresh} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          {!isPageView && (
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Print Header - Only visible in print mode */}
-      {isPrintMode && (
-        <div className="print-only mb-6 text-center border-b pb-4">
-          <h1 className="text-3xl font-bold text-blue-900 mb-2">Student Account Report</h1>
-          <p className="text-gray-600">Generated on {new Date().toLocaleDateString()}</p>
-        </div>
-      )}
-
-      {/* Student Information */}
-      <div className="p-6 space-y-6 print:hidden">
-        {/* Personal Information Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <User className="h-5 w-5 text-blue-600" />
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Full Name</label>
-              <div className="font-medium">{student.full_name}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Student ID</label>
-              <div className="font-medium font-mono text-blue-600">{student.id}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Email</label>
-              <div className="flex items-center gap-1">
-                <Mail className="h-4 w-4 text-gray-400" />
-                <span>{student.email}</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Phone</label>
-              <div className="flex items-center gap-1">
-                <Phone className="h-4 w-4 text-gray-400" />
-                <span>{student.phone}</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Passport ID</label>
-              <div>{student.passport_id || 'Not provided'}</div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Country</label>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <span>{student.country || 'Not specified'}</span>
-              </div>
-            </div>
-            {student.address && (
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium text-gray-500">Address</label>
-                <div>{student.address}</div>
-              </div>
+          <div className="flex gap-2">
+            {!isPageView && (
+              <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
+                <Printer className="h-4 w-4" />
+                Print
+              </Button>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Academic Information Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <GraduationCap className="h-5 w-5 text-blue-600" />
-              Academic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-500">Course</label>
-              <div className="font-medium">
-                {course ? course.title : 'No course assigned'}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Current Status</label>
-              <div>
-                <Badge variant="outline" className={getStatusColor(student.status)}>
-                  {student.status}
-                </Badge>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Join Date</label>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <span>{formatDate(student.join_date)}</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Class Start Date</label>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <span>{formatDate(student.class_start_date)}</span>
-              </div>
-            </div>
-            {student.batch_id && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">Batch ID</label>
-                <div>{student.batch_id}</div>
-              </div>
+            <Button variant="outline" size="sm" onClick={onRefresh} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+            {!isPageView && (
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Referral Information Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-5 w-5 text-blue-600" />
-              Referral Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Student Information */}
+        <div className="p-6 space-y-6">
+          {/* Personal Information Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5 text-blue-600" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="referral-select">Referred By</Label>
-                <div className="flex gap-2 mt-1">
-                  <Select 
-                    value={selectedReferralId || "direct"} 
-                    onValueChange={handleReferralChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a referral" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="direct">Direct (No Referral)</SelectItem>
-                      {referrals.map((referral) => (
-                        <SelectItem key={referral.id} value={referral.id}>
-                          {referral.full_name} ({referral.referral_id})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowQuickAddReferral(true)}
-                    className="gap-1 shrink-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add New
-                  </Button>
+                <label className="text-sm font-medium text-gray-500">Full Name</label>
+                <div className="font-medium">{student.full_name}</div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Student ID</label>
+                <div className="font-medium font-mono text-blue-600">{student.id}</div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Email</label>
+                <div className="flex items-center gap-1">
+                  <Mail className="h-4 w-4 text-gray-400" />
+                  <span>{student.email}</span>
                 </div>
               </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Phone</label>
+                <div className="flex items-center gap-1">
+                  <Phone className="h-4 w-4 text-gray-400" />
+                  <span>{student.phone}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Passport ID</label>
+                <div>{student.passport_id || 'Not provided'}</div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Country</label>
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span>{student.country || 'Not specified'}</span>
+                </div>
+              </div>
+              {student.address && (
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-500">Address</label>
+                  <div>{student.address}</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              {selectedReferralId && selectedReferralId !== "direct" && (
+          {/* Academic Information Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <GraduationCap className="h-5 w-5 text-blue-600" />
+                Academic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Course</label>
+                <div className="font-medium">
+                  {course ? course.title : 'No course assigned'}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Current Status</label>
                 <div>
-                  <Label htmlFor="referral-payment">Referral Payment Amount</Label>
+                  <Badge variant="outline" className={getStatusColor(student.status)}>
+                    {student.status}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Join Date</label>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span>{formatDate(student.join_date)}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Class Start Date</label>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span>{formatDate(student.class_start_date)}</span>
+                </div>
+              </div>
+              {student.batch_id && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Batch ID</label>
+                  <div>{student.batch_id}</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Referral Information Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Users className="h-5 w-5 text-blue-600" />
+                Referral Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="referral-select">Referred By</Label>
                   <div className="flex gap-2 mt-1">
-                    <Input
-                      id="referral-payment"
-                      type="number"
-                      step="0.01"
-                      placeholder="Enter payment amount"
-                      value={referralPaymentAmount}
-                      onChange={(e) => setReferralPaymentAmount(e.target.value)}
-                    />
-                    <Button
-                      onClick={handleReferralPaymentSave}
-                      disabled={!referralPaymentAmount}
-                      className="shrink-0"
+                    <Select 
+                      value={selectedReferralId || "direct"} 
+                      onValueChange={handleReferralChange}
                     >
-                      Add Payment
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a referral" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="direct">Direct (No Referral)</SelectItem>
+                        {referrals.map((referral) => (
+                          <SelectItem key={referral.id} value={referral.id}>
+                            {referral.full_name} ({referral.referral_id})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowQuickAddReferral(true)}
+                      className="gap-1 shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New
                     </Button>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Show referral status */}
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Referral Status</h4>
-              {selectedReferralId === "direct" || !selectedReferralId ? (
-                <div className="text-sm text-blue-700">
-                  <span className="font-medium">Status:</span> Direct (No Referral)
-                </div>
-              ) : selectedReferral ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                {selectedReferralId && selectedReferralId !== "direct" && (
                   <div>
-                    <span className="text-blue-600 font-medium">Name:</span> {selectedReferral.full_name}
+                    <Label htmlFor="referral-payment">Referral Payment Amount</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="referral-payment"
+                        type="number"
+                        step="0.01"
+                        placeholder="Enter payment amount"
+                        value={referralPaymentAmount}
+                        onChange={(e) => setReferralPaymentAmount(e.target.value)}
+                      />
+                      <Button
+                        onClick={handleReferralPaymentSave}
+                        disabled={!referralPaymentAmount}
+                        className="shrink-0"
+                      >
+                        Add Payment
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-blue-600 font-medium">ID:</span> {selectedReferral.referral_id}
-                  </div>
-                  <div>
-                    <span className="text-blue-600 font-medium">Email:</span> {selectedReferral.email}
-                  </div>
-                  <div>
-                    <span className="text-blue-600 font-medium">Phone:</span> {selectedReferral.phone}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-blue-700">
-                  <span className="font-medium">Status:</span> Referral not found
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                )}
+              </div>
 
-        {/* Payment Information Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CreditCard className="h-5 w-5 text-blue-600" />
-              Payment Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {/* Show referral status */}
               <div className="bg-blue-50 p-4 rounded-lg">
-                <label className="text-sm font-medium text-blue-600">Total Course Fee</label>
-                <div className="text-2xl font-bold text-blue-900">${student.total_course_fee.toLocaleString()}</div>
+                <h4 className="font-medium text-blue-900 mb-2">Referral Status</h4>
+                {selectedReferralId === "direct" || !selectedReferralId ? (
+                  <div className="text-sm text-blue-700">
+                    <span className="font-medium">Status:</span> Direct (No Referral)
+                  </div>
+                ) : selectedReferral ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-blue-600 font-medium">Name:</span> {selectedReferral.full_name}
+                    </div>
+                    <div>
+                      <span className="text-blue-600 font-medium">ID:</span> {selectedReferral.referral_id}
+                    </div>
+                    <div>
+                      <span className="text-blue-600 font-medium">Email:</span> {selectedReferral.email}
+                    </div>
+                    <div>
+                      <span className="text-blue-600 font-medium">Phone:</span> {selectedReferral.phone}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-blue-700">
+                    <span className="font-medium">Status:</span> Referral not found
+                  </div>
+                )}
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <label className="text-sm font-medium text-green-600">Total Paid</label>
-                <div className="text-2xl font-bold text-green-900">${totalPaid.toLocaleString()}</div>
-              </div>
-              <div className={`${remainingBalance > 0 ? 'bg-orange-50' : 'bg-gray-50'} p-4 rounded-lg`}>
-                <label className={`text-sm font-medium ${remainingBalance > 0 ? 'text-orange-600' : 'text-gray-600'}`}>
-                  Remaining Balance
-                </label>
-                <div className={`text-2xl font-bold ${remainingBalance > 0 ? 'text-orange-900' : 'text-gray-900'}`}>
-                  ${remainingBalance.toLocaleString()}
+            </CardContent>
+          </Card>
+
+          {/* Payment Information Card */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CreditCard className="h-5 w-5 text-blue-600" />
+                Payment Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <label className="text-sm font-medium text-blue-600">Total Course Fee</label>
+                  <div className="text-2xl font-bold text-blue-900">${student.total_course_fee.toLocaleString()}</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <label className="text-sm font-medium text-green-600">Total Paid</label>
+                  <div className="text-2xl font-bold text-green-900">${totalPaid.toLocaleString()}</div>
+                </div>
+                <div className={`${remainingBalance > 0 ? 'bg-orange-50' : 'bg-gray-50'} p-4 rounded-lg`}>
+                  <label className={`text-sm font-medium ${remainingBalance > 0 ? 'text-orange-600' : 'text-gray-600'}`}>
+                    Remaining Balance
+                  </label>
+                  <div className={`text-2xl font-bold ${remainingBalance > 0 ? 'text-orange-900' : 'text-gray-900'}`}>
+                    ${remainingBalance.toLocaleString()}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Payment History */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold">Payment History</h4>
-                {!isPrintMode && (
+              {/* Payment History */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold">Payment History</h4>
                   <Button
                     size="sm"
                     onClick={() => setShowPaymentForm(true)}
@@ -601,95 +576,87 @@ export const StudentDetailsView = ({
                     <CreditCard className="h-4 w-4" />
                     Add Payment
                   </Button>
+                </div>
+
+                {student.payments && student.payments.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead>Date</TableHead>
+                          <TableHead>Stage</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Payment Mode</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {student.payments.map((payment: any, index: number) => (
+                          <TableRow key={index}>
+                            <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{payment.stage}</Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">${payment.amount.toLocaleString()}</TableCell>
+                            <TableCell>{payment.payment_mode}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No payment records found</p>
+                  </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
 
-              {student.payments && student.payments.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead>Date</TableHead>
-                        <TableHead>Stage</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Payment Mode</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {student.payments.map((payment: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>{formatDate(payment.payment_date)}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{payment.stage}</Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">${payment.amount.toLocaleString()}</TableCell>
-                          <TableCell>{payment.payment_mode}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No payment records found</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons - Hidden in print mode */}
-        {!isPrintMode && (
-          <div className="flex justify-end gap-2 pt-4 print:hidden">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 pt-4">
             <Button variant="destructive" onClick={handleDeleteStudent} className="gap-2">
               <Trash2 className="h-4 w-4" />
               Delete Student
             </Button>
           </div>
+        </div>
+
+        {/* Payment Form Modal */}
+        {showPaymentForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Add Payment Record</h3>
+              <PaymentRecordForm
+                studentId={student.id}
+                currentStatus={student.status}
+                onPaymentAdded={handlePaymentAdded}
+              />
+              <div className="mt-4 flex justify-end">
+                <Button variant="outline" onClick={() => setShowPaymentForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Add Referral Modal */}
+        {showQuickAddReferral && (
+          <QuickAddReferralModal
+            onClose={() => setShowQuickAddReferral(false)}
+            onSuccess={handleQuickAddReferralSuccess}
+          />
         )}
       </div>
 
-      {/* Payment Form Modal */}
-      {showPaymentForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Add Payment Record</h3>
-            <PaymentRecordForm
-              studentId={student.id}
-              currentStatus={student.status}
-              onPaymentAdded={handlePaymentAdded}
-            />
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={() => setShowPaymentForm(false)}>
-                Cancel
-              </Button>
-            </div>
+      {isPageView ? null : (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Content is rendered above */}
           </div>
         </div>
       )}
-
-      {/* Quick Add Referral Modal */}
-      {showQuickAddReferral && (
-        <QuickAddReferralModal
-          onClose={() => setShowQuickAddReferral(false)}
-          onSuccess={handleQuickAddReferralSuccess}
-        />
-      )}
-    </div>
-  );
-
-  const content = isPrintMode ? printContent : regularContent;
-
-  if (isPageView) {
-    return content;
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        {content}
-      </div>
-    </div>
+    </>
   );
 };
