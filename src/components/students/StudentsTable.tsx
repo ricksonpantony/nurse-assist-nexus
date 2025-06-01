@@ -115,10 +115,10 @@ export const StudentsTable = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border overflow-hidden">
       {selectedStudents.length > 0 && (
-        <div className="bg-blue-50 p-2 flex items-center justify-between">
-          <div className="text-sm text-blue-700 font-medium pl-2">
+        <div className="bg-blue-50 p-3 flex items-center justify-between border-b">
+          <div className="text-sm text-blue-700 font-medium">
             {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
           </div>
           <div className="flex gap-2">
@@ -135,24 +135,24 @@ export const StudentsTable = ({
         </div>
       )}
       
-      <div className="overflow-x-auto">
+      <div className="flex-1 overflow-auto">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-blue-50">
+          <TableHeader className="sticky top-0 bg-white z-10">
+            <TableRow className="bg-gray-50 border-b">
               <TableHead className="w-[50px]">
                 <Checkbox 
                   checked={students.length > 0 && selectedStudents.length === students.length}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
-              <TableHead className="font-semibold text-blue-900">Student ID</TableHead>
-              <TableHead className="font-semibold text-blue-900">Name</TableHead>
-              <TableHead className="font-semibold text-blue-900">Contact</TableHead>
-              <TableHead className="font-semibold text-blue-900">Course</TableHead>
-              <TableHead className="font-semibold text-blue-900">Join Date</TableHead>
-              <TableHead className="font-semibold text-blue-900">Status</TableHead>
-              <TableHead className="font-semibold text-blue-900">Payment</TableHead>
-              <TableHead className="font-semibold text-blue-900 text-center">Actions</TableHead>
+              <TableHead className="font-semibold text-gray-900">Student ID</TableHead>
+              <TableHead className="font-semibold text-gray-900">Name</TableHead>
+              <TableHead className="font-semibold text-gray-900">Contact</TableHead>
+              <TableHead className="font-semibold text-gray-900">Course</TableHead>
+              <TableHead className="font-semibold text-gray-900">Join Date</TableHead>
+              <TableHead className="font-semibold text-gray-900">Status</TableHead>
+              <TableHead className="font-semibold text-gray-900">Payment</TableHead>
+              <TableHead className="font-semibold text-gray-900 text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -260,14 +260,16 @@ export const StudentsTable = ({
       </div>
 
       {students.length === 0 && (
-        <div className="p-8 text-center text-gray-500">
-          <div className="mb-4">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+        <div className="flex-1 flex items-center justify-center text-gray-500">
+          <div className="text-center">
+            <div className="mb-4">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <p className="text-lg">No students found</p>
+            <p className="text-sm">Add a new student to get started</p>
           </div>
-          <p className="text-lg">No students found</p>
-          <p className="text-sm">Add a new student to get started</p>
         </div>
       )}
 
