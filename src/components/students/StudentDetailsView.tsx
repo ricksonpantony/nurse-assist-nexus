@@ -302,7 +302,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
   );
 
   const content = (
-    <div className="space-y-6 print:hidden">
+    <div className="">
       {/* Header with Actions - Only show in screen view */}
       <div className="flex justify-between items-start print:hidden">
         <div>
