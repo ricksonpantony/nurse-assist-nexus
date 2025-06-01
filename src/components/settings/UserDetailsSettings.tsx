@@ -44,8 +44,8 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       const lastName = nameParts.slice(1).join(' ') || '';
 
       setFormData({
-        first_name: firstName,
-        last_name: lastName,
+        first_name: userProfile.first_name || '',
+        last_name: userProfile.last_name || '',
         email: user.email || '',
         phone: userProfile.phone || '',
         address: userProfile.address || '',

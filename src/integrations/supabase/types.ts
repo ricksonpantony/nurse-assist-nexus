@@ -436,6 +436,8 @@ export type Database = {
           address: string | null
           created_at: string | null
           full_name: string | null
+          first_name: string | null
+          last_name: string | null
           id: string
           phone: string | null
           role: string | null
@@ -445,6 +447,8 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           full_name?: string | null
+          first_name: string | null
+          last_name: string | null
           id: string
           phone?: string | null
           role?: string | null
@@ -454,6 +458,8 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           full_name?: string | null
+          first_name: string | null
+          last_name: string | null
           id?: string
           phone?: string | null
           role?: string | null
