@@ -12,7 +12,9 @@ interface MarketingLeadOverviewProps {
 
 export const MarketingLeadOverview = ({ students, leads, loading }: MarketingLeadOverviewProps) => {
   // Calculate lead metrics
-  const activeLeads = leads.filter(lead => lead.status === 'active').length;
+  // Define which lead statuses are considered "active"
+  const activeLeadStatuses = ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'];
+  const activeLeads = leads.filter(lead => activeLeadStatuses.includes(lead.lead_status || 'New')).length;
   const transferredLeads = leads.filter(lead => lead.status === 'transferred').length;
   
   // Calculate conversion rate

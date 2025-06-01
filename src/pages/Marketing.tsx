@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -98,7 +99,11 @@ const Marketing = () => {
 
   // Calculate stats including lead status distribution
   const totalLeads = leads.length;
-  const activeLeads = leads.filter(lead => lead.status === 'active').length;
+  
+  // Define which lead statuses are considered "active"
+  const activeLeadStatuses = ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'];
+  const activeLeads = leads.filter(lead => activeLeadStatuses.includes(lead.lead_status || 'New')).length;
+  
   const transferredLeads = leads.filter(lead => lead.status === 'transferred').length;
   const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
 
