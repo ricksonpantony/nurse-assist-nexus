@@ -20,7 +20,6 @@ import RecycleBin from "./pages/RecycleBin";
 import AuditLogs from "./pages/AuditLogs";
 import Settings from "./pages/Settings";
 import Marketing from "./pages/Marketing";
-import MarketingPreview from "./pages/MarketingPreview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,7 +54,6 @@ const AppContent = () => {
               <Route path="/courses" element={<Courses />} />
               <Route path="/payments" element={<Index />} />
               <Route path="/marketing" element={<Marketing />} />
-              <Route path="/marketing/preview/:id" element={<MarketingPreview />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/recycle-bin" element={<RecycleBin />} />

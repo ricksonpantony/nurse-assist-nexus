@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
 import { AddLeadForm } from "@/components/marketing/AddLeadForm";
@@ -14,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 const Marketing = () => {
-  const navigate = useNavigate();
   const { leads, loading, addLead, updateLead, deleteLead } = useLeads();
   const { courses } = useCourses();
   const { referrals } = useReferrals();
@@ -22,6 +20,7 @@ const Marketing = () => {
   const { toast } = useToast();
   
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showDetailsView, setShowDetailsView] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -67,7 +66,8 @@ const Marketing = () => {
   };
 
   const handleViewLead = (lead: Lead) => {
-    navigate(`/marketing/preview/${lead.id}`);
+    setSelectedLead(lead);
+    setShowDetailsView(true);
   };
 
   const handleTransferLead = (lead: Lead) => {
