@@ -99,10 +99,10 @@ export function AppSidebar() {
   }, [user]);
 
   const getDisplayName = () => {
-    if (userProfile?.full_name) {
-      return userProfile.full_name;
+    if (userProfile?.first_name || userProfile?.last_name) {
+      return (userProfile?.first_name || '') + " " + (userProfile?.last_name || '');
     }
-    return user?.email || 'Admin User';
+    return userProfile?.full_name || '';
   };
 
   return (
