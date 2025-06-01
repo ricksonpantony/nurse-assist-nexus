@@ -32,8 +32,9 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
+  const [referralPaymentAmount, setReferralPaymentAmount] = useState('');
   const { toast } = useToast();
-  const { referrals } = useReferrals();
+  const { referrals, addReferralPayment } = useReferrals();
 
   // Check if lead is converted to student (readonly mode)
   const isConverted = lead?.lead_status === 'Converted to Student';
@@ -73,6 +74,37 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
       referral_id: newReferral.id
     }));
     setShowQuickAddReferral(false);
+  };
+
+  const handleAddReferralPayment = async () => {
+    if (!formData.referral_id || formData.referral_id === 'direct' || !referralPaymentAmount) {
+      toast({
+        title: "Error",
+        description: "Please select a referral and enter a payment amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const paymentData = {
+        referral_id: formData.referral_id,
+        student_id: lead?.lead_id || 'LEAD-TEMP', // Use lead ID for tracking
+        amount: parseFloat(referralPaymentAmount),
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_method: 'Bank Transfer',
+        notes: `Payment for lead: ${formData.full_name}`,
+      };
+
+      await addReferralPayment(paymentData);
+      setReferralPaymentAmount('');
+      toast({
+        title: "Success",
+        description: "Referral payment added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding referral payment:', error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -118,6 +150,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
       setIsLoading(false);
     }
   };
+
+  const selectedReferral = referrals.find(r => r.id === formData.referral_id);
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
@@ -300,6 +334,43 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                   )}
                 </div>
               </div>
+
+              {/* Referral Payment Section */}
+              {formData.referral_id && formData.referral_id !== 'direct' && selectedReferral && !isConverted && (
+                <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Selected Referral</p>
+                      <p className="text-sm text-blue-700">{selectedReferral.full_name} ({selectedReferral.referral_id})</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="referral_payment_amount"
+                        type="number"
+                        step="0.01"
+                        value={referralPaymentAmount}
+                        onChange={(e) => setReferralPaymentAmount(e.target.value)}
+                        placeholder="Enter payment amount"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddReferralPayment}
+                        disabled={!referralPaymentAmount}
+                        className="gap-1 shrink-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Payment
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
