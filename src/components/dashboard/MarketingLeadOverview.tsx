@@ -11,34 +11,44 @@ interface MarketingLeadOverviewProps {
 }
 
 export const MarketingLeadOverview = ({ students, leads, loading }: MarketingLeadOverviewProps) => {
-  // Calculate lead metrics
-  // Define which lead statuses are considered "active"
+  // Calculate lead metrics - only count active leads
   const activeLeadStatuses = ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'];
-  const activeLeads = leads.filter(lead => activeLeadStatuses.includes(lead.lead_status || 'New')).length;
+  const activeLeads = leads.filter(lead => 
+    lead.status === 'active' && activeLeadStatuses.includes(lead.lead_status || 'New')
+  ).length;
+  
+  // Count transferred leads (those that became students)
   const transferredLeads = leads.filter(lead => lead.status === 'transferred').length;
   
-  // Calculate conversion rate
-  const conversionRate = leads.length > 0 ? Math.round((transferredLeads / leads.length) * 100) : 0;
+  // Calculate conversion rate based on all leads
+  const totalLeads = leads.length;
+  const conversionRate = totalLeads > 0 ? Math.round((transferredLeads / totalLeads) * 100) : 0;
   
-  // Calculate students waiting for exam
+  // Calculate students waiting for exam - only from current active students
   const studentsWaitingExam = students.filter(s => 
     s.status === 'Exam cycle' || s.status === 'Awaiting results'
   ).length;
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader className="pb-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-full"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <Target className="w-5 h-5 text-blue-600" />
+          Marketing Leads & Exam Overview
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader className="pb-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-full"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }

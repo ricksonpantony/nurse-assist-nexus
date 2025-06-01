@@ -1,15 +1,17 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
+import { StudentsFilter } from "@/components/students/StudentsFilter";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
 import { useStudents } from "@/hooks/useStudents";
 import { exportStudentsToExcel } from "@/utils/excelUtils";
 import { useToast } from "@/hooks/use-toast";
+import type { Student } from "@/hooks/useStudents";
 
 const Students = () => {
   const navigate = useNavigate();
@@ -19,6 +21,80 @@ const Students = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
   const { toast } = useToast();
+
+  // Filter and sort states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("join_date");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
+
+  // Filter and sort students
+  const filteredAndSortedStudents = useMemo(() => {
+    let filtered = [...students];
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(student =>
+        student.full_name.toLowerCase().includes(searchLower) ||
+        student.email.toLowerCase().includes(searchLower) ||
+        student.phone.includes(searchTerm) ||
+        student.id.toLowerCase().includes(searchLower) ||
+        (student.passport_id && student.passport_id.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(student => student.status === statusFilter);
+    }
+
+    // Apply course filter
+    if (courseFilter !== "all") {
+      filtered = filtered.filter(student => student.course_id === courseFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortBy) {
+        case 'full_name':
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+          break;
+        case 'join_date':
+          aValue = new Date(a.join_date);
+          bValue = new Date(b.join_date);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'total_course_fee':
+          aValue = a.total_course_fee;
+          bValue = b.total_course_fee;
+          break;
+        case 'id':
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        default:
+          aValue = a[sortBy as keyof Student];
+          bValue = b[sortBy as keyof Student];
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  }, [students, searchTerm, statusFilter, courseFilter, sortBy, sortOrder]);
 
   const handleAddStudent = () => {
     navigate('/students/manage');
@@ -71,7 +147,9 @@ const Students = () => {
   };
 
   const handleExportStudents = () => {
-    if (students.length === 0) {
+    const studentsToExport = filteredAndSortedStudents.length > 0 ? filteredAndSortedStudents : students;
+    
+    if (studentsToExport.length === 0) {
       toast({
         title: "No Data to Export",
         description: "There are no students to export",
@@ -80,16 +158,24 @@ const Students = () => {
       return;
     }
 
-    exportStudentsToExcel(students, courses);
+    exportStudentsToExcel(studentsToExport, courses);
     toast({
       title: "Export Successful",
-      description: "Students data has been exported to Excel",
+      description: `${studentsToExport.length} student records exported to Excel`,
     });
   };
 
   const handleImportComplete = () => {
     refetch();
     setShowImportModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setCourseFilter("all");
+    setSortBy("join_date");
+    setSortOrder("desc");
   };
 
   if (loading) {
@@ -125,7 +211,7 @@ const Students = () => {
               onClick={handleExportStudents}
             >
               <Download className="h-4 w-4" />
-              Export
+              Export {filteredAndSortedStudents.length !== students.length && `(${filteredAndSortedStudents.length})`}
             </Button>
             <Button 
               onClick={handleAddStudent}
@@ -138,8 +224,23 @@ const Students = () => {
         </header>
 
         <main className="flex-1 p-6">
+          <StudentsFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            courseFilter={courseFilter}
+            onCourseFilterChange={setCourseFilter}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            onClearFilters={handleClearFilters}
+            courses={courses}
+          />
+
           <StudentsTable
-            students={students}
+            students={filteredAndSortedStudents}
             courses={courses}
             onEdit={handleEditStudent}
             onDelete={handleDeleteStudent}
@@ -147,6 +248,13 @@ const Students = () => {
             onView={handleViewStudent}
             onUpdatePayment={handleUpdatePayment}
           />
+
+          {filteredAndSortedStudents.length === 0 && students.length > 0 && (
+            <div className="mt-8 text-center text-gray-500">
+              <p className="text-lg">No students match your search criteria</p>
+              <p className="text-sm">Try adjusting your filters or search terms</p>
+            </div>
+          )}
         </main>
       </div>
 
