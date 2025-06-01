@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -72,6 +71,14 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
 
   const getReferral = (referralId: string) => {
     return referrals.find(r => r.id === referralId);
+  };
+
+  const handleRowClick = (lead: Lead, event: React.MouseEvent) => {
+    // Don't navigate if user clicked on a button
+    if ((event.target as HTMLElement).closest('button')) {
+      return;
+    }
+    onView(lead);
   };
 
   return (
@@ -174,9 +181,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               return (
                 <TableRow 
                   key={lead.id} 
-                  className={`hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 ${
+                  className={`hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer ${
                     index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                   } ${isConverted ? 'opacity-60' : ''}`}
+                  onClick={(e) => handleRowClick(lead, e)}
                 >
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -255,7 +263,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onView(lead)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onView(lead);
+                        }}
                         className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200"
                         title="View Details"
                       >
@@ -264,7 +275,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(lead)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(lead);
+                        }}
                         className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-all duration-200"
                         title="Edit Lead"
                       >
@@ -274,7 +288,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onTransfer(lead)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTransfer(lead);
+                          }}
                           className="text-green-600 hover:text-green-800 hover:bg-green-100 transition-all duration-200"
                           title="Transfer to Student Account"
                         >
@@ -284,7 +301,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(lead.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(lead.id);
+                        }}
                         className="text-red-600 hover:text-red-800 hover:bg-red-100 transition-all duration-200"
                         title="Delete Lead"
                       >
