@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
-import { StudentDetailsView } from "@/components/students/StudentDetailsView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
@@ -15,13 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 const Students = () => {
   const navigate = useNavigate();
   const { courses } = useCourses();
-  const { students, loading, deleteStudent, fetchStudentPayments, refetch } = useStudents();
-  const [showDetailsView, setShowDetailsView] = useState(false);
+  const { students, loading, deleteStudent, refetch } = useStudents();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
-  const [studentPayments, setStudentPayments] = useState([]);
   const { toast } = useToast();
 
   const handleAddStudent = () => {
@@ -61,24 +57,13 @@ const Students = () => {
     }
   };
 
-  const handleViewStudent = async (student: any) => {
-    setSelectedStudent(student);
-    const payments = await fetchStudentPayments(student.id);
-    setStudentPayments(payments);
-    setShowDetailsView(true);
+  const handleViewStudent = (student: any) => {
+    navigate(`/students/preview/${student.id}`);
   };
 
   const handleUpdatePayment = (student: any) => {
     setPaymentUpdateStudent(student);
     setShowPaymentModal(true);
-  };
-
-  const handleRefreshStudentDetails = async () => {
-    if (selectedStudent) {
-      const payments = await fetchStudentPayments(selectedStudent.id);
-      setStudentPayments(payments);
-      refetch();
-    }
   };
 
   const handlePaymentAdded = () => {
@@ -164,20 +149,6 @@ const Students = () => {
           />
         </main>
       </div>
-
-      {/* Student Details View Modal */}
-      {showDetailsView && selectedStudent && (
-        <StudentDetailsView
-          student={{ ...selectedStudent, payments: studentPayments }}
-          courses={courses}
-          onClose={() => {
-            setShowDetailsView(false);
-            setSelectedStudent(null);
-            setStudentPayments([]);
-          }}
-          onRefresh={handleRefreshStudentDetails}
-        />
-      )}
 
       {/* Payment Update Modal */}
       {showPaymentModal && paymentUpdateStudent && (
