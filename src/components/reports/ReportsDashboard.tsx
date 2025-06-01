@@ -24,7 +24,15 @@ export const ReportsDashboard = () => {
   // Calculate dashboard metrics
   const totalStudents = students.length;
   const totalCourses = courses.length;
-  const totalRevenue = students.reduce((sum, student) => sum + (student.advance_payment || 0), 0);
+  
+  // Calculate unique countries count
+  const uniqueCountries = new Set(students.filter(s => s.country).map(s => s.country)).size;
+  
+  // Calculate pass rate
+  const passedStudents = students.filter(s => s.status === 'Pass').length;
+  const failedStudents = students.filter(s => s.status === 'Fail').length;
+  const totalCompletedStudents = passedStudents + failedStudents;
+  const passRate = totalCompletedStudents > 0 ? Math.round((passedStudents / totalCompletedStudents) * 100) : 0;
 
   // Status distribution - updated to use new status values
   const statusData = [
@@ -80,29 +88,27 @@ export const ReportsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Total Revenue */}
+      {/* Total number of country students */}
       <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-purple-100">Total Revenue</CardTitle>
+          <CardTitle className="text-sm font-medium text-purple-100">Total number of country students</CardTitle>
           <CreditCard className="h-5 w-5 text-purple-200" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">${totalRevenue.toLocaleString()}</div>
-          <p className="text-xs text-purple-200 mt-1">Advance payments received</p>
+          <div className="text-3xl font-bold">{uniqueCountries}</div>
+          <p className="text-xs text-purple-200 mt-1">Different countries</p>
         </CardContent>
       </Card>
 
-      {/* Average Fee */}
+      {/* Total course pass rate */}
       <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-orange-100">Average Course Fee</CardTitle>
+          <CardTitle className="text-sm font-medium text-orange-100">Total course pass rate</CardTitle>
           <TrendingUp className="h-5 w-5 text-orange-200" />
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">
-            ${courses.length > 0 ? Math.round(courses.reduce((sum, course) => sum + course.fee, 0) / courses.length).toLocaleString() : '0'}
-          </div>
-          <p className="text-xs text-orange-200 mt-1">Per course average</p>
+          <div className="text-3xl font-bold">{passRate}%</div>
+          <p className="text-xs text-orange-200 mt-1">{passedStudents} passed, {failedStudents} failed</p>
         </CardContent>
       </Card>
 
