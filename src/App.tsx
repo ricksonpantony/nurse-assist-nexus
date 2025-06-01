@@ -11,6 +11,7 @@ import { EnhancedLoginForm } from "@/components/auth/EnhancedLoginForm";
 import { useAuth } from "@/components/auth/AuthProvider";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
+import ManageStudent from "./pages/ManageStudent";
 import Courses from "./pages/Courses";
 import Reports from "./pages/Reports";
 import Referrals from "./pages/Referrals";
@@ -46,6 +47,8 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/students" element={<Students />} />
+              <Route path="/students/manage" element={<ManageStudent />} />
+              <Route path="/students/manage/:id" element={<ManageStudent />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/payments" element={<Index />} />
               <Route path="/marketing" element={<Marketing />} />

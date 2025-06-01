@@ -1,8 +1,9 @@
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
-import { AddStudentForm } from "@/components/students/AddStudentForm";
 import { StudentDetailsView } from "@/components/students/StudentDetailsView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
@@ -12,55 +13,24 @@ import { exportStudentsToExcel } from "@/utils/excelUtils";
 import { useToast } from "@/hooks/use-toast";
 
 const Students = () => {
+  const navigate = useNavigate();
   const { courses } = useCourses();
-  const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments, refetch } = useStudents();
-  const [showAddForm, setShowAddForm] = useState(false);
+  const { students, loading, deleteStudent, fetchStudentPayments, refetch } = useStudents();
   const [showDetailsView, setShowDetailsView] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
   const [studentPayments, setStudentPayments] = useState([]);
   const { toast } = useToast();
 
-  const handleAddStudent = async (studentData: any) => {
-    try {
-      await addStudent(studentData);
-      setShowAddForm(false);
-    } catch (error) {
-      // Error is handled in the hook
-    }
+  const handleAddStudent = () => {
+    navigate('/students/manage');
   };
 
   const handleEditStudent = (student: any) => {
     console.log('Editing student:', student);
-    setEditingStudent(student);
-    setShowAddForm(true);
-  };
-
-  const handleUpdateStudent = async (updatedStudent: any) => {
-    try {
-      console.log('Updating student in page:', updatedStudent);
-      const studentId = updatedStudent.id || editingStudent?.id;
-      
-      if (!studentId) {
-        console.error('No student ID found for update');
-        toast({
-          title: "Error",
-          description: "Student ID is required for update",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Final student ID for update:', studentId);
-      await updateStudent(studentId, updatedStudent);
-      setShowAddForm(false);
-      setEditingStudent(null);
-    } catch (error) {
-      console.error('Error in handleUpdateStudent:', error);
-    }
+    navigate(`/students/manage/${student.id}`);
   };
 
   const handleDeleteStudent = async (studentId: string) => {
@@ -173,7 +143,7 @@ const Students = () => {
               Export
             </Button>
             <Button 
-              onClick={() => setShowAddForm(true)}
+              onClick={handleAddStudent}
               className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
             >
               <Plus className="h-4 w-4" />
@@ -194,19 +164,6 @@ const Students = () => {
           />
         </main>
       </div>
-
-      {/* Add/Edit Student Form Modal */}
-      {showAddForm && (
-        <AddStudentForm
-          student={editingStudent}
-          courses={courses}
-          onClose={() => {
-            setShowAddForm(false);
-            setEditingStudent(null);
-          }}
-          onSave={editingStudent ? handleUpdateStudent : handleAddStudent}
-        />
-      )}
 
       {/* Student Details View Modal */}
       {showDetailsView && selectedStudent && (
