@@ -435,10 +435,10 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string | null
-          full_name: string | null
           first_name: string | null
-          last_name: string | null
+          full_name: string | null
           id: string
+          last_name: string | null
           phone: string | null
           role: string | null
           updated_at: string | null
@@ -446,10 +446,10 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string | null
+          first_name?: string | null
           full_name?: string | null
-          first_name: string | null
-          last_name: string | null
           id: string
+          last_name?: string | null
           phone?: string | null
           role?: string | null
           updated_at?: string | null
@@ -457,10 +457,10 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string | null
+          first_name?: string | null
           full_name?: string | null
-          first_name: string | null
-          last_name: string | null
           id?: string
+          last_name?: string | null
           phone?: string | null
           role?: string | null
           updated_at?: string | null

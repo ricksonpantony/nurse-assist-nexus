@@ -38,11 +38,6 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
 
   useEffect(() => {
     if (userProfile && user) {
-      // Split full_name into first and last name
-      const nameParts = userProfile.full_name?.split(' ') || [];
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
       setFormData({
         first_name: userProfile.first_name || '',
         last_name: userProfile.last_name || '',
@@ -82,6 +77,8 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
         .from('user_profiles')
         .update({
           full_name: fullName,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
           phone: formData.phone,
           address: formData.address,
           role: formData.role,

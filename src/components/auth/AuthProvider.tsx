@@ -42,12 +42,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (session?.user && event === 'SIGNED_IN') {
           setTimeout(async () => {
             try {
+              // Split full name into first and last name parts
+              const fullName = session.user.user_metadata?.full_name || session.user.email || 'Admin User';
+              const nameParts = fullName.split(' ');
+              const firstName = nameParts[0] || 'Admin';
+              const lastName = nameParts.slice(1).join(' ') || 'User';
+
               // Try to upsert user profile with admin role using direct database operations
               const { error } = await supabase
                 .from('user_profiles')
                 .upsert({
                   id: session.user.id,
-                  full_name: session.user.user_metadata?.full_name || session.user.email || 'Admin User',
+                  full_name: fullName,
+                  first_name: firstName,
+                  last_name: lastName,
                   role: 'admin'
                 }, {
                   onConflict: 'id'
