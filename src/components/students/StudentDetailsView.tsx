@@ -322,10 +322,10 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button variant="outline" size="sm" onClick={onClose}>
+          {/* <Button variant="outline" size="sm" onClick={onClose}>
             <X className="h-4 w-4 mr-2" />
             Close
-          </Button>
+          </Button> */}
         </div>
       </div>
 
