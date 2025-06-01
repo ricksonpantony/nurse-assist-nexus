@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Plus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useCourses } from "@/hooks/useCourses";
 import { useStudents, Student } from "@/hooks/useStudents";
+import { useReferrals } from "@/hooks/useReferrals";
+import { QuickAddReferralModal } from "@/components/students/QuickAddReferralModal";
 import { countries } from '@/utils/countries';
 
 const ManageStudent = () => {
@@ -17,6 +19,7 @@ const ManageStudent = () => {
   const { id } = useParams();
   const { courses } = useCourses();
   const { students, addStudent, updateStudent } = useStudents();
+  const { referrals } = useReferrals();
   const { toast } = useToast();
   
   const isEditing = !!id;
@@ -38,10 +41,12 @@ const ManageStudent = () => {
     total_course_fee: 0,
     advance_payment: 0,
     installments: 1,
+    referral_payment_amount: 0,
   };
 
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
 
   useEffect(() => {
     if (isEditing && currentStudent) {
@@ -53,7 +58,10 @@ const ManageStudent = () => {
       if (updatedStudent.class_start_date) {
         updatedStudent.class_start_date = new Date(updatedStudent.class_start_date).toISOString().split('T')[0];
       }
-      setFormData(updatedStudent);
+      setFormData({
+        ...updatedStudent,
+        referral_payment_amount: 0,
+      });
     }
   }, [isEditing, currentStudent]);
 
@@ -95,6 +103,14 @@ const ManageStudent = () => {
     }));
   };
 
+  const handleQuickAddReferralSuccess = (newReferral: any) => {
+    setFormData(prev => ({
+      ...prev,
+      referral_id: newReferral.id
+    }));
+    setShowQuickAddReferral(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted with data:', formData);
@@ -116,10 +132,12 @@ const ManageStudent = () => {
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
         installments: Number(formData.installments) || 1,
+        referral_payment_amount: Number(formData.referral_payment_amount) || 0,
         course_id: formData.course_id === 'none' ? null : formData.course_id,
+        referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
-        status: formData.status as Student['status'], // Type assertion to ensure correct type
+        status: formData.status as Student['status'],
       };
 
       console.log('Processed form data before save:', processedData);
@@ -310,6 +328,65 @@ const ManageStudent = () => {
                   </div>
                 </div>
 
+                {/* Referral Information Section */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-blue-900">Referral Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="referral_id">Referred By</Label>
+                        <div className="flex gap-2">
+                          <Select 
+                            name="referral_id" 
+                            value={formData.referral_id || 'direct'} 
+                            onValueChange={(value) => handleSelectChange(value, 'referral_id')}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select referral source" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                              <SelectItem value="direct">Direct (No Referral)</SelectItem>
+                              {referrals.map((referral) => (
+                                <SelectItem key={referral.id} value={referral.id}>
+                                  {referral.full_name} ({referral.referral_id})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowQuickAddReferral(true)}
+                            className="gap-1 shrink-0"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add New
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {formData.referral_id && formData.referral_id !== 'direct' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
+                          <Input
+                            id="referral_payment_amount"
+                            name="referral_payment_amount"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.referral_payment_amount || 0}
+                            onChange={handleChange}
+                            placeholder="Enter referral payment amount"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
@@ -393,6 +470,14 @@ const ManageStudent = () => {
           </Card>
         </main>
       </div>
+
+      {/* Quick Add Referral Modal */}
+      {showQuickAddReferral && (
+        <QuickAddReferralModal
+          onClose={() => setShowQuickAddReferral(false)}
+          onSuccess={handleQuickAddReferralSuccess}
+        />
+      )}
     </div>
   );
 };

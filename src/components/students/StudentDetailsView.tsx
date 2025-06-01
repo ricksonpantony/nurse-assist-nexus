@@ -34,11 +34,11 @@ export const StudentDetailsView = ({
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   const [isPrintMode, setIsPrintMode] = useState(false);
-  const [selectedReferralId, setSelectedReferralId] = useState(student.referral_id || "");
+  const [selectedReferralId, setSelectedReferralId] = useState(student.referral_id || "direct");
   const [referralPaymentAmount, setReferralPaymentAmount] = useState("");
 
   useEffect(() => {
-    setSelectedReferralId(student.referral_id || "");
+    setSelectedReferralId(student.referral_id || "direct");
   }, [student.referral_id]);
 
   const course = courses.find(c => c.id === student.course_id);
@@ -360,9 +360,14 @@ export const StudentDetailsView = ({
               )}
             </div>
 
-            {selectedReferral && (
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Selected Referral Details</h4>
+            {/* Show referral status */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Referral Status</h4>
+              {selectedReferralId === "direct" || !selectedReferralId ? (
+                <div className="text-sm text-blue-700">
+                  <span className="font-medium">Status:</span> Direct (No Referral)
+                </div>
+              ) : selectedReferral ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-blue-600 font-medium">Name:</span> {selectedReferral.full_name}
@@ -377,8 +382,12 @@ export const StudentDetailsView = ({
                     <span className="text-blue-600 font-medium">Phone:</span> {selectedReferral.phone}
                   </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-sm text-blue-700">
+                  <span className="font-medium">Status:</span> Referral not found
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
