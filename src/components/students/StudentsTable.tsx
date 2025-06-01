@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -115,7 +116,7 @@ export const StudentsTable = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-lg shadow-sm border overflow-hidden">
+    <div className="h-full flex flex-col bg-white border-l border-r border-b overflow-hidden">
       {selectedStudents.length > 0 && (
         <div className="bg-blue-50 p-3 flex items-center justify-between border-b">
           <div className="text-sm text-blue-700 font-medium">
