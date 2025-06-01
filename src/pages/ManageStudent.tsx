@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { useCourses } from "@/hooks/useCourses";
-import { useStudents } from "@/hooks/useStudents";
+import { useStudents, Student } from "@/hooks/useStudents";
 import { countries } from '@/utils/countries';
 
 const ManageStudent = () => {
@@ -34,7 +34,7 @@ const ManageStudent = () => {
     referral_id: '',
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: '',
-    status: 'Attended Online',
+    status: 'Attended Online' as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
     installments: 1,
@@ -119,6 +119,7 @@ const ManageStudent = () => {
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
+        status: formData.status as Student['status'], // Type assertion to ensure correct type
       };
 
       console.log('Processed form data before save:', processedData);
