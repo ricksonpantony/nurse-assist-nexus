@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
-import { AddLeadForm } from "@/components/marketing/AddLeadForm";
 import { LeadsTable } from "@/components/marketing/LeadsTable";
 import { EnhancedTransferModal } from "@/components/marketing/EnhancedTransferModal";
 import { useLeads, Lead } from "@/hooks/useLeads";
@@ -14,45 +12,18 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 const Marketing = () => {
-  const { leads, loading, addLead, updateLead, deleteLead } = useLeads();
+  const { leads, loading, updateLead, deleteLead } = useLeads();
   const { courses } = useCourses();
   const { referrals } = useReferrals();
   const { addStudent } = useStudents();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [showAddForm, setShowAddForm] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  const handleAddLead = async (leadData: any) => {
-    try {
-      console.log('Marketing page: Adding lead with data:', leadData);
-      await addLead(leadData);
-      setShowAddForm(false);
-    } catch (error) {
-      console.error('Marketing page: Error adding lead:', error);
-      // Error is already handled in the hook with toast
-    }
-  };
-
   const handleEditLead = (lead: Lead) => {
-    setEditingLead(lead);
-    setShowAddForm(true);
-  };
-
-  const handleUpdateLead = async (updatedLead: any) => {
-    try {
-      if (editingLead) {
-        await updateLead(editingLead.id, updatedLead);
-        setShowAddForm(false);
-        setEditingLead(null);
-      }
-    } catch (error) {
-      console.error('Marketing page: Error updating lead:', error);
-      // Error is already handled in the hook with toast
-    }
+    navigate(`/marketing/manage/${lead.id}`);
   };
 
   const handleDeleteLead = async (leadId: string) => {
@@ -61,7 +32,6 @@ const Marketing = () => {
         await deleteLead(leadId);
       } catch (error) {
         console.error('Marketing page: Error deleting lead:', error);
-        // Error is already handled in the hook with toast
       }
     }
   };
@@ -79,10 +49,8 @@ const Marketing = () => {
     try {
       console.log('Marketing page: Transferring student with data:', studentData);
       
-      // Add the student to the database
       await addStudent(studentData);
       
-      // Update lead status to "Converted to Student"
       if (selectedLead) {
         await updateLead(selectedLead.id, { 
           status: 'transferred',
@@ -108,7 +76,6 @@ const Marketing = () => {
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
     toast({
       title: "Export",
       description: "Export functionality will be implemented soon",
@@ -303,7 +270,7 @@ const Marketing = () => {
               Export
             </Button>
             <Button 
-              onClick={() => setShowAddForm(true)}
+              onClick={() => navigate('/marketing/manage')}
               className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Plus className="h-4 w-4" />
@@ -367,19 +334,6 @@ const Marketing = () => {
           />
         </main>
       </div>
-
-      {/* Add/Edit Lead Form Modal */}
-      {showAddForm && (
-        <AddLeadForm
-          lead={editingLead}
-          courses={courses}
-          onClose={() => {
-            setShowAddForm(false);
-            setEditingLead(null);
-          }}
-          onSave={editingLead ? handleUpdateLead : handleAddLead}
-        />
-      )}
 
       {/* Enhanced Transfer to Student Modal */}
       {showTransferModal && selectedLead && (
