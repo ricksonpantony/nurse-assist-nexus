@@ -117,11 +117,11 @@ export const useLeads = () => {
         full_name: leadData.full_name || '',
         email: leadData.email || '',
         phone: leadData.phone || '',
-        // Handle optional fields properly
+        // Handle optional fields properly - convert empty strings to null for referral_id
         passport_id: leadData.passport_id || null,
         address: leadData.address || null,
         country: leadData.country || null,
-        referral_id: leadData.referral_id || null,
+        referral_id: (leadData.referral_id && leadData.referral_id !== 'direct') ? leadData.referral_id : null,
         interested_course_id: leadData.interested_course_id || null,
         expected_joining_date: leadData.expected_joining_date || null,
         notes: leadData.notes || null,
@@ -164,9 +164,16 @@ export const useLeads = () => {
     try {
       console.log('Updating lead:', id, leadData);
       
+      // Process referral_id to convert 'direct' to null
+      const processedData = {
+        ...leadData,
+        referral_id: (leadData.referral_id && leadData.referral_id !== 'direct') ? leadData.referral_id : null,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('leads')
-        .update({ ...leadData, updated_at: new Date().toISOString() })
+        .update(processedData)
         .eq('id', id)
         .select()
         .single();
@@ -195,26 +202,35 @@ export const useLeads = () => {
 
   const deleteLead = async (id: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get the lead data before deleting
+      const leadToDelete = leads.find(lead => lead.id === id);
+      if (!leadToDelete) {
+        throw new Error('Lead not found');
+      }
+
+      // Then delete from original table
       const { error } = await supabase
         .from('leads')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Supabase delete error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       setLeads(prev => prev.filter(lead => lead.id !== id));
       toast({
         title: 'Success',
         description: 'Lead deleted successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting lead:', error);
       toast({
         title: 'Error',
-        description: `Failed to delete lead: ${error.message || 'Unknown error'}`,
+        description: 'Failed to delete lead. Please try again.',
         variant: 'destructive',
       });
       throw error;

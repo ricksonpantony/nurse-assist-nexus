@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import { useReferrals } from "@/hooks/useReferrals";
+import { QuickAddReferralModal } from "@/components/students/QuickAddReferralModal";
 import { countries } from '@/utils/countries';
 import { LEAD_STATUS_OPTIONS } from '@/hooks/useLeads';
 
@@ -27,7 +31,9 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   const { toast } = useToast();
+  const { referrals } = useReferrals();
 
   // Check if lead is converted to student (readonly mode)
   const isConverted = lead?.lead_status === 'Converted to Student';
@@ -61,6 +67,14 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
     }));
   };
 
+  const handleQuickAddReferralSuccess = (newReferral: any) => {
+    setFormData(prev => ({
+      ...prev,
+      referral_id: newReferral.id
+    }));
+    setShowQuickAddReferral(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted with data:', formData);
@@ -82,6 +96,7 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
       const processedData = {
         ...formData,
         interested_course_id: formData.interested_course_id === 'none' ? '' : formData.interested_course_id,
+        referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -244,6 +259,50 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
             </div>
           </div>
 
+          {/* Referral Information Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-blue-900">Referral Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="referral_id">Referred By</Label>
+                <div className="flex gap-2">
+                  <Select 
+                    name="referral_id" 
+                    value={formData.referral_id || 'direct'} 
+                    onValueChange={(value) => handleSelectChange(value, 'referral_id')}
+                    disabled={isConverted}
+                  >
+                    <SelectTrigger className={isConverted ? 'bg-gray-100' : ''}>
+                      <SelectValue placeholder="Select referral source" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                      <SelectItem value="direct">Direct (No Referral)</SelectItem>
+                      {referrals.map((referral) => (
+                        <SelectItem key={referral.id} value={referral.id}>
+                          {referral.full_name} ({referral.referral_id})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!isConverted && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowQuickAddReferral(true)}
+                      className="gap-1 shrink-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="space-y-2">
             <Label htmlFor="lead_status">Lead Status <span className="text-red-500">*</span></Label>
             <Select 
@@ -291,6 +350,14 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
           </div>
         </form>
       </DialogContent>
+
+      {/* Quick Add Referral Modal */}
+      {showQuickAddReferral && (
+        <QuickAddReferralModal
+          onClose={() => setShowQuickAddReferral(false)}
+          onSuccess={handleQuickAddReferralSuccess}
+        />
+      )}
     </Dialog>
   );
 };

@@ -35,9 +35,9 @@ export const LeadDetailsView = ({ lead, courses, referrals, onClose }: LeadDetai
           {/* Header with Lead Name */}
           <div>
             <h2 className="text-2xl font-bold text-blue-900">{lead.full_name}</h2>
-            <p className="text-blue-600">Lead ID: {lead.id}</p>
+            <p className="text-blue-600">Lead ID: {lead.lead_id || lead.id}</p>
             <Badge variant="secondary" className="mt-2">
-              Status: {lead.status}
+              Status: {lead.lead_status}
             </Badge>
           </div>
 
@@ -120,30 +120,41 @@ export const LeadDetailsView = ({ lead, courses, referrals, onClose }: LeadDetai
             </Card>
 
             {/* Referral Information */}
-            {referral && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-900">
-                    <UserCheck className="h-5 w-5" />
-                    Referral Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-900">
+                  <UserCheck className="h-5 w-5" />
+                  Referral Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {referral ? (
+                  <>
+                    <div>
+                      <span className="text-sm text-gray-500">Referred by: </span>
+                      <span className="font-medium">{referral.full_name}</span>
+                    </div>
+                    <div>
+                      <span className="text-sm text-gray-500">Referral ID: </span>
+                      <Badge variant="outline">{referral.referral_id}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span>{referral.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span>{referral.phone}</span>
+                    </div>
+                  </>
+                ) : (
                   <div>
-                    <span className="text-sm text-gray-500">Referred by: </span>
-                    <span className="font-medium">{referral.full_name}</span>
+                    <span className="text-sm text-gray-500">Referral Source: </span>
+                    <Badge variant="outline">Direct (No Referral)</Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-gray-500" />
-                    <span>{referral.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span>{referral.phone}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             {/* Timeline */}
             <Card>
