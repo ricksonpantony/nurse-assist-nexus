@@ -159,34 +159,203 @@ export const StudentDetailsView = ({
   const totalPaid = student.payments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
   const remainingBalance = student.total_course_fee - totalPaid;
 
-  const content = (
-    <div className={`bg-white ${isPageView ? 'rounded-lg shadow-lg' : ''} ${isPrintMode ? 'print-mode' : ''}`}>
-      {/* Header - Hidden in print mode */}
-      {!isPrintMode && (
-        <div className={`flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50 ${isPageView ? 'rounded-t-lg' : ''} print:hidden`}>
-          <div>
-            <h2 className="text-2xl font-bold text-blue-900">Student Account</h2>
-            <p className="text-blue-600">Complete student information and payment history</p>
+  const printContent = (
+    <div className="print-content">
+      {/* Print Header */}
+      <div className="print-header">
+        <div className="print-title">Nurse Assist International (NAI)</div>
+        <div className="print-subtitle">Student Account Overview</div>
+      </div>
+
+      {/* Personal Information Section */}
+      <div className="print-section">
+        <div className="print-section-title">Personal Information</div>
+        <div className="print-grid-2">
+          <div className="print-field">
+            <div className="print-field-label">Full Name</div>
+            <div className="print-field-value">{student.full_name}</div>
           </div>
-          <div className="flex gap-2">
-            {!isPageView && (
-              <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
-                <Printer className="h-4 w-4" />
-                Print
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={onRefresh} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
-            {!isPageView && (
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+          <div className="print-field">
+            <div className="print-field-label">Student ID</div>
+            <div className="print-field-value">{student.id}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Email</div>
+            <div className="print-field-value">{student.email}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Phone</div>
+            <div className="print-field-value">{student.phone}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Passport ID</div>
+            <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Country</div>
+            <div className="print-field-value">{student.country || 'Not specified'}</div>
           </div>
         </div>
-      )}
+        {student.address && (
+          <div className="print-field">
+            <div className="print-field-label">Address</div>
+            <div className="print-field-value">{student.address}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Academic Information Section */}
+      <div className="print-section">
+        <div className="print-section-title">Academic Information</div>
+        <div className="print-grid-2">
+          <div className="print-field">
+            <div className="print-field-label">Course</div>
+            <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Current Status</div>
+            <div className="print-field-value">
+              <span className="print-badge">{student.status}</span>
+            </div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Join Date</div>
+            <div className="print-field-value">{formatDate(student.join_date)}</div>
+          </div>
+          <div className="print-field">
+            <div className="print-field-label">Class Start Date</div>
+            <div className="print-field-value">{formatDate(student.class_start_date)}</div>
+          </div>
+        </div>
+        {student.batch_id && (
+          <div className="print-field">
+            <div className="print-field-label">Batch ID</div>
+            <div className="print-field-value">{student.batch_id}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Referral Information Section */}
+      <div className="print-section">
+        <div className="print-section-title">Referral Information</div>
+        {selectedReferralId === "direct" || !selectedReferralId ? (
+          <div className="print-field">
+            <div className="print-field-label">Status</div>
+            <div className="print-field-value">Direct (No Referral)</div>
+          </div>
+        ) : selectedReferral ? (
+          <div className="print-grid-2">
+            <div className="print-field">
+              <div className="print-field-label">Referral Name</div>
+              <div className="print-field-value">{selectedReferral.full_name}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Referral ID</div>
+              <div className="print-field-value">{selectedReferral.referral_id}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Email</div>
+              <div className="print-field-value">{selectedReferral.email}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Phone</div>
+              <div className="print-field-value">{selectedReferral.phone}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="print-field">
+            <div className="print-field-label">Status</div>
+            <div className="print-field-value">Referral not found</div>
+          </div>
+        )}
+      </div>
+
+      {/* Payment Information Section */}
+      <div className="print-section">
+        <div className="print-section-title">Payment Information</div>
+        <div className="print-payment-summary">
+          <div className="print-payment-box">
+            <div className="print-payment-label">Total Course Fee</div>
+            <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
+          </div>
+          <div className="print-payment-box">
+            <div className="print-payment-label">Total Paid</div>
+            <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
+          </div>
+          <div className="print-payment-box">
+            <div className="print-payment-label">Remaining Balance</div>
+            <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
+          </div>
+        </div>
+
+        {/* Payment History */}
+        {student.payments && student.payments.length > 0 && (
+          <div>
+            <div className="print-section-title">Payment History</div>
+            <table className="print-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Stage</th>
+                  <th>Amount</th>
+                  <th>Payment Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                {student.payments.map((payment: any, index: number) => (
+                  <tr key={index}>
+                    <td>{formatDate(payment.payment_date)}</td>
+                    <td>{payment.stage}</td>
+                    <td>${payment.amount.toLocaleString()}</td>
+                    <td>{payment.payment_mode}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Print Footer */}
+      <div className="print-footer">
+        <div className="print-footer-content">
+          📞 +61 478 320 397&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✉️ admin@nurseassistinternational.com<br/>
+          📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney<br/>
+          📍 2/2 Sorrel Street, Parramatta 2150, Sydney
+        </div>
+      </div>
+      <div className="print-page-info">
+        Printed: {new Date().toLocaleDateString()}
+      </div>
+    </div>
+  );
+
+  const regularContent = (
+    <div className={`bg-white ${isPageView ? 'rounded-lg shadow-lg' : ''}`}>
+      {/* Header - Hidden in print mode */}
+      <div className={`flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50 ${isPageView ? 'rounded-t-lg' : ''} print:hidden`}>
+        <div>
+          <h2 className="text-2xl font-bold text-blue-900">Student Account</h2>
+          <p className="text-blue-600">Complete student information and payment history</p>
+        </div>
+        <div className="flex gap-2">
+          {!isPageView && (
+            <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
+              <Printer className="h-4 w-4" />
+              Print
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={onRefresh} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          {!isPageView && (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Print Header - Only visible in print mode */}
       {isPrintMode && (
@@ -197,7 +366,7 @@ export const StudentDetailsView = ({
       )}
 
       {/* Student Information */}
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 print:hidden">
         {/* Personal Information Card */}
         <Card>
           <CardHeader className="pb-3">
@@ -509,6 +678,8 @@ export const StudentDetailsView = ({
       )}
     </div>
   );
+
+  const content = isPrintMode ? printContent : regularContent;
 
   if (isPageView) {
     return content;
