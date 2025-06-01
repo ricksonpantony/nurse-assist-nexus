@@ -128,6 +128,7 @@ export type Database = {
           id: string
           interested_course_id: string | null
           lead_id: string | null
+          lead_status: string
           notes: string | null
           passport_id: string | null
           phone: string
@@ -145,6 +146,7 @@ export type Database = {
           id?: string
           interested_course_id?: string | null
           lead_id?: string | null
+          lead_status?: string
           notes?: string | null
           passport_id?: string | null
           phone: string
@@ -162,6 +164,7 @@ export type Database = {
           id?: string
           interested_course_id?: string | null
           lead_id?: string | null
+          lead_status?: string
           notes?: string | null
           passport_id?: string | null
           phone?: string

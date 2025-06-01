@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -81,9 +82,12 @@ const Marketing = () => {
       // Add the student to the database
       await addStudent(studentData);
       
-      // Update lead status to transferred
+      // Update lead status to "Converted to Student"
       if (selectedLead) {
-        await updateLead(selectedLead.id, { status: 'transferred' });
+        await updateLead(selectedLead.id, { 
+          status: 'transferred',
+          lead_status: 'Converted to Student'
+        });
       }
 
       setShowTransferModal(false);
@@ -124,6 +128,12 @@ const Marketing = () => {
       </div>
     );
   }
+
+  // Calculate stats including lead status distribution
+  const totalLeads = leads.length;
+  const activeLeads = leads.filter(lead => lead.status === 'active').length;
+  const transferredLeads = leads.filter(lead => lead.status === 'transferred').length;
+  const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -169,7 +179,7 @@ const Marketing = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Total Leads</h3>
-                    <p className="text-3xl font-bold text-blue-600">{leads.length}</p>
+                    <p className="text-3xl font-bold text-blue-600">{totalLeads}</p>
                   </div>
                   <div className="w-4 h-16 bg-gradient-to-t from-blue-500 to-blue-300 rounded-full"></div>
                 </div>
@@ -178,33 +188,29 @@ const Marketing = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Active Leads</h3>
-                    <p className="text-3xl font-bold text-green-600">
-                      {leads.filter(lead => lead.status === 'active').length}
-                    </p>
+                    <p className="text-3xl font-bold text-green-600">{activeLeads}</p>
                   </div>
                   <div className="w-4 h-16 bg-gradient-to-t from-green-500 to-green-300 rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-orange-50 p-6 rounded-xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Transferred</h3>
-                    <p className="text-3xl font-bold text-orange-600">
-                      {leads.filter(lead => lead.status === 'transferred').length}
-                    </p>
-                  </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-orange-500 to-orange-300 rounded-full"></div>
                 </div>
               </div>
               <div className="bg-gradient-to-br from-white to-purple-50 p-6 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Conversion Rate</h3>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {leads.length > 0 ? Math.round((leads.filter(lead => lead.status === 'transferred').length / leads.length) * 100) : 0}%
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-900">Converted</h3>
+                    <p className="text-3xl font-bold text-purple-600">{convertedLeads}</p>
                   </div>
                   <div className="w-4 h-16 bg-gradient-to-t from-purple-500 to-purple-300 rounded-full"></div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-white to-orange-50 p-6 rounded-xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Conversion Rate</h3>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0}%
+                    </p>
+                  </div>
+                  <div className="w-4 h-16 bg-gradient-to-t from-orange-500 to-orange-300 rounded-full"></div>
                 </div>
               </div>
             </div>

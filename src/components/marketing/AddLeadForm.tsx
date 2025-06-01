@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { countries } from '@/utils/countries';
+import { LEAD_STATUS_OPTIONS } from '@/hooks/useLeads';
 
 export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
   const initialState = lead ? { ...lead } : {
@@ -21,11 +22,15 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
     interested_course_id: '',
     expected_joining_date: '',
     notes: '',
+    lead_status: 'New', // Default status
   };
 
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Check if lead is converted to student (readonly mode)
+  const isConverted = lead?.lead_status === 'Converted to Student';
 
   useEffect(() => {
     if (lead) {
@@ -101,10 +106,22 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`sm:max-w-[700px] max-h-[90vh] overflow-y-auto ${isConverted ? 'opacity-75' : ''}`}>
         <DialogHeader>
-          <DialogTitle>{lead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
+          <DialogTitle>
+            {lead ? 'Edit Lead' : 'Add New Lead'}
+            {isConverted && <span className="ml-2 text-sm text-purple-600">(Converted to Student)</span>}
+          </DialogTitle>
         </DialogHeader>
+        
+        {isConverted && (
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+            <p className="text-sm text-purple-800">
+              This lead has been converted to a student account and cannot be edited.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -116,6 +133,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 onChange={handleChange}
                 required
                 placeholder="Enter full name"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
             <div className="space-y-2">
@@ -128,6 +147,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 onChange={handleChange}
                 required
                 placeholder="Enter email address"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
             <div className="space-y-2">
@@ -139,6 +160,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 onChange={handleChange}
                 required
                 placeholder="Enter phone number"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
             <div className="space-y-2">
@@ -149,6 +172,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 value={formData.passport_id || ''}
                 onChange={handleChange}
                 placeholder="Enter passport ID"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
             <div className="space-y-2">
@@ -157,8 +182,9 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 name="country" 
                 value={formData.country || 'India'} 
                 onValueChange={(value) => handleSelectChange(value, 'country')}
+                disabled={isConverted}
               >
-                <SelectTrigger>
+                <SelectTrigger className={isConverted ? 'bg-gray-100' : ''}>
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg z-50">
@@ -178,6 +204,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 value={formData.address || ''}
                 onChange={handleChange}
                 placeholder="Enter address"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
             <div className="space-y-2">
@@ -186,8 +214,9 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 name="interested_course_id" 
                 value={formData.interested_course_id || 'none'} 
                 onValueChange={(value) => handleSelectChange(value, 'interested_course_id')}
+                disabled={isConverted}
               >
-                <SelectTrigger>
+                <SelectTrigger className={isConverted ? 'bg-gray-100' : ''}>
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
@@ -209,8 +238,31 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
                 value={formData.expected_joining_date || ''}
                 onChange={handleChange}
                 placeholder="Select expected joining date"
+                disabled={isConverted}
+                className={isConverted ? 'bg-gray-100' : ''}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lead_status">Lead Status <span className="text-red-500">*</span></Label>
+            <Select 
+              name="lead_status" 
+              value={formData.lead_status || 'New'} 
+              onValueChange={(value) => handleSelectChange(value, 'lead_status')}
+              disabled={isConverted}
+            >
+              <SelectTrigger className={isConverted ? 'bg-gray-100' : ''}>
+                <SelectValue placeholder="Select lead status" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                {LEAD_STATUS_OPTIONS.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -222,6 +274,8 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
               onChange={handleChange}
               rows={3}
               placeholder="Enter any additional notes"
+              disabled={isConverted}
+              className={isConverted ? 'bg-gray-100' : ''}
             />
           </div>
 
@@ -229,9 +283,11 @@ export const AddLeadForm = ({ lead = null, courses = [], onClose, onSave }) => {
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : lead ? 'Update Lead' : 'Add Lead'}
-            </Button>
+            {!isConverted && (
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Saving...' : lead ? 'Update Lead' : 'Add Lead'}
+              </Button>
+            )}
           </div>
         </form>
       </DialogContent>

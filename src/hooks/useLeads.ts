@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,9 +16,44 @@ export interface Lead {
   expected_joining_date?: string;
   notes?: string;
   status: string;
+  lead_status: string;
   created_at: string;
   updated_at: string;
 }
+
+export const LEAD_STATUS_OPTIONS = [
+  'New',
+  'Contacted',
+  'Interested',
+  'Follow-up Pending',
+  'Inactive',
+  'Not Interested / Dropped',
+  'Converted to Student',
+  'Waiting for Documents / Payment'
+];
+
+export const getLeadStatusColor = (status: string) => {
+  switch (status) {
+    case 'New':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'Contacted':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'Interested':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'Follow-up Pending':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    case 'Inactive':
+      return 'bg-gray-100 text-gray-600 border-gray-200';
+    case 'Not Interested / Dropped':
+      return 'bg-red-100 text-red-800 border-red-200';
+    case 'Converted to Student':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'Waiting for Documents / Payment':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    default:
+      return 'bg-gray-100 text-gray-600 border-gray-200';
+  }
+};
 
 export const useLeads = () => {
   const [leads, setLeads] = useState<Lead[]>([]);

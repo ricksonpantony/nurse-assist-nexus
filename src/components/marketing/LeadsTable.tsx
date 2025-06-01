@@ -10,6 +10,7 @@ import { Lead } from "@/hooks/useLeads";
 import { Course } from "@/hooks/useCourses";
 import { countries } from "@/utils/countries";
 import { format } from "date-fns";
+import { LEAD_STATUS_OPTIONS, getLeadStatusColor } from "@/hooks/useLeads";
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -25,6 +26,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
   const [searchTerm, setSearchTerm] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
+  const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
 
   const filteredAndSortedLeads = leads
@@ -38,8 +40,9 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
       
       const matchesCountry = countryFilter === "all" || lead.country === countryFilter;
       const matchesCourse = courseFilter === "all" || lead.interested_course_id === courseFilter;
+      const matchesLeadStatus = leadStatusFilter === "all" || lead.lead_status === leadStatusFilter;
       
-      return matchesSearch && matchesCountry && matchesCourse;
+      return matchesSearch && matchesCountry && matchesCourse && matchesLeadStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -55,6 +58,8 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
           const referralA = referrals.find(r => r.id === a.referral_id)?.full_name || "";
           const referralB = referrals.find(r => r.id === b.referral_id)?.full_name || "";
           return referralA.localeCompare(referralB);
+        case "lead_status":
+          return (a.lead_status || "").localeCompare(b.lead_status || "");
         case "created_at":
         default:
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -114,6 +119,20 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
             </SelectContent>
           </Select>
 
+          <Select value={leadStatusFilter} onValueChange={setLeadStatusFilter}>
+            <SelectTrigger className="w-[200px] h-11 border-blue-200 bg-white/80 backdrop-blur-sm">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {LEAD_STATUS_OPTIONS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[200px] h-11 border-blue-200 bg-white/80 backdrop-blur-sm">
               <SelectValue placeholder="Sort by" />
@@ -124,6 +143,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               <SelectItem value="course">Interested Course</SelectItem>
               <SelectItem value="expected_date">Expected Joining Date</SelectItem>
               <SelectItem value="referral">Referral Status</SelectItem>
+              <SelectItem value="lead_status">Lead Status</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -138,6 +158,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               <TableHead className="font-bold text-white text-sm">Name & Contact</TableHead>
               <TableHead className="font-bold text-white text-sm">Location</TableHead>
               <TableHead className="font-bold text-white text-sm">Course Interest</TableHead>
+              <TableHead className="font-bold text-white text-sm">Lead Status</TableHead>
               <TableHead className="font-bold text-white text-sm">Expected Date</TableHead>
               <TableHead className="font-bold text-white text-sm">Referral</TableHead>
               <TableHead className="font-bold text-white text-sm">Date Added</TableHead>
@@ -148,13 +169,14 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
             {filteredAndSortedLeads.map((lead, index) => {
               const course = getCourse(lead.interested_course_id || "");
               const referral = getReferral(lead.referral_id || "");
+              const isConverted = lead.lead_status === 'Converted to Student';
               
               return (
                 <TableRow 
                   key={lead.id} 
                   className={`hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 ${
                     index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                  }`}
+                  } ${isConverted ? 'opacity-60' : ''}`}
                 >
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -195,6 +217,11 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                         <span className="text-gray-400 text-xs">Not specified</span>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getLeadStatusColor(lead.lead_status || 'New')}>
+                      {lead.lead_status || 'New'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
@@ -243,15 +270,17 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onTransfer(lead)}
-                        className="text-green-600 hover:text-green-800 hover:bg-green-100 transition-all duration-200"
-                        title="Transfer to Student Account"
-                      >
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
+                      {!isConverted && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onTransfer(lead)}
+                          className="text-green-600 hover:text-green-800 hover:bg-green-100 transition-all duration-200"
+                          title="Transfer to Student Account"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
