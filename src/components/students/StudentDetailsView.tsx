@@ -330,7 +330,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       </div>
 
       <PrintableContent />
-      <ExportOptionsModal />
+      {/* <ExportOptionsModal /> */}
     </div>
   );
 
