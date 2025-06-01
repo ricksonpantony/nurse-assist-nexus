@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .from('user_profiles')
                 .upsert({
                   id: session.user.id,
-                  full_name: fullName,
+                  // full_name: fullName,
                   // first_name: firstName,
                   // last_name: lastName,
                   role: 'admin'
