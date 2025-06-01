@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { X, FileText, Download, RefreshCw, User, Phone, Mail, MapPin, CreditCard, Calendar, BookOpen } from "lucide-react";
+import { X, Printer, RefreshCw, User, Phone, Mail, MapPin, CreditCard, Calendar, BookOpen } from "lucide-react";
 import { Student, Payment } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { useReferrals } from "@/hooks/useReferrals";
@@ -21,7 +21,6 @@ interface StudentDetailsViewProps {
 export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: StudentDetailsViewProps) => {
   const isMobile = useIsMobile();
   const { referrals } = useReferrals();
-  const [showExportOptions, setShowExportOptions] = useState(false);
   
   const course = courses.find(c => c.id === student.course_id);
   const referralPerson = referrals.find(r => r.id === student.referral_id);
@@ -38,59 +37,22 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
     });
   };
 
-  const handlePrint = () => {
-    if (referralPerson) {
-      setShowExportOptions(true);
-    } else {
-      window.print();
-    }
-  };
-
-  const handleExport = () => {
-    if (referralPerson) {
-      setShowExportOptions(true);
-    } else {
-      console.log('Exporting student data without referral details');
-    }
-  };
-
-  const handleExportWithReferral = (includeReferral: boolean) => {
-    setShowExportOptions(false);
-    if (includeReferral) {
-      console.log('Exporting with referral details');
-    } else {
-      console.log('Exporting without referral details');
-    }
+  const handlePrintAccount = () => {
     window.print();
   };
 
-  const ExportOptionsModal = () => (
-    <Dialog open={showExportOptions} onOpenChange={setShowExportOptions}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Export Options</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <p>Do you want to include referral details in the print/export?</p>
-          <div className="flex gap-3">
-            <Button 
-              onClick={() => handleExportWithReferral(true)}
-              className="flex-1 bg-gradient-to-r from-green-600 to-green-700"
-            >
-              ✅ Yes - Include Referral Details
-            </Button>
-            <Button 
-              onClick={() => handleExportWithReferral(false)}
-              variant="outline"
-              className="flex-1"
-            >
-              ❌ No - Student Details Only
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  const getStatusBadgeColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'Attended Online': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Attend sessions': 'bg-purple-100 text-purple-800 border-purple-200',
+      'Attended F2F': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      'Exam cycle': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'Awaiting results': 'bg-orange-100 text-orange-800 border-orange-200',
+      'Pass': 'bg-green-100 text-green-800 border-green-200',
+      'Fail': 'bg-red-100 text-red-800 border-red-200',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
 
   const PrintableContent = () => (
     <div className="print:block print:p-8 print:bg-white print:text-black print:shadow-none">
@@ -104,178 +66,197 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
         </h2>
       </div>
 
-      {/* Section 1: Personal Information */}
-      <div className="mb-8 print:mb-6">
-        <div className="bg-blue-50 print:bg-gray-100 p-4 rounded-lg print:rounded-none border-l-4 border-blue-500 print:border-gray-400">
-          <h3 className="text-lg font-bold text-blue-900 print:text-black mb-4 flex items-center gap-2">
-            <User className="h-5 w-5" />
-            📋 Section 1: Personal Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-6">
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Full Name:</span>
-              <div className="text-gray-900 print:text-black">{student.full_name}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Email:</span>
-              <div className="text-gray-900 print:text-black">{student.email}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Phone Number:</span>
-              <div className="text-gray-900 print:text-black">{student.phone}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Passport/ID:</span>
-              <div className="text-gray-900 print:text-black">{student.passport_id || 'Not provided'}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Address:</span>
-              <div className="text-gray-900 print:text-black">{student.address || 'Not provided'}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Country:</span>
-              <div className="text-gray-900 print:text-black">{student.country || 'Not specified'}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Student Unique ID:</span>
-              <div className="text-gray-900 print:text-black font-mono">{student.id}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Date Added:</span>
-              <div className="text-gray-900 print:text-black">{formatDate(student.join_date)}</div>
-            </div>
+      {/* Student Header Info */}
+      <div className="mb-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-blue-900 print:text-black">{student.full_name}</h2>
+            <p className="text-blue-600 print:text-gray-600">Student ID: {student.id}</p>
+          </div>
+          <div className="text-right print:text-black">
+            <p className="text-sm text-gray-600 print:text-black">
+              Generated: {new Date().toLocaleDateString('en-AU')}
+            </p>
+            <Badge variant="outline" className={`${getStatusBadgeColor(student.status)} print:border-gray-400 print:text-black`}>
+              {student.status}
+            </Badge>
           </div>
         </div>
       </div>
 
-      {/* Section 2: Course Details */}
-      <div className="mb-8 print:mb-6">
-        <div className="bg-green-50 print:bg-gray-50 p-4 rounded-lg print:rounded-none border-l-4 border-green-500 print:border-gray-400">
-          <h3 className="text-lg font-bold text-green-900 print:text-black mb-4 flex items-center gap-2">
+      {/* Personal Information Section */}
+      <Card className="mb-6 print:border print:border-gray-300 print:shadow-none">
+        <CardHeader className="bg-blue-50 print:bg-gray-100">
+          <CardTitle className="text-lg flex items-center gap-2 text-blue-900 print:text-black">
+            <User className="h-5 w-5" />
+            Personal Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-6">
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Full Name</label>
+              <p className="text-gray-900 print:text-black">{student.full_name}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Email</label>
+              <p className="text-gray-900 print:text-black">{student.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Phone</label>
+              <p className="text-gray-900 print:text-black">{student.phone}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Passport/ID</label>
+              <p className="text-gray-900 print:text-black">{student.passport_id || 'Not provided'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Address</label>
+              <p className="text-gray-900 print:text-black">{student.address || 'Not provided'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Country</label>
+              <p className="text-gray-900 print:text-black">{student.country || 'Not specified'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Academic Information Section */}
+      <Card className="mb-6 print:border print:border-gray-300 print:shadow-none">
+        <CardHeader className="bg-green-50 print:bg-gray-100">
+          <CardTitle className="text-lg flex items-center gap-2 text-green-900 print:text-black">
             <BookOpen className="h-5 w-5" />
-            📘 Section 2: Course Details
-          </h3>
+            Academic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-6">
             <div>
-              <span className="font-semibold text-gray-700 print:text-black">Selected Course:</span>
-              <div className="text-gray-900 print:text-black">{course ? course.title : 'Not assigned'}</div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Course</label>
+              <p className="text-gray-900 print:text-black">{course ? course.title : 'Not assigned'}</p>
+              {course && (
+                <p className="text-sm text-gray-500 print:text-black">{course.period_months} months duration</p>
+              )}
             </div>
             <div>
-              <span className="font-semibold text-gray-700 print:text-black">Course Fee:</span>
-              <div className="text-gray-900 print:text-black">${student.total_course_fee.toFixed(2)}</div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Course Fee</label>
+              <p className="text-gray-900 print:text-black font-semibold">${student.total_course_fee.toFixed(2)}</p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700 print:text-black">Course Start Date:</span>
-              <div className="text-gray-900 print:text-black">
+              <label className="text-sm font-medium text-gray-600 print:text-black">Join Date</label>
+              <p className="text-gray-900 print:text-black">{formatDate(student.join_date)}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Class Start Date</label>
+              <p className="text-gray-900 print:text-black">
                 {student.class_start_date ? formatDate(student.class_start_date) : 'Not scheduled'}
-              </div>
+              </p>
             </div>
             <div>
-              <span className="font-semibold text-gray-700 print:text-black">Status:</span>
-              <div className="text-gray-900 print:text-black">{student.status}</div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Status</label>
+              <Badge variant="outline" className={`${getStatusBadgeColor(student.status)} print:border-gray-400 print:text-black`}>
+                {student.status}
+              </Badge>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Installments</label>
+              <p className="text-gray-900 print:text-black">{student.installments || 1}</p>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Section 3: Referral Information */}
-      <div className="mb-8 print:mb-6">
-        <div className="bg-purple-50 print:bg-gray-50 p-4 rounded-lg print:rounded-none border-l-4 border-purple-500 print:border-gray-400">
-          <h3 className="text-lg font-bold text-purple-900 print:text-black mb-4 flex items-center gap-2">
+      {/* Referral Information Section */}
+      <Card className="mb-6 print:border print:border-gray-300 print:shadow-none">
+        <CardHeader className="bg-purple-50 print:bg-gray-100">
+          <CardTitle className="text-lg flex items-center gap-2 text-purple-900 print:text-black">
             <User className="h-5 w-5" />
-            🔗 Section 3: Referral Information
-          </h3>
+            Referral Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
           {referralPerson ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-6">
               <div>
-                <span className="font-semibold text-gray-700 print:text-black">Referred By:</span>
-                <div className="text-gray-900 print:text-black">{referralPerson.full_name}</div>
+                <label className="text-sm font-medium text-gray-600 print:text-black">Referred By</label>
+                <p className="text-gray-900 print:text-black">{referralPerson.full_name}</p>
               </div>
               <div>
-                <span className="font-semibold text-gray-700 print:text-black">Contact Info:</span>
+                <label className="text-sm font-medium text-gray-600 print:text-black">Contact Info</label>
                 <div className="text-gray-900 print:text-black">
-                  <div>{referralPerson.email}</div>
-                  <div>{referralPerson.phone}</div>
+                  <p>{referralPerson.email}</p>
+                  <p>{referralPerson.phone}</p>
                 </div>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700 print:text-black">Referral Payment:</span>
-                <div className="text-gray-900 print:text-black">To be processed</div>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-700 print:text-black">Referral Status:</span>
-                <div className="text-gray-900 print:text-black">Referred</div>
               </div>
             </div>
           ) : (
             <div>
-              <span className="font-semibold text-gray-700 print:text-black">Referral Status:</span>
-              <div className="text-gray-900 print:text-black">Direct (No referral)</div>
+              <label className="text-sm font-medium text-gray-600 print:text-black">Referral Status</label>
+              <p className="text-gray-900 print:text-black">Direct (No referral)</p>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Section 4: Payment History */}
-      <div className="mb-8 print:mb-6">
-        <div className="bg-yellow-50 print:bg-gray-50 p-4 rounded-lg print:rounded-none border-l-4 border-yellow-500 print:border-gray-400">
-          <h3 className="text-lg font-bold text-yellow-900 print:text-black mb-4 flex items-center gap-2">
+      {/* Payment Information Section */}
+      <Card className="mb-6 print:border print:border-gray-300 print:shadow-none">
+        <CardHeader className="bg-yellow-50 print:bg-gray-100">
+          <CardTitle className="text-lg flex items-center gap-2 text-yellow-900 print:text-black">
             <CreditCard className="h-5 w-5" />
-            💳 Section 4: Payment History
-          </h3>
-          
+            Payment Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
           {/* Payment Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:grid-cols-3 print:gap-6 mb-6">
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Total Course Fee:</span>
-              <div className="text-gray-900 print:text-black font-bold">${student.total_course_fee.toFixed(2)}</div>
+            <div className="text-center p-4 bg-gray-50 print:bg-gray-100 rounded-lg print:rounded-none">
+              <label className="text-sm font-medium text-gray-600 print:text-black">Total Course Fee</label>
+              <p className="text-xl font-bold text-gray-900 print:text-black">${student.total_course_fee.toFixed(2)}</p>
             </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Total Paid:</span>
-              <div className="text-green-600 print:text-black font-bold">${totalPaid.toFixed(2)}</div>
+            <div className="text-center p-4 bg-green-50 print:bg-gray-100 rounded-lg print:rounded-none">
+              <label className="text-sm font-medium text-gray-600 print:text-black">Total Paid</label>
+              <p className="text-xl font-bold text-green-600 print:text-black">${totalPaid.toFixed(2)}</p>
             </div>
-            <div>
-              <span className="font-semibold text-gray-700 print:text-black">Remaining Balance:</span>
-              <div className={`font-bold ${remainingBalance > 0 ? 'text-red-600 print:text-black' : 'text-green-600 print:text-black'}`}>
+            <div className="text-center p-4 bg-red-50 print:bg-gray-100 rounded-lg print:rounded-none">
+              <label className="text-sm font-medium text-gray-600 print:text-black">Remaining Balance</label>
+              <p className={`text-xl font-bold ${remainingBalance > 0 ? 'text-red-600' : 'text-green-600'} print:text-black`}>
                 ${remainingBalance.toFixed(2)}
-              </div>
+              </p>
             </div>
           </div>
 
-          {/* Payment Records Table */}
-          <div className="print:break-inside-avoid">
-            <h4 className="font-semibold text-gray-700 print:text-black mb-3">Payment Records:</h4>
-            {student.payments.length > 0 ? (
-              <div className="overflow-x-auto print:overflow-visible">
-                <table className="w-full border-collapse print:text-sm">
-                  <thead>
-                    <tr className="border-b-2 border-gray-300 print:border-black">
-                      <th className="text-left p-3 print:p-2 font-semibold text-gray-700 print:text-black">Date</th>
-                      <th className="text-left p-3 print:p-2 font-semibold text-gray-700 print:text-black">Stage</th>
-                      <th className="text-left p-3 print:p-2 font-semibold text-gray-700 print:text-black">Amount</th>
-                      <th className="text-left p-3 print:p-2 font-semibold text-gray-700 print:text-black">Payment Mode</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {student.payments.map((payment, index) => (
-                      <tr key={payment.id} className={`border-b border-gray-200 print:border-gray-400 ${index % 2 === 0 ? 'bg-gray-50 print:bg-white' : 'bg-white'}`}>
-                        <td className="p-3 print:p-2 text-gray-900 print:text-black">{formatDate(payment.payment_date)}</td>
-                        <td className="p-3 print:p-2 text-gray-900 print:text-black">{payment.stage}</td>
-                        <td className="p-3 print:p-2 text-gray-900 print:text-black font-medium">${Number(payment.amount).toFixed(2)}</td>
-                        <td className="p-3 print:p-2 text-gray-900 print:text-black">{payment.payment_mode}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500 print:text-black">
-                No payments recorded yet.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+          {/* Payment History Table */}
+          {student.payments.length > 0 ? (
+            <div className="overflow-x-auto print:overflow-visible">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b-2 border-gray-300 print:border-black">
+                    <TableHead className="font-semibold text-gray-700 print:text-black">Date</TableHead>
+                    <TableHead className="font-semibold text-gray-700 print:text-black">Stage</TableHead>
+                    <TableHead className="font-semibold text-gray-700 print:text-black">Amount</TableHead>
+                    <TableHead className="font-semibold text-gray-700 print:text-black">Payment Mode</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {student.payments.map((payment, index) => (
+                    <TableRow key={payment.id} className={`border-b border-gray-200 print:border-gray-400 ${index % 2 === 0 ? 'bg-gray-50 print:bg-white' : 'bg-white'}`}>
+                      <TableCell className="text-gray-900 print:text-black">{formatDate(payment.payment_date)}</TableCell>
+                      <TableCell className="text-gray-900 print:text-black">{payment.stage}</TableCell>
+                      <TableCell className="text-gray-900 print:text-black font-medium">${Number(payment.amount).toFixed(2)}</TableCell>
+                      <TableCell className="text-gray-900 print:text-black">{payment.payment_mode}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-6 text-gray-500 print:text-black">
+              No payments recorded yet.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Footer */}
       <div className="mt-12 print:mt-8 print:fixed print:bottom-0 print:left-0 print:right-0 print:bg-white border-t-2 border-gray-300 print:border-black pt-4 print:pt-2">
@@ -294,29 +275,24 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
   const content = (
     <div className="space-y-6">
       {/* Header with Actions */}
-      <div className="flex justify-between items-start print:hidden">
+      <div className="flex justify-between items-start print:hidden mb-6">
         <div>
           <h2 className="text-2xl font-bold text-blue-900">{student.full_name}</h2>
           <p className="text-blue-600">Student ID: {student.id}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-            <FileText className="h-4 w-4 mr-2" />
-            Print
+          <Button variant="outline" size="sm" onClick={handlePrintAccount} className="gap-2">
+            <Printer className="h-4 w-4" />
+            Print Account
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm" onClick={onRefresh}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={onRefresh} className="gap-2">
+            <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
         </div>
       </div>
 
       <PrintableContent />
-      <ExportOptionsModal />
     </div>
   );
 
@@ -325,7 +301,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white shadow-lg print:hidden">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">Student Details</h2>
+            <h2 className="text-lg font-bold">Student Account</h2>
             <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
               <X className="h-5 w-5" />
             </Button>
@@ -340,10 +316,10 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible">
         <DialogHeader className="print:hidden">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl text-blue-900">Student Details</DialogTitle>
+            <DialogTitle className="text-xl text-blue-900">Student Account</DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>

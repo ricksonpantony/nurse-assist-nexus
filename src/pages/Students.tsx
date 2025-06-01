@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Download } from "lucide-react";
@@ -15,7 +16,7 @@ const Students = () => {
   const { courses } = useCourses();
   const { students, loading, addStudent, updateStudent, deleteStudent, fetchStudentPayments, refetch } = useStudents();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showDetailsView, setShowDetailsView] = useState(false);
+  const [showAccountView, setShowAccountView] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
@@ -91,11 +92,11 @@ const Students = () => {
     }
   };
 
-  const handleViewStudent = async (student: any) => {
+  const handleViewStudentAccount = async (student: any) => {
     setSelectedStudent(student);
     const payments = await fetchStudentPayments(student.id);
     setStudentPayments(payments);
-    setShowDetailsView(true);
+    setShowAccountView(true);
   };
 
   const handleUpdatePayment = (student: any) => {
@@ -103,7 +104,7 @@ const Students = () => {
     setShowPaymentModal(true);
   };
 
-  const handleRefreshStudentDetails = async () => {
+  const handleRefreshStudentAccount = async () => {
     if (selectedStudent) {
       const payments = await fetchStudentPayments(selectedStudent.id);
       setStudentPayments(payments);
@@ -189,7 +190,7 @@ const Students = () => {
             onEdit={handleEditStudent}
             onDelete={handleDeleteStudent}
             onDeleteMultiple={handleDeleteMultipleStudents}
-            onView={handleViewStudent}
+            onView={handleViewStudentAccount}
             onUpdatePayment={handleUpdatePayment}
           />
         </main>
@@ -208,17 +209,17 @@ const Students = () => {
         />
       )}
 
-      {/* Student Details View Modal */}
-      {showDetailsView && selectedStudent && (
+      {/* Student Account View Modal */}
+      {showAccountView && selectedStudent && (
         <StudentDetailsView
           student={{ ...selectedStudent, payments: studentPayments }}
           courses={courses}
           onClose={() => {
-            setShowDetailsView(false);
+            setShowAccountView(false);
             setSelectedStudent(null);
             setStudentPayments([]);
           }}
-          onRefresh={handleRefreshStudentDetails}
+          onRefresh={handleRefreshStudentAccount}
         />
       )}
 

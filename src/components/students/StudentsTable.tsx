@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Edit2, Eye, Trash2, CreditCard, Phone, Mail, MapPin } from "lucide-react";
+import { Edit2, Trash2, CreditCard, Phone, Mail, MapPin } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import type { Student } from "@/hooks/useStudents";
 
@@ -60,10 +61,25 @@ export const StudentsTable = ({
     return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const handleDeleteClick = (studentId: string) => {
+  const handleDeleteClick = (e: React.MouseEvent, studentId: string) => {
+    e.stopPropagation();
     console.log('Delete button clicked for student:', studentId);
     setStudentToDelete(studentId);
     setShowDeleteModal(true);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, student: Student) => {
+    e.stopPropagation();
+    onEdit(student);
+  };
+
+  const handlePaymentClick = (e: React.MouseEvent, student: Student) => {
+    e.stopPropagation();
+    onUpdatePayment(student);
+  };
+
+  const handleRowClick = (student: Student) => {
+    onView(student);
   };
 
   const handleConfirmDelete = () => {
@@ -144,8 +160,12 @@ export const StudentsTable = ({
               const isSelected = selectedStudents.includes(student.id);
               
               return (
-                <TableRow key={student.id} className={`hover:bg-blue-50 transition-colors ${isSelected ? 'bg-blue-100' : ''}`}>
-                  <TableCell>
+                <TableRow 
+                  key={student.id} 
+                  className={`hover:bg-blue-50 transition-colors cursor-pointer ${isSelected ? 'bg-blue-100' : ''}`}
+                  onClick={() => handleRowClick(student)}
+                >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox 
                       checked={isSelected}
                       onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
@@ -203,20 +223,12 @@ export const StudentsTable = ({
                       Advance: ${student.advance_payment?.toLocaleString() || 0}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-1">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => onView(student)}
-                        className="text-blue-600 hover:bg-blue-50"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => onEdit(student)}
+                        onClick={(e) => handleEditClick(e, student)}
                         className="text-green-600 hover:bg-green-50"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -224,7 +236,7 @@ export const StudentsTable = ({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => onUpdatePayment(student)}
+                        onClick={(e) => handlePaymentClick(e, student)}
                         className="text-purple-600 hover:bg-purple-50"
                       >
                         <CreditCard className="h-4 w-4" />
@@ -232,7 +244,7 @@ export const StudentsTable = ({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => handleDeleteClick(student.id)}
+                        onClick={(e) => handleDeleteClick(e, student.id)}
                         className="text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
