@@ -317,9 +317,14 @@ export const StudentDetailsView = ({
             <h3 className="text-lg font-semibold mb-4">Add Payment Record</h3>
             <PaymentRecordForm
               studentId={student.id}
-              onSuccess={handlePaymentAdded}
-              onCancel={() => setShowPaymentForm(false)}
+              currentStatus={student.status}
+              onPaymentAdded={handlePaymentAdded}
             />
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" onClick={() => setShowPaymentForm(false)}>
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}
