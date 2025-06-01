@@ -91,7 +91,7 @@ export const ReportsDashboard = () => {
       {/* Total number of country students */}
       <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-purple-100">Total number of country students</CardTitle>
+          <CardTitle className="text-sm font-medium text-purple-100">Geographic Reach – Country Count</CardTitle>
           <CreditCard className="h-5 w-5 text-purple-200" />
         </CardHeader>
         <CardContent>
@@ -103,7 +103,7 @@ export const ReportsDashboard = () => {
       {/* Total course pass rate */}
       <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-orange-100">Total course pass rate</CardTitle>
+          <CardTitle className="text-sm font-medium text-orange-100">Overall Course Pass Rate</CardTitle>
           <TrendingUp className="h-5 w-5 text-orange-200" />
         </CardHeader>
         <CardContent>
