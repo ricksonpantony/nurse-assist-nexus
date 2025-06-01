@@ -1,23 +1,22 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
-import { Referral } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 
 interface QuickAddReferralModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  onReferralAdded: (referral: Referral) => void;
+  onSuccess: (referral: any) => void;
 }
 
-export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: QuickAddReferralModalProps) => {
+export const QuickAddReferralModal = ({ onClose, onSuccess }: QuickAddReferralModalProps) => {
   const { addReferral } = useReferrals();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -28,92 +27,81 @@ export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: Quic
     account_number: "",
     notes: ""
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.full_name || !formData.email || !formData.phone) {
       toast({
-        title: "Validation Error",
+        title: "Error",
         description: "Please fill in all required fields (Name, Email, Phone)",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
     try {
       const newReferral = await addReferral(formData);
-      onReferralAdded(newReferral);
-      handleClose();
+      toast({
+        title: "Success",
+        description: "Referral added successfully",
+      });
+      onSuccess(newReferral);
     } catch (error) {
-      // Error is already handled in the hook
-      console.error('Failed to add referral:', error);
+      // Error is handled in the hook
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setFormData({
-      full_name: "",
-      email: "",
-      phone: "",
-      address: "",
-      bank_name: "",
-      bsb: "",
-      account_number: "",
-      notes: ""
-    });
-    onClose();
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold text-blue-800">
-              Add New Referral Person
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold">Add New Referral</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <Label htmlFor="full_name">Full Name *</Label>
             <Input
               id="full_name"
               value={formData.full_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              onChange={(e) => handleInputChange('full_name', e.target.value)}
+              placeholder="Enter full name"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone *</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                required
-              />
-            </div>
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="Enter email address"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone *</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="Enter phone number"
+              required
+            />
           </div>
 
           <div>
@@ -121,50 +109,63 @@ export const QuickAddReferralModal = ({ isOpen, onClose, onReferralAdded }: Quic
             <Input
               id="address"
               value={formData.address}
-              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+              placeholder="Enter address"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">Bank Details (Optional)</Label>
-            <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label htmlFor="bank_name">Bank Name</Label>
+            <Input
+              id="bank_name"
+              value={formData.bank_name}
+              onChange={(e) => handleInputChange('bank_name', e.target.value)}
+              placeholder="Enter bank name"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="bsb">BSB</Label>
               <Input
-                placeholder="Bank Name"
-                value={formData.bank_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, bank_name: e.target.value }))}
-              />
-              <Input
-                placeholder="BSB"
+                id="bsb"
                 value={formData.bsb}
-                onChange={(e) => setFormData(prev => ({ ...prev, bsb: e.target.value }))}
+                onChange={(e) => handleInputChange('bsb', e.target.value)}
+                placeholder="Enter BSB"
               />
             </div>
-            <Input
-              placeholder="Account Number"
-              value={formData.account_number}
-              onChange={(e) => setFormData(prev => ({ ...prev, account_number: e.target.value }))}
+            <div>
+              <Label htmlFor="account_number">Account Number</Label>
+              <Input
+                id="account_number"
+                value={formData.account_number}
+                onChange={(e) => handleInputChange('account_number', e.target.value)}
+                placeholder="Enter account number"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Enter any additional notes"
+              rows={3}
             />
           </div>
 
           <div className="flex gap-2 pt-4">
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-            >
-              {isSubmitting ? "Adding..." : "Add Referral"}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleClose}
-              className="flex-1"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancel
+            </Button>
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? "Adding..." : "Add Referral"}
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };

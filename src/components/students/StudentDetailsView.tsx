@@ -2,11 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap, Users, Plus } from "lucide-react";
 import { useStudents } from "@/hooks/useStudents";
+import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaymentRecordForm } from "./PaymentRecordForm";
+import { QuickAddReferralModal } from "./QuickAddReferralModal";
 
 interface StudentDetailsViewProps {
   student: any;
@@ -23,10 +28,18 @@ export const StudentDetailsView = ({
   onRefresh, 
   isPageView = false 
 }: StudentDetailsViewProps) => {
-  const { deleteStudent } = useStudents();
+  const { deleteStudent, updateStudent } = useStudents();
+  const { referrals, addReferralPayment } = useReferrals();
   const { toast } = useToast();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   const [isPrintMode, setIsPrintMode] = useState(false);
+  const [selectedReferralId, setSelectedReferralId] = useState(student.referral_id || "");
+  const [referralPaymentAmount, setReferralPaymentAmount] = useState("");
+
+  useEffect(() => {
+    setSelectedReferralId(student.referral_id || "");
+  }, [student.referral_id]);
 
   const course = courses.find(c => c.id === student.course_id);
 
@@ -80,6 +93,68 @@ export const StudentDetailsView = ({
     setShowPaymentForm(false);
     onRefresh();
   };
+
+  const handleReferralChange = async (referralId: string) => {
+    try {
+      await updateStudent(student.id, { referral_id: referralId === "direct" ? null : referralId });
+      setSelectedReferralId(referralId);
+      toast({
+        title: "Success",
+        description: "Referral information updated successfully",
+      });
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update referral information",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReferralPaymentSave = async () => {
+    if (!selectedReferralId || selectedReferralId === "direct" || !referralPaymentAmount) {
+      toast({
+        title: "Error",
+        description: "Please select a referral and enter a payment amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addReferralPayment({
+        referral_id: selectedReferralId,
+        student_id: student.id,
+        amount: parseFloat(referralPaymentAmount),
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_method: 'Bank Transfer',
+        notes: `Payment for referring student ${student.full_name}`
+      });
+
+      setReferralPaymentAmount("");
+      toast({
+        title: "Success",
+        description: "Referral payment added successfully",
+      });
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add referral payment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleQuickAddReferralSuccess = (newReferral: any) => {
+    setSelectedReferralId(newReferral.id);
+    setShowQuickAddReferral(false);
+    // Update student with new referral
+    handleReferralChange(newReferral.id);
+  };
+
+  const selectedReferral = referrals.find(r => r.id === selectedReferralId);
 
   const totalPaid = student.payments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
   const remainingBalance = student.total_course_fee - totalPaid;
@@ -220,6 +295,93 @@ export const StudentDetailsView = ({
           </CardContent>
         </Card>
 
+        {/* Referral Information Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5 text-blue-600" />
+              Referral Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="referral-select">Referred By</Label>
+                <div className="flex gap-2 mt-1">
+                  <Select 
+                    value={selectedReferralId || "direct"} 
+                    onValueChange={handleReferralChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a referral" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="direct">Direct (No Referral)</SelectItem>
+                      {referrals.map((referral) => (
+                        <SelectItem key={referral.id} value={referral.id}>
+                          {referral.full_name} ({referral.referral_id})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowQuickAddReferral(true)}
+                    className="gap-1 shrink-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add New
+                  </Button>
+                </div>
+              </div>
+
+              {selectedReferralId && selectedReferralId !== "direct" && (
+                <div>
+                  <Label htmlFor="referral-payment">Referral Payment Amount</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      id="referral-payment"
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter payment amount"
+                      value={referralPaymentAmount}
+                      onChange={(e) => setReferralPaymentAmount(e.target.value)}
+                    />
+                    <Button
+                      onClick={handleReferralPaymentSave}
+                      disabled={!referralPaymentAmount}
+                      className="shrink-0"
+                    >
+                      Add Payment
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {selectedReferral && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Selected Referral Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-blue-600 font-medium">Name:</span> {selectedReferral.full_name}
+                  </div>
+                  <div>
+                    <span className="text-blue-600 font-medium">ID:</span> {selectedReferral.referral_id}
+                  </div>
+                  <div>
+                    <span className="text-blue-600 font-medium">Email:</span> {selectedReferral.email}
+                  </div>
+                  <div>
+                    <span className="text-blue-600 font-medium">Phone:</span> {selectedReferral.phone}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Payment Information Card */}
         <Card>
           <CardHeader className="pb-3">
@@ -327,6 +489,14 @@ export const StudentDetailsView = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Quick Add Referral Modal */}
+      {showQuickAddReferral && (
+        <QuickAddReferralModal
+          onClose={() => setShowQuickAddReferral(false)}
+          onSuccess={handleQuickAddReferralSuccess}
+        />
       )}
     </div>
   );
