@@ -139,8 +139,9 @@ const MarketingManage = () => {
 
       const processedData = {
         ...formData,
-        interested_course_id: formData.interested_course_id === 'none' ? '' : formData.interested_course_id,
-        referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
+        // Convert empty strings to null for foreign key fields
+        interested_course_id: (formData.interested_course_id && formData.interested_course_id !== 'none') ? formData.interested_course_id : null,
+        referral_id: (formData.referral_id && formData.referral_id !== 'direct') ? formData.referral_id : null,
       };
 
       if (isEditing) {

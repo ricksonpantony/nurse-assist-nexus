@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -117,11 +118,11 @@ export const useLeads = () => {
         full_name: leadData.full_name || '',
         email: leadData.email || '',
         phone: leadData.phone || '',
-        // Handle optional fields properly - convert empty strings to null for referral_id
+        // Handle optional fields properly - convert empty strings to null
         passport_id: leadData.passport_id || null,
         address: leadData.address || null,
         country: leadData.country || null,
-        referral_id: (leadData.referral_id && leadData.referral_id !== 'direct') ? leadData.referral_id : null,
+        referral_id: leadData.referral_id || null,
         interested_course_id: leadData.interested_course_id || null,
         expected_joining_date: leadData.expected_joining_date || null,
         notes: leadData.notes || null,
@@ -164,10 +165,16 @@ export const useLeads = () => {
     try {
       console.log('Updating lead:', id, leadData);
       
-      // Process referral_id to convert 'direct' to null
+      // Process data to handle null/empty values properly
       const processedData = {
         ...leadData,
+        // Convert empty strings to null for foreign key fields
         referral_id: (leadData.referral_id && leadData.referral_id !== 'direct') ? leadData.referral_id : null,
+        interested_course_id: leadData.interested_course_id || null,
+        passport_id: leadData.passport_id || null,
+        address: leadData.address || null,
+        expected_joining_date: leadData.expected_joining_date || null,
+        notes: leadData.notes || null,
         updated_at: new Date().toISOString()
       };
 
