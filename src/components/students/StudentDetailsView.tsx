@@ -330,7 +330,7 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       </div>
 
       <PrintableContent />
-      <ExportOptionsModal />
+      {/* <ExportOptionsModal /> */}
     </div>
   );
 
@@ -351,7 +351,6 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       </div>
     );
   }
-  else{
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -368,5 +367,4 @@ export const StudentDetailsView = ({ student, courses, onClose, onRefresh }: Stu
       </DialogContent>
     </Dialog>
   );
-  }
 };
