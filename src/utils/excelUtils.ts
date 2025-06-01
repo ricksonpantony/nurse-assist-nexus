@@ -46,12 +46,9 @@ export interface StudentImportData {
   final_payment_amount?: number;
   final_payment_mode?: string;
   final_payment_date?: string;
-  
-  // Internal fields for sample data recognition
-  sample_id?: string;
 }
 
-export const generateSampleExcel = () => {
+export const generateSampleExcel = (courses: Course[] = []) => {
   const sampleData: StudentImportData[] = [
     {
       full_name: "John Doe (SAMPLE - DO NOT EDIT)",
@@ -60,7 +57,7 @@ export const generateSampleExcel = () => {
       address: "123 Main Street, City",
       country: "United States",
       passport_id: "AB123456",
-      course_title: "Web Development Bootcamp",
+      course_title: courses.length > 0 ? courses[0].title : "Web Development Bootcamp",
       join_date: "15-01-2024",
       class_start_date: "01-02-2024",
       status: "Attended Online",
@@ -72,7 +69,7 @@ export const generateSampleExcel = () => {
       referral_account_number: "123456789",
       referral_bsb: "123-456",
       referral_payment_amount: 500,
-      total_course_fee: 5000,
+      total_course_fee: courses.length > 0 ? courses[0].fee : 5000,
       advance_payment: 1000,
       installments: 4,
       advance_payment_amount: 1000,
@@ -87,7 +84,6 @@ export const generateSampleExcel = () => {
       final_payment_amount: 1000,
       final_payment_mode: "Credit Card",
       final_payment_date: "15-04-2024",
-      sample_id: "SAMPLE_001"
     },
     {
       full_name: "Alice Johnson (SAMPLE - DO NOT EDIT)",
@@ -96,7 +92,7 @@ export const generateSampleExcel = () => {
       address: "789 Pine Street, City",
       country: "Canada",
       passport_id: "CD789012",
-      course_title: "Data Science Program",
+      course_title: courses.length > 1 ? courses[1].title : "Data Science Program",
       join_date: "20-01-2024",
       class_start_date: "05-02-2024",
       status: "Attend sessions",
@@ -108,7 +104,7 @@ export const generateSampleExcel = () => {
       referral_account_number: "",
       referral_bsb: "",
       referral_payment_amount: 0,
-      total_course_fee: 7000,
+      total_course_fee: courses.length > 1 ? courses[1].fee : 7000,
       advance_payment: 2000,
       installments: 3,
       advance_payment_amount: 2000,
@@ -120,7 +116,6 @@ export const generateSampleExcel = () => {
       final_payment_amount: 2500,
       final_payment_mode: "Bank Transfer",
       final_payment_date: "20-03-2024",
-      sample_id: "SAMPLE_002"
     },
     {
       full_name: "Bob Wilson (SAMPLE - DO NOT EDIT)",
@@ -129,7 +124,7 @@ export const generateSampleExcel = () => {
       address: "321 Elm Street, City",
       country: "Australia",
       passport_id: "EF345678",
-      course_title: "Cybersecurity Course",
+      course_title: courses.length > 2 ? courses[2].title : "Cybersecurity Course",
       join_date: "25-01-2024",
       class_start_date: "10-02-2024",
       status: "Pass",
@@ -141,7 +136,7 @@ export const generateSampleExcel = () => {
       referral_account_number: "987654321",
       referral_bsb: "987-654",
       referral_payment_amount: 300,
-      total_course_fee: 4500,
+      total_course_fee: courses.length > 2 ? courses[2].fee : 4500,
       advance_payment: 1500,
       installments: 2,
       advance_payment_amount: 1500,
@@ -150,13 +145,51 @@ export const generateSampleExcel = () => {
       final_payment_amount: 3000,
       final_payment_mode: "Bank Transfer",
       final_payment_date: "25-02-2024",
-      sample_id: "SAMPLE_003"
     }
   ];
 
+  // Create the main worksheet
   const ws = XLSX.utils.json_to_sheet(sampleData);
+  
+  // Add course information as a separate sheet
+  const courseInfo = courses.map(course => ({
+    Course_ID: course.id,
+    Course_Title: course.title,
+    Description: course.description || '',
+    Fee: course.fee,
+    Duration_Months: course.period_months
+  }));
+  
+  const courseSheet = XLSX.utils.json_to_sheet(courseInfo);
+  
+  // Status options sheet
+  const statusOptions = [
+    { Status_Options: 'Attended Online' },
+    { Status_Options: 'Attend sessions' },
+    { Status_Options: 'Attended F2F' },
+    { Status_Options: 'Exam cycle' },
+    { Status_Options: 'Awaiting results' },
+    { Status_Options: 'Pass' },
+    { Status_Options: 'Fail' }
+  ];
+  const statusSheet = XLSX.utils.json_to_sheet(statusOptions);
+  
+  // Payment modes sheet
+  const paymentModes = [
+    { Payment_Modes: 'Credit Card' },
+    { Payment_Modes: 'Bank Transfer' },
+    { Payment_Modes: 'Cash' },
+    { Payment_Modes: 'Cheque' },
+    { Payment_Modes: 'Online Payment' }
+  ];
+  const paymentSheet = XLSX.utils.json_to_sheet(paymentModes);
+
+  // Create workbook and add sheets
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Students");
+  XLSX.utils.book_append_sheet(wb, ws, "Student_Import");
+  XLSX.utils.book_append_sheet(wb, courseSheet, "Available_Courses");
+  XLSX.utils.book_append_sheet(wb, statusSheet, "Status_Options");
+  XLSX.utils.book_append_sheet(wb, paymentSheet, "Payment_Modes");
   
   // Set column widths for better readability
   const colWidths = [
@@ -193,26 +226,55 @@ export const generateSampleExcel = () => {
     { wch: 20 }, // final_payment_amount
     { wch: 20 }, // final_payment_mode
     { wch: 20 }, // final_payment_date
-    { wch: 15 }, // sample_id
   ];
   ws['!cols'] = colWidths;
 
-  // Lock the sample rows (first 3 rows after header)
-  if (!ws['!protect']) ws['!protect'] = {};
-  ws['!protect'].selectLockedCells = false;
-  ws['!protect'].selectUnlockedCells = true;
+  // Set column widths for other sheets
+  courseSheet['!cols'] = [
+    { wch: 15 }, { wch: 30 }, { wch: 40 }, { wch: 10 }, { wch: 15 }
+  ];
+  statusSheet['!cols'] = [{ wch: 20 }];
+  paymentSheet['!cols'] = [{ wch: 20 }];
+
+  // Lock only the sample rows (rows 2-4, which are indexes 1-3 in zero-based)
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+  const numCols = range.e.c + 1;
   
-  // Mark sample rows as locked
-  for (let row = 2; row <= 4; row++) { // Rows 2-4 (after header)
-    for (let col = 0; col < Object.keys(sampleData[0]).length; col++) {
-      const cellRef = XLSX.utils.encode_cell({ r: row - 1, c: col });
-      if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
-      if (!ws[cellRef].s) ws[cellRef].s = {};
+  // Lock only sample data rows (rows 2, 3, 4 in Excel which are 1, 2, 3 in zero-based)
+  for (let row = 1; row <= 3; row++) {
+    for (let col = 0; col < numCols; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+      if (!ws[cellRef]) {
+        ws[cellRef] = { v: '', t: 's' };
+      }
+      if (!ws[cellRef].s) {
+        ws[cellRef].s = {};
+      }
       ws[cellRef].s.protection = { locked: true };
     }
   }
 
-  XLSX.writeFile(wb, "student_import_template.xlsx");
+  // Set protection for the worksheet
+  ws['!protect'] = {
+    password: '',
+    selectLockedCells: false,
+    selectUnlockedCells: true,
+    formatCells: false,
+    formatColumns: false,
+    formatRows: false,
+    insertColumns: false,
+    insertRows: false,
+    insertHyperlinks: false,
+    deleteColumns: false,
+    deleteRows: false,
+    sort: false,
+    autoFilter: false,
+    pivotTables: false,
+    objects: false,
+    scenarios: false
+  };
+
+  XLSX.writeFile(wb, "comprehensive_student_import_template.xlsx");
 };
 
 export const exportStudentsToExcel = (students: Student[], courses: Course[]) => {
@@ -275,10 +337,8 @@ export const parseExcelFile = (file: File): Promise<StudentImportData[]> => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as StudentImportData[];
         
-        // Filter out sample data
+        // Filter out sample data by checking for the sample identifier in the name
         const filteredData = jsonData.filter(row => 
-          !row.sample_id || 
-          !row.sample_id.startsWith('SAMPLE_') ||
           !row.full_name?.includes('(SAMPLE - DO NOT EDIT)')
         );
         

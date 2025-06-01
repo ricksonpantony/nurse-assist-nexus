@@ -52,10 +52,10 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
   };
 
   const handleDownloadSample = () => {
-    generateSampleExcel();
+    generateSampleExcel(courses);
     toast({
       title: "Template Downloaded",
-      description: "Comprehensive student import template with samples has been downloaded",
+      description: "Comprehensive student import template with course details and samples has been downloaded",
     });
   };
 
@@ -144,8 +144,8 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       for (let i = 0; i < data.length; i++) {
         const row = data[i];
         try {
-          // Skip sample data
-          if (row.sample_id?.startsWith('SAMPLE_') || row.full_name?.includes('(SAMPLE - DO NOT EDIT)')) {
+          // Skip sample data (already filtered in parseExcelFile)
+          if (row.full_name?.includes('(SAMPLE - DO NOT EDIT)')) {
             continue;
           }
 
@@ -158,7 +158,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               courseId = course.id;
               courseFee = course.fee;
             } else {
-              errors.push(`Row ${i + 1}: Course "${row.course_title}" not found`);
+              errors.push(`Row ${i + 1}: Course "${row.course_title}" not found in available courses`);
               continue;
             }
           }
@@ -174,7 +174,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             errors.push(`Row ${i + 1} referral: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
 
-          // Generate student ID
+          // Generate student ID automatically
           const studentId = await generateStudentId();
 
           // Prepare student data
@@ -327,19 +327,39 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Download Comprehensive Template
+                Download Template with Course Information
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                Download the complete student import template with all necessary fields including referral details, payment information, and sample data.
+                Download the complete student import template with all available courses, status options, payment modes, and sample data. Only sample rows are locked for reference.
               </p>
               <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
-                Download Template with Samples
+                Download Comprehensive Template
               </Button>
             </CardContent>
           </Card>
+
+          {/* Course Information */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Available Courses:</strong>
+              <div className="mt-2 space-y-1 text-sm">
+                {courses.length > 0 ? (
+                  courses.map(course => (
+                    <div key={course.id}>
+                      • <strong>{course.title}</strong> - ${course.fee} ({course.period_months} months)
+                      {course.description && <div className="ml-4 text-gray-600">{course.description}</div>}
+                    </div>
+                  ))
+                ) : (
+                  <div>No courses available. Please add courses first.</div>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
 
           {/* Template Information */}
           <Alert>
@@ -347,10 +367,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             <AlertDescription>
               <strong>Template Features:</strong>
               <ul className="mt-2 space-y-1 text-sm">
-                <li>• <strong>Complete Student Data:</strong> All personal, course, and contact information</li>
-                <li>• <strong>Referral Management:</strong> Automatic referral creation if name not found</li>
+                <li>• <strong>Student ID:</strong> Auto-generated during import (ATZ-YYYY-XXX format)</li>
+                <li>• <strong>Course Validation:</strong> Only accepts courses from your course list</li>
+                <li>• <strong>Referral Management:</strong> Auto-creates referral accounts if name not found</li>
                 <li>• <strong>Payment Tracking:</strong> Multiple payment stages with dates and methods</li>
-                <li>• <strong>Sample Data:</strong> 3 locked, uneditable sample rows for reference</li>
+                <li>• <strong>Sample Data:</strong> 3 locked sample rows for reference (not imported)</li>
+                <li>• <strong>Date Format:</strong> DD-MM-YYYY (e.g., 15-01-2024)</li>
                 <li>• <strong>Status Options:</strong> {statusOptions.join(', ')}</li>
                 <li>• <strong>Payment Modes:</strong> {paymentModes.join(', ')}</li>
               </ul>
@@ -390,13 +412,14 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             <AlertDescription>
               <strong>Import Guidelines:</strong>
               <ul className="mt-2 space-y-1 text-sm">
-                <li>• Use DD-MM-YYYY format for all dates</li>
+                <li>• Course title must exactly match one from your course list</li>
+                <li>• Student ID is auto-generated, don't include it in import data</li>
                 <li>• Sample data rows are automatically excluded from import</li>
-                <li>• If referral name is provided but not found, a new referral account will be created</li>
-                <li>• Course fee is automatically set based on selected course</li>
-                <li>• Empty payment amounts will not create payment records</li>
-                <li>• Course title must match existing courses exactly</li>
+                <li>• New referral accounts created for unrecognized referrer names</li>
+                <li>• Course fee auto-populated from course selection</li>
+                <li>• Empty payment amounts won't create payment records</li>
                 <li>• Required fields: full_name, email, phone, course_title, join_date</li>
+                <li>• Only sample data rows (marked with "SAMPLE - DO NOT EDIT") are locked</li>
               </ul>
             </AlertDescription>
           </Alert>
