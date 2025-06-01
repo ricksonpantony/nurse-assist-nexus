@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,19 @@ const MarketingManage = () => {
     lead_status: 'New',
   };
 
-  const [formData, setFormData] = useState(initialState);
+  const [formData, setFormData] = useState<{
+    full_name: string;
+    email: string;
+    phone: string;
+    passport_id?: string;
+    address?: string;
+    country?: string;
+    referral_id?: string;
+    interested_course_id?: string;
+    expected_joining_date?: string;
+    notes?: string;
+    lead_status: string;
+  }>(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   const [referralPaymentAmount, setReferralPaymentAmount] = useState('');
