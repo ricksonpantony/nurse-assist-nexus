@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -11,6 +10,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useStudents } from "@/hooks/useStudents";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const Marketing = () => {
   const { leads, loading, addLead, updateLead, deleteLead } = useLeads();
@@ -137,7 +137,147 @@ const Marketing = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      <div className="flex flex-col h-full">
+      {/* Print Content - Hidden on screen, visible when printing */}
+      <div className="print-content hidden print:block">
+        {/* Print Header */}
+        <div className="print-header">
+          <div className="print-title">Nurse Assist International (NAI)</div>
+          <div className="print-subtitle">Marketing Lead Management Report</div>
+        </div>
+
+        {/* Print Statistics Summary */}
+        <div className="print-section print-major-section">
+          <div className="print-section-title">Lead Statistics Summary</div>
+          <div className="print-grid-4">
+            <div className="print-payment-box">
+              <div className="print-payment-label">Total Leads</div>
+              <div className="print-payment-amount">{totalLeads}</div>
+            </div>
+            <div className="print-payment-box">
+              <div className="print-payment-label">Active Leads</div>
+              <div className="print-payment-amount">{activeLeads}</div>
+            </div>
+            <div className="print-payment-box">
+              <div className="print-payment-label">Converted</div>
+              <div className="print-payment-amount">{convertedLeads}</div>
+            </div>
+            <div className="print-payment-box">
+              <div className="print-payment-label">Conversion Rate</div>
+              <div className="print-payment-amount">
+                {totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Print Leads Table */}
+        <div className="print-section">
+          <div className="print-section-title">Lead Details</div>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Lead ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Country</th>
+                <th>Course Interest</th>
+                <th>Status</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map((lead) => {
+                const course = courses.find(c => c.id === lead.interested_course_id);
+                return (
+                  <tr key={lead.id}>
+                    <td>{lead.lead_id || lead.id}</td>
+                    <td>{lead.full_name}</td>
+                    <td>{lead.email}</td>
+                    <td>{lead.phone}</td>
+                    <td>{lead.country}</td>
+                    <td>{course ? course.title : 'Not specified'}</td>
+                    <td>
+                      <span className="print-badge">{lead.lead_status}</span>
+                    </td>
+                    <td>{format(new Date(lead.created_at), 'dd/MM/yyyy')}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Print Lead Status Distribution */}
+        <div className="print-section">
+          <div className="print-section-title">Lead Status Distribution</div>
+          <div className="print-grid-3">
+            <div className="print-field">
+              <div className="print-field-label">New Leads</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'New').length}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">In Progress</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'In Progress').length}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Contacted</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Contacted').length}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Qualified</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Qualified').length}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Converted</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Converted to Student').length}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Lost</div>
+              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Lost').length}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Print Course Interest Analysis */}
+        <div className="print-section">
+          <div className="print-section-title">Course Interest Analysis</div>
+          <table className="print-table">
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Interested Leads</th>
+                <th>Fee</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courses.map((course) => {
+                const interestedCount = leads.filter(l => l.interested_course_id === course.id).length;
+                return (
+                  <tr key={course.id}>
+                    <td>{course.title}</td>
+                    <td>{interestedCount}</td>
+                    <td>${course.fee}</td>
+                    <td>{course.period_months} months</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Print Report Generated Info */}
+        <div className="print-section">
+          <div className="print-field">
+            <div className="print-field-label">Report Generated</div>
+            <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Regular Screen Content - Hidden when printing */}
+      <div className="flex flex-col h-full print:hidden">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
           <div className="flex-1">
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
