@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,12 +32,22 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
     status: "Enrolled",
     total_course_fee: "",
     advance_payment: "0",
+    advance_payment_method: "",
     batch_id: "",
     referral_payment_amount: "0",
   });
   const [joinDate, setJoinDate] = useState<Date>(new Date());
   const [classStartDate, setClassStartDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
+
+  const paymentMethods = [
+    'Bank Transfer',
+    'Card Payments',
+    'Stripe Account',
+    'PayID',
+    'International Account',
+    'Others'
+  ];
 
   // Set course fee when course is selected
   const handleCourseChange = (courseId: string) => {
@@ -58,7 +69,6 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
         join_date: format(joinDate, 'yyyy-MM-dd'),
         class_start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         total_course_fee: parseFloat(formData.total_course_fee),
-        installments: 1, // Set default value of 1 for installments
         advance_payment: parseFloat(formData.advance_payment),
         referral_id: lead.referral_id,
         referral_payment_amount: parseFloat(formData.referral_payment_amount),
@@ -280,6 +290,23 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
                   className="mt-1"
                 />
               </div>
+              {parseFloat(formData.advance_payment) > 0 && (
+                <div className="col-span-2">
+                  <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+                  <Select value={formData.advance_payment_method} onValueChange={(value) => handleInputChange('advance_payment_method', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {method}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 

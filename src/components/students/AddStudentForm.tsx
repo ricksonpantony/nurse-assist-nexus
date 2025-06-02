@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,11 +24,21 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     status: 'Attended Online',
     total_course_fee: 0,
     advance_payment: 0,
+    advance_payment_method: '',
   };
 
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const paymentMethods = [
+    'Bank Transfer',
+    'Card Payments',
+    'Stripe Account',
+    'PayID',
+    'International Account',
+    'Others'
+  ];
 
   useEffect(() => {
     if (student) {
@@ -40,7 +51,10 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
       if (updatedStudent.class_start_date) {
         updatedStudent.class_start_date = new Date(updatedStudent.class_start_date).toISOString().split('T')[0];
       }
-      setFormData(updatedStudent);
+      setFormData({
+        ...updatedStudent,
+        advance_payment_method: '',
+      });
     }
   }, [student]);
 
@@ -106,7 +120,6 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         ...formData,
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
-        installments: 1, // Set default value of 1 for installments
         // Remove course_id if it's "none" to store as null/empty
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         // Handle empty dates - set to null instead of empty string
@@ -322,6 +335,27 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 placeholder="Enter advance payment"
               />
             </div>
+            {formData.advance_payment > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+                <Select 
+                  name="advance_payment_method" 
+                  value={formData.advance_payment_method || ''} 
+                  onValueChange={(value) => handleSelectChange(value, 'advance_payment_method')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                    {paymentMethods.map((method) => (
+                      <SelectItem key={method} value={method}>
+                        {method}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

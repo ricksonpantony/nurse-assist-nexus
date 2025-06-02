@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,15 @@ export const PaymentRecordForm = ({ studentId, currentStatus, onPaymentAdded }: 
   const [newCourseStatus, setNewCourseStatus] = useState("unselected");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  const paymentMethods = [
+    'Bank Transfer',
+    'Card Payments',
+    'Stripe Account',
+    'PayID',
+    'International Account',
+    'Others'
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,18 +155,18 @@ export const PaymentRecordForm = ({ studentId, currentStatus, onPaymentAdded }: 
           </div>
 
           <div>
-            <Label htmlFor="paymentMode">Payment Mode</Label>
+            <Label htmlFor="paymentMode">Payment Method</Label>
             <Select value={paymentMode} onValueChange={setPaymentMode}>
               <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select payment mode" />
+                <SelectValue placeholder="Select payment method" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unselected">Select payment mode</SelectItem>
-                <SelectItem value="Credit Card">Credit Card</SelectItem>
-                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                <SelectItem value="Cash">Cash</SelectItem>
-                <SelectItem value="Check">Check</SelectItem>
-                <SelectItem value="Online Payment">Online Payment</SelectItem>
+                <SelectItem value="unselected">Select payment method</SelectItem>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {method}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

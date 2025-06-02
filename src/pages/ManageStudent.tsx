@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,12 +40,22 @@ const ManageStudent = () => {
     status: 'Attended Online' as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
+    advance_payment_method: '',
     referral_payment_amount: 0,
   };
 
   const [formData, setFormData] = useState(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
+
+  const paymentMethods = [
+    'Bank Transfer',
+    'Card Payments',
+    'Stripe Account',
+    'PayID',
+    'International Account',
+    'Others'
+  ];
 
   useEffect(() => {
     if (isEditing && currentStudent) {
@@ -58,6 +69,7 @@ const ManageStudent = () => {
       }
       setFormData({
         ...updatedStudent,
+        advance_payment_method: '',
         referral_payment_amount: 0,
       });
     }
@@ -129,7 +141,6 @@ const ManageStudent = () => {
         ...formData,
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
-        installments: 1, // Set default value of 1 for installments
         referral_payment_amount: Number(formData.referral_payment_amount) || 0,
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
@@ -435,6 +446,27 @@ const ManageStudent = () => {
                       placeholder="Enter advance payment"
                     />
                   </div>
+                  {formData.advance_payment > 0 && (
+                    <div className="space-y-2">
+                      <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+                      <Select 
+                        name="advance_payment_method" 
+                        value={formData.advance_payment_method || ''} 
+                        onValueChange={(value) => handleSelectChange(value, 'advance_payment_method')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select payment method" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          {paymentMethods.map((method) => (
+                            <SelectItem key={method} value={method}>
+                              {method}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
