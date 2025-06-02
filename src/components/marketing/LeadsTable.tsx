@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Trash2, UserPlus, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, Edit, Trash2, UserPlus, Search, Printer } from "lucide-react";
 import { Lead } from "@/hooks/useLeads";
 import { Course } from "@/hooks/useCourses";
 import { countries } from "@/utils/countries";
@@ -20,14 +20,16 @@ interface LeadsTableProps {
   onDelete: (leadId: string) => void;
   onView: (lead: Lead) => void;
   onTransfer: (lead: Lead) => void;
+  onPrint?: (selectedLeads: Lead[]) => void;
 }
 
-export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView, onTransfer }: LeadsTableProps) => {
+export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView, onTransfer, onPrint }: LeadsTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [countryFilter, setCountryFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
 
   const filteredAndSortedLeads = leads
     .filter(lead => {
@@ -75,12 +77,37 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
   };
 
   const handleRowClick = (lead: Lead, event: React.MouseEvent) => {
-    // Don't navigate if user clicked on a button
-    if ((event.target as HTMLElement).closest('button')) {
+    // Don't navigate if user clicked on a button or checkbox
+    if ((event.target as HTMLElement).closest('button') || (event.target as HTMLElement).closest('[role="checkbox"]')) {
       return;
     }
     onView(lead);
   };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedLeads(filteredAndSortedLeads.map(lead => lead.id));
+    } else {
+      setSelectedLeads([]);
+    }
+  };
+
+  const handleSelectLead = (leadId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLeads(prev => [...prev, leadId]);
+    } else {
+      setSelectedLeads(prev => prev.filter(id => id !== leadId));
+    }
+  };
+
+  const handlePrint = () => {
+    if (selectedLeads.length === 0) return;
+    const selectedLeadData = filteredAndSortedLeads.filter(lead => selectedLeads.includes(lead.id));
+    onPrint?.(selectedLeadData);
+  };
+
+  const isAllSelected = filteredAndSortedLeads.length > 0 && selectedLeads.length === filteredAndSortedLeads.length;
+  const isPartiallySelected = selectedLeads.length > 0 && selectedLeads.length < filteredAndSortedLeads.length;
 
   return (
     <div className="space-y-6">
@@ -154,6 +181,16 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               <SelectItem value="lead_status">Lead Status</SelectItem>
             </SelectContent>
           </Select>
+
+          {selectedLeads.length > 0 && (
+            <Button
+              onClick={handlePrint}
+              className="gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+            >
+              <Printer className="h-4 w-4" />
+              Print Selected ({selectedLeads.length})
+            </Button>
+          )}
         </div>
       </div>
 
@@ -168,12 +205,25 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                 (filtered from {leads.length})
               </span>
             )}
+            {selectedLeads.length > 0 && (
+              <span className="text-sm text-green-600 ml-2">
+                • {selectedLeads.length} selected
+              </span>
+            )}
           </div>
         </div>
 
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:bg-gradient-to-r hover:from-blue-700 hover:via-blue-800 hover:to-blue-900">
+              <TableHead className="font-bold text-white text-sm w-[50px]">
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={isPartiallySelected}
+                  onCheckedChange={handleSelectAll}
+                  className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-600"
+                />
+              </TableHead>
               <TableHead className="font-bold text-white text-sm w-[60px]">S.No</TableHead>
               <TableHead className="font-bold text-white text-sm">Lead ID</TableHead>
               <TableHead className="font-bold text-white text-sm">Name & Contact</TableHead>
@@ -191,15 +241,23 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               const course = getCourse(lead.interested_course_id || "");
               const referral = getReferral(lead.referral_id || "");
               const isConverted = lead.lead_status === 'Converted to Student';
+              const isSelected = selectedLeads.includes(lead.id);
               
               return (
                 <TableRow 
                   key={lead.id} 
                   className={`hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 cursor-pointer ${
                     index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                  } ${isConverted ? 'opacity-60' : ''}`}
+                  } ${isConverted ? 'opacity-60' : ''} ${isSelected ? 'bg-blue-50' : ''}`}
                   onClick={(e) => handleRowClick(lead, e)}
                 >
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium text-center">{index + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

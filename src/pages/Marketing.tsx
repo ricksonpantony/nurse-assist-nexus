@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
 import { LeadsTable } from "@/components/marketing/LeadsTable";
+import { LeadsPrintView } from "@/components/marketing/LeadsPrintView";
 import { EnhancedTransferModal } from "@/components/marketing/EnhancedTransferModal";
 import { useLeads, Lead } from "@/hooks/useLeads";
 import { useCourses } from "@/hooks/useCourses";
@@ -22,6 +22,7 @@ const Marketing = () => {
   
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLeadsForPrint, setSelectedLeadsForPrint] = useState<Lead[]>([]);
 
   const handleEditLead = (lead: Lead) => {
     navigate(`/marketing/manage/${lead.id}`);
@@ -44,6 +45,14 @@ const Marketing = () => {
   const handleTransferLead = (lead: Lead) => {
     setSelectedLead(lead);
     setShowTransferModal(true);
+  };
+
+  const handlePrintSelectedLeads = (selectedLeads: Lead[]) => {
+    setSelectedLeadsForPrint(selectedLeads);
+    // Small delay to ensure the print view is rendered
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleTransferToStudent = async (studentData: any) => {
@@ -109,6 +118,15 @@ const Marketing = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      {/* Print Content for Selected Leads */}
+      {selectedLeadsForPrint.length > 0 && (
+        <LeadsPrintView 
+          leads={selectedLeadsForPrint} 
+          courses={courses} 
+          referrals={referrals} 
+        />
+      )}
+
       {/* Print Content - Hidden on screen, visible when printing */}
       <div className="print-content hidden print:block">
         {/* Print Header */}
@@ -336,6 +354,7 @@ const Marketing = () => {
             onDelete={handleDeleteLead}
             onView={handleViewLead}
             onTransfer={handleTransferLead}
+            onPrint={handlePrintSelectedLeads}
           />
         </main>
       </div>
