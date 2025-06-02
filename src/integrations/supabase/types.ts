@@ -357,6 +357,7 @@ export type Database = {
         Row: {
           address: string | null
           advance_payment: number | null
+          advance_payment_method: string | null
           batch_id: string | null
           class_start_date: string | null
           country: string | null
@@ -377,6 +378,7 @@ export type Database = {
         Insert: {
           address?: string | null
           advance_payment?: number | null
+          advance_payment_method?: string | null
           batch_id?: string | null
           class_start_date?: string | null
           country?: string | null
@@ -397,6 +399,7 @@ export type Database = {
         Update: {
           address?: string | null
           advance_payment?: number | null
+          advance_payment_method?: string | null
           batch_id?: string | null
           class_start_date?: string | null
           country?: string | null

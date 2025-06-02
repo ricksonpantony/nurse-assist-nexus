@@ -59,7 +59,8 @@ export const useStudents = () => {
       // Transform the data to ensure proper typing
       const transformedData: Student[] = (data || []).map(item => ({
         ...item,
-        status: isValidStatus(item.status) ? item.status : 'Pass'
+        status: isValidStatus(item.status) ? item.status : 'Pass',
+        advance_payment_method: item.advance_payment_method || null
       }));
       
       setStudents(transformedData);
@@ -198,7 +199,8 @@ export const useStudents = () => {
       // Transform the returned data
       const transformedData: Student = {
         ...data,
-        status: isValidStatus(data.status) ? data.status : 'Pass'
+        status: isValidStatus(data.status) ? data.status : 'Pass',
+        advance_payment_method: data.advance_payment_method || null
       };
       
       setStudents(prev => [transformedData, ...prev]);
@@ -276,7 +278,8 @@ export const useStudents = () => {
       // Transform the returned data
       const transformedData: Student = {
         ...data,
-        status: isValidStatus(data.status) ? data.status : 'Pass'
+        status: isValidStatus(data.status) ? data.status : 'Pass',
+        advance_payment_method: data.advance_payment_method || null
       };
       
       setStudents(prev => prev.map(student => student.id === id ? transformedData : student));
