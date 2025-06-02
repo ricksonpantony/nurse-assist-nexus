@@ -1,4 +1,5 @@
 
+
 import { Student } from "@/hooks/useStudents";
 
 interface StudentsPrintViewProps {
@@ -114,3 +115,4 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
     </div>
   );
 };
+

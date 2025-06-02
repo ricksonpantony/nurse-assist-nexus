@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -36,10 +37,10 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
         student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.phone.includes(searchTerm) ||
         (student.country && student.country.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (student.student_id && student.student_id.toLowerCase().includes(searchTerm.toLowerCase()));
+        (student.id && student.id.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCountry = countryFilter === "all" || student.country === countryFilter;
-      const matchesCourse = courseFilter === "all" || student.interested_course_id === courseFilter;
+      const matchesCourse = courseFilter === "all" || student.course_id === courseFilter;
       
       return matchesSearch && matchesCountry && matchesCourse;
     })
@@ -48,8 +49,8 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
         case "country":
           return (a.country || "").localeCompare(b.country || "");
         case "course":
-          const courseA = courses.find(c => c.id === a.interested_course_id)?.title || "";
-          const courseB = courses.find(c => c.id === b.interested_course_id)?.title || "";
+          const courseA = courses.find(c => c.id === a.course_id)?.title || "";
+          const courseB = courses.find(c => c.id === b.course_id)?.title || "";
           return courseA.localeCompare(courseB);
         case "created_at":
         default:
@@ -194,7 +195,7 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
           </TableHeader>
           <TableBody>
             {filteredAndSortedStudents.map((student, index) => {
-              const course = getCourse(student.interested_course_id || "");
+              const course = getCourse(student.course_id || "");
               const isSelected = selectedStudents.includes(student.id);
               
               return (
@@ -216,7 +217,7 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-xs">
-                        {student.student_id || 'N/A'}
+                        {student.id || 'N/A'}
                       </Badge>
                     </div>
                   </TableCell>
@@ -314,3 +315,4 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
     </div>
   );
 };
+

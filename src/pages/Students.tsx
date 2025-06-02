@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -69,11 +70,11 @@ const Students = () => {
     );
   }
 
-  // Calculate stats
+  // Calculate stats based on actual student status values
   const totalStudents = students.length;
-  const activeStudents = students.filter(student => student.status === 'active').length;
-  const completedStudents = students.filter(student => student.status === 'completed').length;
-  const pendingStudents = students.filter(student => student.status === 'pending').length;
+  const passedStudents = students.filter(student => student.status === 'Pass').length;
+  const failedStudents = students.filter(student => student.status === 'Fail').length;
+  const examCycleStudents = students.filter(student => student.status === 'Exam cycle').length;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -82,7 +83,6 @@ const Students = () => {
         <StudentsPrintView 
           students={selectedStudentsForPrint} 
           courses={courses} 
-          referrals={referrals} 
         />
       )}
 
@@ -103,16 +103,16 @@ const Students = () => {
               <div className="print-payment-amount">{totalStudents}</div>
             </div>
             <div className="print-payment-box">
-              <div className="print-payment-label">Active Students</div>
-              <div className="print-payment-amount">{activeStudents}</div>
+              <div className="print-payment-label">Passed Students</div>
+              <div className="print-payment-amount">{passedStudents}</div>
             </div>
             <div className="print-payment-box">
-              <div className="print-payment-label">Completed</div>
-              <div className="print-payment-amount">{completedStudents}</div>
+              <div className="print-payment-label">Failed Students</div>
+              <div className="print-payment-amount">{failedStudents}</div>
             </div>
             <div className="print-payment-box">
-              <div className="print-payment-label">Pending</div>
-              <div className="print-payment-amount">{pendingStudents}</div>
+              <div className="print-payment-label">In Exam Cycle</div>
+              <div className="print-payment-amount">{examCycleStudents}</div>
             </div>
           </div>
         </div>
@@ -134,10 +134,10 @@ const Students = () => {
             </thead>
             <tbody>
               {students.map((student) => {
-                const course = courses.find(c => c.id === student.interested_course_id);
+                const course = courses.find(c => c.id === student.course_id);
                 return (
                   <tr key={student.id}>
-                    <td>{student.student_id || student.id}</td>
+                    <td>{student.id}</td>
                     <td>{student.full_name}</td>
                     <td>{student.email}</td>
                     <td>{student.phone}</td>
@@ -158,16 +158,16 @@ const Students = () => {
           <div className="print-section-title">Student Status Distribution</div>
           <div className="print-grid-3">
             <div className="print-field">
-              <div className="print-field-label">Active Students</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'active').length}</div>
+              <div className="print-field-label">Passed Students</div>
+              <div className="print-field-value">{students.filter(s => s.status === 'Pass').length}</div>
             </div>
             <div className="print-field">
-              <div className="print-field-label">Completed Students</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'completed').length}</div>
+              <div className="print-field-label">Failed Students</div>
+              <div className="print-field-value">{students.filter(s => s.status === 'Fail').length}</div>
             </div>
             <div className="print-field">
-              <div className="print-field-label">Pending Students</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'pending').length}</div>
+              <div className="print-field-label">In Exam Cycle</div>
+              <div className="print-field-value">{students.filter(s => s.status === 'Exam cycle').length}</div>
             </div>
           </div>
         </div>
@@ -179,18 +179,18 @@ const Students = () => {
             <thead>
               <tr>
                 <th>Course</th>
-                <th>Interested Students</th>
+                <th>Enrolled Students</th>
                 <th>Fee</th>
                 <th>Duration</th>
               </tr>
             </thead>
             <tbody>
               {courses.map((course) => {
-                const interestedCount = students.filter(s => s.interested_course_id === course.id).length;
+                const enrolledCount = students.filter(s => s.course_id === course.id).length;
                 return (
                   <tr key={course.id}>
                     <td>{course.title}</td>
-                    <td>{interestedCount}</td>
+                    <td>{enrolledCount}</td>
                     <td>${course.fee}</td>
                     <td>{course.period_months} months</td>
                   </tr>
@@ -260,8 +260,8 @@ const Students = () => {
               <div className="bg-gradient-to-br from-white to-green-50 p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Active Students</h3>
-                    <p className="text-3xl font-bold text-green-600">{activeStudents}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Passed</h3>
+                    <p className="text-3xl font-bold text-green-600">{passedStudents}</p>
                   </div>
                   <div className="w-4 h-16 bg-gradient-to-t from-green-500 to-green-300 rounded-full"></div>
                 </div>
@@ -269,19 +269,19 @@ const Students = () => {
               <div className="bg-gradient-to-br from-white to-purple-50 p-6 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Completed</h3>
-                    <p className="text-3xl font-bold text-purple-600">{completedStudents}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">In Exam Cycle</h3>
+                    <p className="text-3xl font-bold text-purple-600">{examCycleStudents}</p>
                   </div>
                   <div className="w-4 h-16 bg-gradient-to-t from-purple-500 to-purple-300 rounded-full"></div>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-white to-orange-50 p-6 rounded-xl shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-200">
+              <div className="bg-gradient-to-br from-white to-red-50 p-6 rounded-xl shadow-lg border border-red-100 hover:shadow-xl transition-all duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Pending</h3>
-                    <p className="text-3xl font-bold text-orange-600">{pendingStudents}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Failed</h3>
+                    <p className="text-3xl font-bold text-red-600">{failedStudents}</p>
                   </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-orange-500 to-orange-300 rounded-full"></div>
+                  <div className="w-4 h-16 bg-gradient-to-t from-red-500 to-red-300 rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -313,3 +313,4 @@ const Students = () => {
 };
 
 export default Students;
+
