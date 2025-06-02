@@ -25,7 +25,7 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
 
   return (
     <div className="print-content p-8 bg-white">
-      <style jsx>{`
+      <style>{`
         @media print {
           .print-content {
             -webkit-print-color-adjust: exact;
