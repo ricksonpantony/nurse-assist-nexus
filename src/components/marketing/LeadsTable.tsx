@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -158,9 +159,22 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
 
       {/* Modern Leads Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        {/* Header with total count */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b">
+          <div className="text-lg font-semibold text-blue-900">
+            Total Leads: {filteredAndSortedLeads.length}
+            {filteredAndSortedLeads.length !== leads.length && (
+              <span className="text-sm text-blue-600 ml-2">
+                (filtered from {leads.length})
+              </span>
+            )}
+          </div>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:bg-gradient-to-r hover:from-blue-700 hover:via-blue-800 hover:to-blue-900">
+              <TableHead className="font-bold text-white text-sm w-[60px]">S.No</TableHead>
               <TableHead className="font-bold text-white text-sm">Lead ID</TableHead>
               <TableHead className="font-bold text-white text-sm">Name & Contact</TableHead>
               <TableHead className="font-bold text-white text-sm">Location</TableHead>
@@ -186,6 +200,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                   } ${isConverted ? 'opacity-60' : ''}`}
                   onClick={(e) => handleRowClick(lead, e)}
                 >
+                  <TableCell className="font-medium text-center">{index + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-xs">
@@ -261,16 +276,17 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                   <TableCell>
                     <div className="flex gap-1">
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onView(lead);
                         }}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 transition-all duration-200"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs gap-1"
                         title="View Details"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3" />
+                        Account View
                       </Button>
                       <Button
                         variant="ghost"

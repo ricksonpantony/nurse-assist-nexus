@@ -107,24 +107,30 @@ export const StudentsTable = ({
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      {localSelectedStudents.length > 0 && (
-        <div className="bg-blue-50 p-2 flex items-center justify-between">
-          <div className="text-sm text-blue-700 font-medium pl-2">
-            {localSelectedStudents.length} student{localSelectedStudents.length > 1 ? 's' : ''} selected
+      {/* Header with total count */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b">
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-semibold text-blue-900">
+            Total Students: {students.length}
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={handleBulkDeleteClick}
-              className="gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Selected
-            </Button>
-          </div>
+          {localSelectedStudents.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-blue-700 font-medium">
+                {localSelectedStudents.length} student{localSelectedStudents.length > 1 ? 's' : ''} selected
+              </div>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleBulkDeleteClick}
+                className="gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Selected
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       
       <div className="overflow-x-auto">
         <Table>
@@ -136,6 +142,7 @@ export const StudentsTable = ({
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
+              <TableHead className="font-semibold text-blue-900 w-[60px]">S.No</TableHead>
               <TableHead className="font-semibold text-blue-900">Student ID</TableHead>
               <TableHead className="font-semibold text-blue-900">Name</TableHead>
               <TableHead className="font-semibold text-blue-900">Contact</TableHead>
@@ -147,7 +154,7 @@ export const StudentsTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.map((student) => {
+            {students.map((student, index) => {
               const course = courses.find(c => c.id === student.course_id);
               const isSelected = localSelectedStudents.includes(student.id);
               
@@ -159,6 +166,7 @@ export const StudentsTable = ({
                       onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
                     />
                   </TableCell>
+                  <TableCell className="font-medium text-center">{index + 1}</TableCell>
                   <TableCell className="font-medium">{student.id}</TableCell>
                   <TableCell>
                     <div className="font-medium">{student.full_name}</div>
@@ -214,12 +222,13 @@ export const StudentsTable = ({
                   <TableCell>
                     <div className="flex gap-1">
                       <Button 
-                        variant="ghost" 
+                        variant="default" 
                         size="sm" 
                         onClick={() => onView(student)}
-                        className="text-blue-600 hover:bg-blue-50"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs gap-1"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3" />
+                        Account View
                       </Button>
                       <Button 
                         variant="ghost" 
