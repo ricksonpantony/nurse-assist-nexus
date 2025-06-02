@@ -1,4 +1,3 @@
-
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
@@ -94,17 +93,16 @@
 @media print {
   @page {
     size: A4 landscape;
-    margin: 1cm;
+    margin: 0.5cm;
   }
   
-  /* Reset and show everything for print by default */
+  /* Hide everything by default, then show only what we need */
   * {
-    visibility: visible !important;
+    visibility: hidden !important;
     color: black !important;
     background: white !important;
     box-shadow: none !important;
     text-shadow: none !important;
-    font-family: Arial, sans-serif !important;
   }
   
   /* Hide UI elements that shouldn't be printed */
@@ -128,192 +126,219 @@
   .report-filters,
   .tabs:not(.print-content),
   .graph-area,
-  [data-print="false"] {
+  [data-print="false"],
+  .space-y-6 > div:not(:last-child),
+  .space-y-6 > .grid,
+  .space-y-6 > .flex {
     display: none !important;
     visibility: hidden !important;
   }
   
-  /* Ensure main content is visible */
+  /* Show only the main report content */
   body {
+    font-family: Arial, sans-serif !important;
     font-size: 10pt !important;
     line-height: 1.2 !important;
     color: black !important;
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
+    visibility: visible !important;
+  }
+  
+  /* Show the last card in space-y-6 which contains the report table */
+  .space-y-6 > div:last-child,
+  .space-y-6 > div:last-child *,
+  .space-y-6 > .shadow-lg:last-child,
+  .space-y-6 > .shadow-lg:last-child * {
+    visibility: visible !important;
+    display: block !important;
+    background: white !important;
+    color: black !important;
   }
   
   /* Print header styling */
-  .print-header,
   body::before {
+    content: "Nurse Assist International (NAI)\A Student Report Overview" !important;
     display: block !important;
     visibility: visible !important;
     text-align: center !important;
-    margin-bottom: 15pt !important;
-    padding-bottom: 8pt !important;
+    margin-bottom: 10pt !important;
+    padding-bottom: 5pt !important;
     border-bottom: 2pt solid black !important;
-    font-size: 16pt !important;
+    font-size: 14pt !important;
     font-weight: bold !important;
     color: black !important;
     background: white !important;
+    white-space: pre !important;
   }
   
   /* Print footer styling */
-  .print-footer,
   body::after {
+    content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney" !important;
     display: block !important;
     visibility: visible !important;
     text-align: center !important;
-    margin-top: 15pt !important;
-    padding-top: 8pt !important;
+    margin-top: 10pt !important;
+    padding-top: 5pt !important;
     border-top: 1pt solid #666 !important;
-    font-size: 9pt !important;
+    font-size: 8pt !important;
     color: #555 !important;
     background: white !important;
+    white-space: pre !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
   }
   
-  /* Table styles for reports */
-  table,
-  .report-table,
-  .student-report-table,
-  .payment-report-table {
+  /* Report table styles */
+  .space-y-6 > div:last-child table,
+  .space-y-6 > div:last-child .overflow-x-auto,
+  .space-y-6 > div:last-child .overflow-x-auto table,
+  table.student-report-table,
+  table.payment-report-table,
+  .report-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    margin: 10pt 0 !important;
-    font-size: 8pt !important;
+    margin: 8pt 0 !important;
+    font-size: 7pt !important;
     visibility: visible !important;
     display: table !important;
     color: black !important;
     background: white !important;
+    overflow: visible !important;
   }
   
-  table thead,
-  table tbody,
-  table tr,
-  table th,
-  table td {
+  .space-y-6 > div:last-child table thead,
+  .space-y-6 > div:last-child table tbody,
+  .space-y-6 > div:last-child table tr,
+  .space-y-6 > div:last-child table th,
+  .space-y-6 > div:last-child table td {
     visibility: visible !important;
-    display: table-row-group !important;
     color: black !important;
     background: white !important;
+    border: 0.5pt solid #333 !important;
   }
   
-  table tr {
+  .space-y-6 > div:last-child table thead {
+    display: table-header-group !important;
+  }
+  
+  .space-y-6 > div:last-child table tbody {
+    display: table-row-group !important;
+  }
+  
+  .space-y-6 > div:last-child table tr {
     display: table-row !important;
     page-break-inside: avoid !important;
   }
   
-  table th {
+  .space-y-6 > div:last-child table th {
     display: table-cell !important;
     background: #f0f0f0 !important;
     border: 1pt solid #333 !important;
-    padding: 4pt 6pt !important;
-    font-size: 8pt !important;
+    padding: 2pt 4pt !important;
+    font-size: 7pt !important;
     font-weight: bold !important;
     text-align: left !important;
     color: black !important;
   }
   
-  table td {
+  .space-y-6 > div:last-child table td {
     display: table-cell !important;
     border: 0.5pt solid #666 !important;
-    padding: 3pt 6pt !important;
-    font-size: 8pt !important;
+    padding: 2pt 4pt !important;
+    font-size: 6pt !important;
     text-align: left !important;
     color: black !important;
     background: white !important;
   }
   
   /* Zebra striping for readability */
-  table tbody tr:nth-child(even) td {
+  .space-y-6 > div:last-child table tbody tr:nth-child(even) td {
     background: #f8f8f8 !important;
   }
   
-  /* Card content for reports */
-  .space-y-6 > div:last-child,
-  [class*="Card"]:last-child,
-  .report-content {
-    visibility: visible !important;
-    display: block !important;
-    background: white !important;
-    color: black !important;
-  }
-  
-  /* Summary cards */
-  .grid > div[class*="Card"] {
-    display: none !important;
-  }
-  
-  /* Override any hidden styles for the main report table */
-  .overflow-x-auto,
-  .overflow-x-auto table,
-  .overflow-x-auto tbody,
-  .overflow-x-auto thead {
-    overflow: visible !important;
-    visibility: visible !important;
-    display: block !important;
-  }
-  
-  .overflow-x-auto table {
-    display: table !important;
-  }
-  
-  .overflow-x-auto tbody,
-  .overflow-x-auto thead {
-    display: table-row-group !important;
-  }
-  
-  /* Badge styles */
-  .badge,
-  [class*="badge"] {
+  /* Badge styles in print */
+  .space-y-6 > div:last-child .badge,
+  .space-y-6 > div:last-child [class*="badge"] {
     border: 0.5pt solid #666 !important;
-    padding: 1pt 3pt !important;
-    border-radius: 2pt !important;
-    font-size: 7pt !important;
+    padding: 1pt 2pt !important;
+    border-radius: 1pt !important;
+    font-size: 6pt !important;
     background: white !important;
     color: black !important;
+    display: inline !important;
+    visibility: visible !important;
   }
   
-  /* Ensure content doesn't get cut off */
+  /* Card title visibility */
+  .space-y-6 > div:last-child .card-header,
+  .space-y-6 > div:last-child .card-title {
+    visibility: visible !important;
+    display: block !important;
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-bottom: 5pt !important;
+    color: black !important;
+    background: white !important;
+  }
+  
+  /* Remove any overflow hiding */
+  .overflow-x-auto,
+  .overflow-hidden,
   .min-h-screen,
   .h-screen {
+    overflow: visible !important;
     min-height: auto !important;
     height: auto !important;
   }
   
-  /* Remove any transform or positioning that might hide content */
+  /* Remove transforms and positioning that might hide content */
   * {
     transform: none !important;
     position: static !important;
   }
   
-  /* Specific overrides for gradient backgrounds */
-  .bg-gradient-to-br,
-  .bg-gradient-to-r,
-  .shadow-lg,
-  .backdrop-blur-sm,
-  [class*="gradient"] {
-    background: white !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+  .fixed {
+    position: static !important;
   }
   
-  /* Print header content */
-  body::before {
-    content: "Nurse Assist International (NAI)\AStudent Report Overview" !important;
-    white-space: pre !important;
-  }
-  
-  /* Print footer content */
-  body::after {
-    content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney" !important;
-    white-space: pre !important;
-  }
-  
-  /* Force table to show */
-  [role="table"],
-  [data-testid*="table"] {
-    display: table !important;
+  /* Ensure pagination info and totals are visible if present */
+  .space-y-6 > div:last-child .mt-6,
+  .space-y-6 > div:last-child .p-4,
+  .space-y-6 > div:last-child .bg-gray-50 {
     visibility: visible !important;
+    display: block !important;
+    background: #f0f0f0 !important;
+    color: black !important;
+    margin-top: 5pt !important;
+    padding: 3pt !important;
+    font-size: 7pt !important;
+    font-weight: bold !important;
+  }
+  
+  /* Hide checkbox column in print */
+  .space-y-6 > div:last-child table th:first-child,
+  .space-y-6 > div:last-child table td:first-child {
+    display: none !important;
+  }
+  
+  /* Adjust column widths for better fit */
+  .space-y-6 > div:last-child table th,
+  .space-y-6 > div:last-child table td {
+    max-width: none !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Make specific columns wider for important data */
+  .space-y-6 > div:last-child table th:nth-child(3),
+  .space-y-6 > div:last-child table td:nth-child(3),
+  .space-y-6 > div:last-child table th:nth-child(4),
+  .space-y-6 > div:last-child table td:nth-child(4) {
+    min-width: 80pt !important;
   }
 }
