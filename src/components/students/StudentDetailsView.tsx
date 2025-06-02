@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap, Users, Plus } from "lucide-react";
+import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap, Users, Plus, FileText, Save } from "lucide-react";
 import { useStudents } from "@/hooks/useStudents";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
@@ -35,10 +36,13 @@ export const StudentDetailsView = ({
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
   const [selectedReferralId, setSelectedReferralId] = useState(student.referral_id || "direct");
   const [referralPaymentAmount, setReferralPaymentAmount] = useState("");
+  const [notes, setNotes] = useState(student.notes || "");
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
 
   useEffect(() => {
     setSelectedReferralId(student.referral_id || "direct");
-  }, [student.referral_id]);
+    setNotes(student.notes || "");
+  }, [student.referral_id, student.notes]);
 
   const course = courses.find(c => c.id === student.course_id);
 
@@ -153,6 +157,24 @@ export const StudentDetailsView = ({
 
   const totalPaid = student.payments?.reduce((sum: number, payment: any) => sum + payment.amount, 0) || 0;
   const remainingBalance = student.total_course_fee - totalPaid;
+
+  const handleSaveNotes = async () => {
+    try {
+      await updateStudent(student.id, { notes });
+      setIsEditingNotes(false);
+      toast({
+        title: "Success",
+        description: "Notes updated successfully",
+      });
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update notes",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -317,6 +339,16 @@ export const StudentDetailsView = ({
               </div>
             )}
           </div>
+
+          {/* Notes Section - Print */}
+          {notes && (
+            <div className="print-section">
+              <div className="print-section-title">Notes</div>
+              <div className="print-field">
+                <div className="print-field-value" style={{ whiteSpace: 'pre-wrap' }}>{notes}</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -613,6 +645,74 @@ export const StudentDetailsView = ({
                   <div className="text-center py-8 text-gray-500">
                     <CreditCard className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                     <p>No payment records found</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notes Section */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="student-notes">Student Notes</Label>
+                  {!isEditingNotes ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingNotes(true)}
+                      className="gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Edit Notes
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingNotes(false);
+                          setNotes(student.notes || "");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveNotes}
+                        className="gap-2"
+                      >
+                        <Save className="h-4 w-4" />
+                        Save Notes
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditingNotes ? (
+                  <Textarea
+                    id="student-notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Enter notes about this student..."
+                    rows={6}
+                    className="resize-none"
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-lg min-h-[120px]">
+                    {notes ? (
+                      <div className="whitespace-pre-wrap text-gray-900">{notes}</div>
+                    ) : (
+                      <div className="text-gray-500 italic">No notes available. Click "Edit Notes" to add some.</div>
+                    )}
                   </div>
                 )}
               </div>
