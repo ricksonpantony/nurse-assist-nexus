@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +20,7 @@ export interface Student {
   status: 'Attended Online' | 'Attend sessions' | 'Attended F2F' | 'Exam cycle' | 'Awaiting results' | 'Pass' | 'Fail';
   total_course_fee: number;
   advance_payment: number;
+  advance_payment_method: string | null;
   installments: number;
   created_at?: string;
   updated_at?: string;
@@ -144,6 +146,7 @@ export const useStudents = () => {
         address: cleanStudentData.address || null,
         country: cleanStudentData.country || null,
         class_start_date: cleanStudentData.class_start_date || null,
+        advance_payment_method: cleanStudentData.advance_payment_method || null,
         // Ensure numeric fields are properly typed
         total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
         advance_payment: Number(cleanStudentData.advance_payment) || 0,
@@ -174,7 +177,7 @@ export const useStudents = () => {
             payment_date: new Date().toISOString().split('T')[0],
             stage: 'Advance',
             amount: studentData.advance_payment,
-            payment_mode: 'Credit Card'
+            payment_mode: studentData.advance_payment_method || 'Bank Transfer'
           }]);
       }
 
