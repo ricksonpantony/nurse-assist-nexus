@@ -55,7 +55,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     generateSampleExcel(courses);
     toast({
       title: "Template Downloaded",
-      description: "Comprehensive student import template with course details and samples has been downloaded",
+      description: "Student import template with the new header structure has been downloaded",
     });
   };
 
@@ -105,12 +105,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       .insert([{
         referral_id: referralId,
         full_name: row.referred_by_name.trim(),
-        email: row.referral_email || '',
-        phone: row.referral_phone || '',
-        address: row.referral_address || '',
-        bank_name: row.referral_bank_name || '',
-        account_number: row.referral_account_number || '',
-        bsb: row.referral_bsb || '',
+        email: '',
+        phone: '',
+        address: '',
+        bank_name: '',
+        account_number: '',
+        bsb: '',
         notes: 'Auto-created during student import'
       }])
       .select()
@@ -167,7 +167,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           let referralId = null;
           try {
             referralId = await findOrCreateReferral(row);
-            if (referralId && !row.referral_email) {
+            if (referralId && !row.referred_by_name) {
               referralsCreated++;
             }
           } catch (error) {
@@ -191,9 +191,10 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             class_start_date: row.class_start_date ? parseDateFromExcel(row.class_start_date) : null,
             status: statusOptions.includes(row.status) ? row.status : 'Attend sessions',
             total_course_fee: row.total_course_fee || courseFee,
-            advance_payment: row.advance_payment || 0,
-            installments: row.installments || 1,
+            advance_payment: row.advance_payment_amount || 0,
+            installments: 1,
             referral_id: referralId,
+            notes: row.notes || null,
           };
 
           // Insert student
@@ -226,16 +227,6 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               amount: row.second_payment_amount,
               payment_mode: paymentModes.includes(row.second_payment_mode || '') ? row.second_payment_mode : 'Bank Transfer',
               payment_date: row.second_payment_date ? parseDateFromExcel(row.second_payment_date) : parseDateFromExcel(row.join_date),
-            });
-          }
-
-          if (row.third_payment_amount && row.third_payment_amount > 0) {
-            payments.push({
-              student_id: studentId,
-              stage: 'Third',
-              amount: row.third_payment_amount,
-              payment_mode: paymentModes.includes(row.third_payment_mode || '') ? row.third_payment_mode : 'Bank Transfer',
-              payment_date: row.third_payment_date ? parseDateFromExcel(row.third_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
@@ -317,7 +308,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Import Students - Comprehensive Template
+            Import Students - Updated Template Format
           </DialogTitle>
         </DialogHeader>
 
@@ -327,19 +318,30 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Download Template with Course Information
+                Download Updated Template
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                Download the complete student import template with all available courses, status options, payment modes, and sample data. Only sample rows are locked for reference.
+                Download the updated student import template with the new header structure including notes field.
               </p>
               <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
-                Download Comprehensive Template
+                Download Template
               </Button>
             </CardContent>
           </Card>
+
+          {/* Template Information */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>New Template Headers:</strong>
+              <div className="mt-2 text-sm">
+                full_name, email, phone, address, country, passport_id, course_title, join_date, class_start_date, status, referred_by_name, referral_payment_amount, total_course_fee, advance_payment_amount, advance_payment_mode, advance_payment_date, second_payment_amount, second_payment_mode, second_payment_date, final_payment_amount, final_payment_mode, final_payment_date, notes
+              </div>
+            </AlertDescription>
+          </Alert>
 
           {/* Course Information */}
           <Alert>
@@ -358,24 +360,6 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
                   <div>No courses available. Please add courses first.</div>
                 )}
               </div>
-            </AlertDescription>
-          </Alert>
-
-          {/* Template Information */}
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Template Features:</strong>
-              <ul className="mt-2 space-y-1 text-sm">
-                <li>• <strong>Student ID:</strong> Auto-generated during import (ATZ-YYYY-XXX format)</li>
-                <li>• <strong>Course Validation:</strong> Only accepts courses from your course list</li>
-                <li>• <strong>Referral Management:</strong> Auto-creates referral accounts if name not found</li>
-                <li>• <strong>Payment Tracking:</strong> Multiple payment stages with dates and methods</li>
-                <li>• <strong>Sample Data:</strong> 3 locked sample rows for reference (not imported)</li>
-                <li>• <strong>Date Format:</strong> DD-MM-YYYY (e.g., 15-01-2024)</li>
-                <li>• <strong>Status Options:</strong> {statusOptions.join(', ')}</li>
-                <li>• <strong>Payment Modes:</strong> {paymentModes.join(', ')}</li>
-              </ul>
             </AlertDescription>
           </Alert>
 
@@ -419,7 +403,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
                 <li>• Course fee auto-populated from course selection</li>
                 <li>• Empty payment amounts won't create payment records</li>
                 <li>• Required fields: full_name, email, phone, course_title, join_date</li>
-                <li>• Only sample data rows (marked with "SAMPLE - DO NOT EDIT") are locked</li>
+                <li>• Notes field is optional and will be saved with the student record</li>
               </ul>
             </AlertDescription>
           </Alert>

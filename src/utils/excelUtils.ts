@@ -20,32 +20,22 @@ export interface StudentImportData {
   
   // Referral Information
   referred_by_name?: string;
-  referral_email?: string;
-  referral_phone?: string;
-  referral_address?: string;
-  referral_bank_name?: string;
-  referral_account_number?: string;
-  referral_bsb?: string;
   referral_payment_amount?: number;
   
   // Payment Information
   total_course_fee?: number;
-  advance_payment?: number;
-  installments?: number;
-  
-  // Payment Stages
   advance_payment_amount?: number;
   advance_payment_mode?: string;
   advance_payment_date?: string;
   second_payment_amount?: number;
   second_payment_mode?: string;
   second_payment_date?: string;
-  third_payment_amount?: number;
-  third_payment_mode?: string;
-  third_payment_date?: string;
   final_payment_amount?: number;
   final_payment_mode?: string;
   final_payment_date?: string;
+  
+  // Notes
+  notes?: string;
 }
 
 export const generateSampleExcel = (courses: Course[] = []) => {
@@ -62,28 +52,18 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       class_start_date: "01-02-2024",
       status: "Attended Online",
       referred_by_name: "Jane Smith",
-      referral_email: "jane.smith@example.com",
-      referral_phone: "+1234567891",
-      referral_address: "456 Oak Street, City",
-      referral_bank_name: "Sample Bank",
-      referral_account_number: "123456789",
-      referral_bsb: "123-456",
       referral_payment_amount: 500,
       total_course_fee: courses.length > 0 ? courses[0].fee : 5000,
-      advance_payment: 1000,
-      installments: 4,
       advance_payment_amount: 1000,
       advance_payment_mode: "Credit Card",
       advance_payment_date: "15-01-2024",
       second_payment_amount: 1500,
       second_payment_mode: "Bank Transfer",
       second_payment_date: "15-02-2024",
-      third_payment_amount: 1500,
-      third_payment_mode: "Cash",
-      third_payment_date: "15-03-2024",
-      final_payment_amount: 1000,
+      final_payment_amount: 2500,
       final_payment_mode: "Credit Card",
       final_payment_date: "15-04-2024",
+      notes: "Student prefers online sessions"
     },
     {
       full_name: "Alice Johnson (SAMPLE - DO NOT EDIT)",
@@ -97,16 +77,8 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       class_start_date: "05-02-2024",
       status: "Attend sessions",
       referred_by_name: "", // Direct referral
-      referral_email: "",
-      referral_phone: "",
-      referral_address: "",
-      referral_bank_name: "",
-      referral_account_number: "",
-      referral_bsb: "",
       referral_payment_amount: 0,
       total_course_fee: courses.length > 1 ? courses[1].fee : 7000,
-      advance_payment: 2000,
-      installments: 3,
       advance_payment_amount: 2000,
       advance_payment_mode: "Bank Transfer",
       advance_payment_date: "20-01-2024",
@@ -116,6 +88,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       final_payment_amount: 2500,
       final_payment_mode: "Bank Transfer",
       final_payment_date: "20-03-2024",
+      notes: "Needs flexible schedule"
     },
     {
       full_name: "Bob Wilson (SAMPLE - DO NOT EDIT)",
@@ -129,22 +102,15 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       class_start_date: "10-02-2024",
       status: "Pass",
       referred_by_name: "Mike Brown",
-      referral_email: "mike.brown@example.com",
-      referral_phone: "+1234567894",
-      referral_address: "654 Maple Street, City",
-      referral_bank_name: "Tech Bank",
-      referral_account_number: "987654321",
-      referral_bsb: "987-654",
       referral_payment_amount: 300,
       total_course_fee: courses.length > 2 ? courses[2].fee : 4500,
-      advance_payment: 1500,
-      installments: 2,
       advance_payment_amount: 1500,
       advance_payment_mode: "Cash",
       advance_payment_date: "25-01-2024",
       final_payment_amount: 3000,
       final_payment_mode: "Bank Transfer",
       final_payment_date: "25-02-2024",
+      notes: "Previous IT experience"
     }
   ];
 
@@ -204,28 +170,18 @@ export const generateSampleExcel = (courses: Course[] = []) => {
     { wch: 15 }, // class_start_date
     { wch: 20 }, // status
     { wch: 20 }, // referred_by_name
-    { wch: 25 }, // referral_email
-    { wch: 15 }, // referral_phone
-    { wch: 30 }, // referral_address
-    { wch: 20 }, // referral_bank_name
-    { wch: 20 }, // referral_account_number
-    { wch: 15 }, // referral_bsb
     { wch: 20 }, // referral_payment_amount
     { wch: 18 }, // total_course_fee
-    { wch: 15 }, // advance_payment
-    { wch: 12 }, // installments
     { wch: 20 }, // advance_payment_amount
     { wch: 20 }, // advance_payment_mode
     { wch: 20 }, // advance_payment_date
     { wch: 20 }, // second_payment_amount
     { wch: 20 }, // second_payment_mode
     { wch: 20 }, // second_payment_date
-    { wch: 20 }, // third_payment_amount
-    { wch: 20 }, // third_payment_mode
-    { wch: 20 }, // third_payment_date
     { wch: 20 }, // final_payment_amount
     { wch: 20 }, // final_payment_mode
     { wch: 20 }, // final_payment_date
+    { wch: 30 }, // notes
   ];
   ws['!cols'] = colWidths;
 
@@ -274,7 +230,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
     scenarios: false
   };
 
-  XLSX.writeFile(wb, "comprehensive_student_import_template.xlsx");
+  XLSX.writeFile(wb, "student_import_template.xlsx");
 };
 
 export const exportStudentsToExcel = (students: Student[], courses: Course[]) => {
@@ -295,6 +251,7 @@ export const exportStudentsToExcel = (students: Student[], courses: Course[]) =>
       total_course_fee: student.total_course_fee,
       advance_payment: student.advance_payment || 0,
       installments: student.installments || 1,
+      notes: student.notes || '',
     };
   });
 
@@ -318,6 +275,7 @@ export const exportStudentsToExcel = (students: Student[], courses: Course[]) =>
     { wch: 15 }, // total_course_fee
     { wch: 15 }, // advance_payment
     { wch: 12 }, // installments
+    { wch: 30 }, // notes
   ];
   ws['!cols'] = colWidths;
 
