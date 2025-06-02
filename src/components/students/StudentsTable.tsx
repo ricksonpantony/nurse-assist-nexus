@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, Edit, Trash2, Printer } from "lucide-react";
+import { Eye, Edit, Trash2, Printer, Search } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { countries } from "@/utils/countries";
@@ -80,7 +81,7 @@ export const StudentsTable = ({ students, courses, referrals, onEdit, onDelete, 
     if (checked) {
       setSelectedStudents(prev => [...prev, studentId]);
     } else {
-      setSelectedStudents(prev => prev.filter(id => id !== studentId]);
+      setSelectedStudents(prev => prev.filter(id => id !== studentId));
     }
   };
 
