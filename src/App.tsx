@@ -15,6 +15,8 @@ import ManageStudent from "./pages/ManageStudent";
 import PreviewStudent from "./pages/PreviewStudent";
 import Courses from "./pages/Courses";
 import Reports from "./pages/Reports";
+import StudentReports from "./pages/StudentReports";
+import PaymentReports from "./pages/PaymentReports";
 import Referrals from "./pages/Referrals";
 import RecycleBin from "./pages/RecycleBin";
 import AuditLogs from "./pages/AuditLogs";
@@ -60,6 +62,8 @@ const AppContent = () => {
               <Route path="/marketing/manage/:id" element={<MarketingManage />} />
               <Route path="/marketing/preview/:id" element={<MarketingLeadPreview />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/reports/students" element={<StudentReports />} />
+              <Route path="/reports/payments" element={<PaymentReports />} />
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/recycle-bin" element={<RecycleBin />} />
               <Route path="/audit" element={<AuditLogs />} />

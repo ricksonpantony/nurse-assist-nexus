@@ -1,14 +1,23 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { StudentReports } from '@/components/reports/StudentReports';
-import { PaymentReports } from '@/components/reports/PaymentReports';
 import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
-import { BarChart3, Users, CreditCard, FileText } from 'lucide-react';
+import { BarChart3, Users, CreditCard, FileText, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Reports = () => {
+  const navigate = useNavigate();
+
+  const handleStudentReports = () => {
+    navigate('/reports/students');
+  };
+
+  const handlePaymentReports = () => {
+    navigate('/reports/payments');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="flex items-center gap-4 mb-6 p-6">
@@ -30,40 +39,74 @@ const Reports = () => {
         {/* Dashboard Overview */}
         <ReportsDashboard />
 
-        {/* Reports Tabs */}
-        <Card className="shadow-xl border-0 bg-white/70 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Detailed Reports
-            </CardTitle>
-            <CardDescription className="text-blue-100">
-              Generate, filter, and export detailed reports
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <Tabs defaultValue="students" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-                <TabsTrigger value="students" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Student Reports
-                </TabsTrigger>
-                <TabsTrigger value="payments" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Payment Reports
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="students" className="mt-6">
-                <StudentReports />
-              </TabsContent>
-              
-              <TabsContent value="payments" className="mt-6">
-                <PaymentReports />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        {/* Report Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Student Reports Button */}
+          <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer group">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-white text-xl">Student Reports</CardTitle>
+                    <CardDescription className="text-blue-100">
+                      Generate detailed student analytics and reports
+                    </CardDescription>
+                  </div>
+                </div>
+                <ArrowRight className="h-6 w-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-blue-100 mb-4">
+                Access comprehensive student data with advanced filtering options, enrollment statistics, and detailed analytics.
+              </p>
+              <Button 
+                onClick={handleStudentReports}
+                className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-all duration-300"
+                variant="outline"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                View Student Reports
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Payment Reports Button */}
+          <Card className="shadow-xl border-0 bg-gradient-to-br from-green-500 to-green-600 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer group">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-white text-xl">Payment Reports</CardTitle>
+                    <CardDescription className="text-green-100">
+                      Track payments, fees, and financial analytics
+                    </CardDescription>
+                  </div>
+                </div>
+                <ArrowRight className="h-6 w-6 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-green-100 mb-4">
+                Monitor payment breakdowns, fee collection status, and generate financial reports with detailed insights.
+              </p>
+              <Button 
+                onClick={handlePaymentReports}
+                className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm transition-all duration-300"
+                variant="outline"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                View Payment Reports
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
