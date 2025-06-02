@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -69,7 +68,7 @@ const ManageStudent = () => {
       }
       setFormData({
         ...updatedStudent,
-        advance_payment_method: '',
+        advance_payment_method: updatedStudent.advance_payment_method || '',
         referral_payment_amount: 0,
       });
     }
@@ -148,6 +147,7 @@ const ManageStudent = () => {
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
         status: formData.status as Student['status'],
+        advance_payment_method: formData.advance_payment_method || null,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -447,7 +447,7 @@ const ManageStudent = () => {
                       placeholder="Enter advance payment"
                     />
                   </div>
-                  {formData.advance_payment > 0 && (
+                  {Number(formData.advance_payment) > 0 && (
                     <div className="space-y-2">
                       <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
                       <Select 

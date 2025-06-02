@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,8 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     
     // Financial Information
     total_course_fee: "",
-    installments: "1",
     advance_payment: "0",
+    advance_payment_method: "",
     
     // Referral Information
     referral_id: lead.referral_id || "no-referral",
@@ -50,6 +49,15 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
   const [joinDate, setJoinDate] = useState<Date>(new Date());
   const [classStartDate, setClassStartDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
+
+  const paymentMethods = [
+    'Bank Transfer',
+    'Card Payments',
+    'Stripe Account',
+    'PayID',
+    'International Account',
+    'Others'
+  ];
 
   // Set course fee when course is selected
   const handleCourseChange = (courseId: string) => {
@@ -71,9 +79,9 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
         join_date: format(joinDate, 'yyyy-MM-dd'),
         class_start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         total_course_fee: parseFloat(formData.total_course_fee) || 0,
-        installments: parseInt(formData.installments) || 1,
         advance_payment: parseFloat(formData.advance_payment) || 0,
         referral_payment_amount: parseFloat(formData.referral_payment_amount) || 0,
+        installments: 1, // Always set to 1 since we removed installment options
         // Ensure null values for optional fields
         referral_id: formData.referral_id === "no-referral" ? null : formData.referral_id,
         course_id: formData.course_id === "no-course" ? null : formData.course_id,
@@ -81,6 +89,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
         address: formData.address === "" ? null : formData.address,
         country: formData.country === "no-country" ? null : formData.country,
         batch_id: formData.batch_id === "" ? null : formData.batch_id,
+        advance_payment_method: formData.advance_payment_method || null,
       };
 
       console.log('Transferring student data:', studentData);
@@ -318,7 +327,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
           </div>
 
           {/* Payment Information */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="total_course_fee">Total Course Fee *</Label>
               <Input
@@ -342,20 +351,26 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
                 step="0.01"
               />
             </div>
+          </div>
+
+          {/* Payment Method - Only show if advance payment > 0 */}
+          {parseFloat(formData.advance_payment) > 0 && (
             <div>
-              <Label htmlFor="installments">Installments</Label>
-              <Select value={formData.installments} onValueChange={(value) => handleInputChange('installments', value)}>
+              <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+              <Select value={formData.advance_payment_method} onValueChange={(value) => handleInputChange('advance_payment_method', value)}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method} value={method}>
+                      {method}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">

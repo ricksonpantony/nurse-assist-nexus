@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -72,6 +71,8 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
         advance_payment: parseFloat(formData.advance_payment),
         referral_id: lead.referral_id,
         referral_payment_amount: parseFloat(formData.referral_payment_amount),
+        installments: 1, // Always set to 1 since we removed installment options
+        advance_payment_method: formData.advance_payment_method || null,
       };
 
       await onTransfer(studentData);

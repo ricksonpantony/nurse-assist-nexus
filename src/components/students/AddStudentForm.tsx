@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -53,7 +52,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
       }
       setFormData({
         ...updatedStudent,
-        advance_payment_method: '',
+        advance_payment_method: updatedStudent.advance_payment_method || '',
       });
     }
   }, [student]);
@@ -126,6 +125,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         // Ensure join_date is never empty
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
+        // Include payment method only if advance payment is made
+        advance_payment_method: formData.advance_payment_method || null,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -335,7 +336,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 placeholder="Enter advance payment"
               />
             </div>
-            {formData.advance_payment > 0 && (
+            {Number(formData.advance_payment) > 0 && (
               <div className="space-y-2">
                 <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
                 <Select 
