@@ -1,63 +1,239 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus, FileText, Download } from "lucide-react";
-import { StudentsTable } from "@/components/students/StudentsTable";
-import { StudentsPrintView } from "@/components/students/StudentsPrintView";
-import { useStudents, Student } from "@/hooks/useStudents";
-import { useCourses } from "@/hooks/useCourses";
-import { useReferrals } from "@/hooks/useReferrals";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Plus, Upload, Download } from "lucide-react";
+import { StudentsTable } from "@/components/students/StudentsTable";
+import { StudentsFilter } from "@/components/students/StudentsFilter";
+import { StudentsPrintView } from "@/components/students/StudentsPrintView";
+import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
+import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
+import { useCourses } from "@/hooks/useCourses";
+import { useStudents } from "@/hooks/useStudents";
+import { exportStudentsToExcel } from "@/utils/excelUtils";
+import { useToast } from "@/hooks/use-toast";
+import type { Student } from "@/hooks/useStudents";
 
 const Students = () => {
-  const { students, loading, updateStudent, deleteStudent } = useStudents();
-  const { courses } = useCourses();
-  const { referrals } = useReferrals();
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { courses } = useCourses();
+  const { students, loading, deleteStudent, refetch } = useStudents();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
+  const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
+  const { toast } = useToast();
 
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [selectedStudentsForPrint, setSelectedStudentsForPrint] = useState<Student[]>([]);
+  // Filter and sort states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [batchFilter, setBatchFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("join_date");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
-  const handleEditStudent = (student: Student) => {
+  // Get unique countries and batches for filters
+  const { countries, batches } = useMemo(() => {
+    const uniqueCountries = [...new Set(students.filter(s => s.country).map(s => s.country))].sort();
+    const uniqueBatches = [...new Set(students.filter(s => s.batch_id).map(s => s.batch_id))].sort();
+    return { 
+      countries: uniqueCountries as string[], 
+      batches: uniqueBatches as string[] 
+    };
+  }, [students]);
+
+  // Filter and sort students
+  const filteredAndSortedStudents = useMemo(() => {
+    let filtered = [...students];
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(student =>
+        student.full_name.toLowerCase().includes(searchLower) ||
+        student.email.toLowerCase().includes(searchLower) ||
+        student.phone.includes(searchTerm) ||
+        student.id.toLowerCase().includes(searchLower) ||
+        (student.passport_id && student.passport_id.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(student => student.status === statusFilter);
+    }
+
+    // Apply course filter
+    if (courseFilter !== "all") {
+      filtered = filtered.filter(student => student.course_id === courseFilter);
+    }
+
+    // Apply country filter
+    if (countryFilter !== "all") {
+      filtered = filtered.filter(student => student.country === countryFilter);
+    }
+
+    // Apply batch filter
+    if (batchFilter !== "all") {
+      filtered = filtered.filter(student => student.batch_id === batchFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortBy) {
+        case 'full_name':
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+          break;
+        case 'join_date':
+          aValue = new Date(a.join_date);
+          bValue = new Date(b.join_date);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'total_course_fee':
+          aValue = a.total_course_fee;
+          bValue = b.total_course_fee;
+          break;
+        case 'country':
+          aValue = a.country || '';
+          bValue = b.country || '';
+          break;
+        case 'id':
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        default:
+          aValue = a[sortBy as keyof Student];
+          bValue = b[sortBy as keyof Student];
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  }, [students, searchTerm, statusFilter, courseFilter, countryFilter, batchFilter, sortBy, sortOrder]);
+
+  // Get selected students for printing
+  const selectedStudentsForPrint = useMemo(() => {
+    return filteredAndSortedStudents.filter(student => selectedStudents.includes(student.id));
+  }, [filteredAndSortedStudents, selectedStudents]);
+
+  const handleAddStudent = () => {
+    navigate('/students/manage');
+  };
+
+  const handleEditStudent = (student: any) => {
+    console.log('Editing student:', student);
     navigate(`/students/manage/${student.id}`);
   };
 
   const handleDeleteStudent = async (studentId: string) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      try {
-        await deleteStudent(studentId);
-      } catch (error) {
-        console.error('Students page: Error deleting student:', error);
-      }
+    try {
+      await deleteStudent(studentId);
+    } catch (error) {
+      // Error is handled in the hook
     }
   };
 
-  const handleViewStudent = (student: Student) => {
+  const handleDeleteMultipleStudents = async (studentIds: string[]) => {
+    try {
+      // Delete students one by one (could be optimized with batch delete)
+      for (const studentId of studentIds) {
+        await deleteStudent(studentId);
+      }
+      
+      toast({
+        title: "Success",
+        description: `Successfully deleted ${studentIds.length} student${studentIds.length > 1 ? 's' : ''}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete some students",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewStudent = (student: any) => {
     navigate(`/students/preview/${student.id}`);
   };
 
-  const handlePrintSelectedStudents = (selectedStudents: Student[]) => {
-    setSelectedStudentsForPrint(selectedStudents);
-    // Small delay to ensure the print view is rendered
-    setTimeout(() => {
-      window.print();
-    }, 100);
+  const handleUpdatePayment = (student: any) => {
+    setPaymentUpdateStudent(student);
+    setShowPaymentModal(true);
   };
 
-  const handleExport = () => {
+  const handlePaymentAdded = () => {
+    refetch();
+  };
+
+  const handleExportStudents = () => {
+    const studentsToExport = filteredAndSortedStudents.length > 0 ? filteredAndSortedStudents : students;
+    
+    if (studentsToExport.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no students to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    exportStudentsToExcel(studentsToExport, courses);
     toast({
-      title: "Export",
-      description: "Export functionality will be implemented soon",
+      title: "Export Successful",
+      description: `${studentsToExport.length} student records exported to Excel`,
     });
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleImportComplete = () => {
+    refetch();
+    setShowImportModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setCourseFilter("all");
+    setCountryFilter("all");
+    setBatchFilter("all");
+    setSortBy("join_date");
+    setSortOrder("desc");
+    setSelectedStudents([]);
+  };
+
+  const handlePrintSelected = () => {
+    if (selectedStudents.length === 0) {
+      toast({
+        title: "No Students Selected",
+        description: "Please select students to print",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPrintView(true);
+    // Use setTimeout to ensure the component is rendered before printing
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
+  };
+
+  const handleStudentSelection = (studentIds: string[]) => {
+    setSelectedStudents(studentIds);
   };
 
   if (loading) {
@@ -70,174 +246,43 @@ const Students = () => {
     );
   }
 
-  // Calculate stats based on actual student status values
-  const totalStudents = students.length;
-  const passedStudents = students.filter(student => student.status === 'Pass').length;
-  const failedStudents = students.filter(student => student.status === 'Fail').length;
-  const examCycleStudents = students.filter(student => student.status === 'Exam cycle').length;
+  if (showPrintView) {
+    return (
+      <StudentsPrintView 
+        students={selectedStudentsForPrint} 
+        courses={courses}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      {/* Print Content for Selected Students */}
-      {selectedStudentsForPrint.length > 0 && (
-        <StudentsPrintView 
-          students={selectedStudentsForPrint} 
-          courses={courses} 
-        />
-      )}
-
-      {/* Print Content - Hidden on screen, visible when printing */}
-      <div className="print-content hidden print:block">
-        {/* Print Header */}
-        <div className="print-header">
-          <div className="print-title">Nurse Assist International (NAI)</div>
-          <div className="print-subtitle">Student Management Report</div>
-        </div>
-
-        {/* Print Statistics Summary */}
-        <div className="print-section print-major-section">
-          <div className="print-section-title">Student Statistics Summary</div>
-          <div className="print-grid-4">
-            <div className="print-payment-box">
-              <div className="print-payment-label">Total Students</div>
-              <div className="print-payment-amount">{totalStudents}</div>
-            </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Passed Students</div>
-              <div className="print-payment-amount">{passedStudents}</div>
-            </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Failed Students</div>
-              <div className="print-payment-amount">{failedStudents}</div>
-            </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">In Exam Cycle</div>
-              <div className="print-payment-amount">{examCycleStudents}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Print Students Table */}
-        <div className="print-section">
-          <div className="print-section-title">Student Details</div>
-          <table className="print-table">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Course</th>
-                <th>Status</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student) => {
-                const course = courses.find(c => c.id === student.course_id);
-                return (
-                  <tr key={student.id}>
-                    <td>{student.id}</td>
-                    <td>{student.full_name}</td>
-                    <td>{student.email}</td>
-                    <td>{student.phone}</td>
-                    <td>{course ? course.title : 'Not specified'}</td>
-                    <td>
-                      <span className="print-badge">{student.status}</span>
-                    </td>
-                    <td>{format(new Date(student.created_at), 'dd/MM/yyyy')}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Print Student Status Distribution */}
-        <div className="print-section">
-          <div className="print-section-title">Student Status Distribution</div>
-          <div className="print-grid-3">
-            <div className="print-field">
-              <div className="print-field-label">Passed Students</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'Pass').length}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">Failed Students</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'Fail').length}</div>
-            </div>
-            <div className="print-field">
-              <div className="print-field-label">In Exam Cycle</div>
-              <div className="print-field-value">{students.filter(s => s.status === 'Exam cycle').length}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Print Course Interest Analysis */}
-        <div className="print-section">
-          <div className="print-section-title">Course Interest Analysis</div>
-          <table className="print-table">
-            <thead>
-              <tr>
-                <th>Course</th>
-                <th>Enrolled Students</th>
-                <th>Fee</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses.map((course) => {
-                const enrolledCount = students.filter(s => s.course_id === course.id).length;
-                return (
-                  <tr key={course.id}>
-                    <td>{course.title}</td>
-                    <td>{enrolledCount}</td>
-                    <td>${course.fee}</td>
-                    <td>{course.period_months} months</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Print Report Generated Info */}
-        <div className="print-section">
-          <div className="print-field">
-            <div className="print-field-label">Report Generated</div>
-            <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Regular Screen Content - Hidden when printing */}
-      <div className="flex flex-col h-full print:hidden">
+      <div className="flex flex-col h-full">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
           <div className="flex-1">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
-              Student Management
-            </h1>
-            <p className="text-sm text-blue-600">Manage student records and track enrollment</p>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Student Management</h1>
+            <p className="text-sm text-blue-600">Manage student enrollment and course assignments</p>
           </div>
           <div className="flex gap-2">
             <Button 
               variant="outline"
-              className="gap-2 hover:bg-blue-50 border-blue-200"
-              onClick={handlePrint}
+              className="gap-2"
+              onClick={() => setShowImportModal(true)}
             >
-              <FileText className="h-4 w-4" />
-              Print
+              <Upload className="h-4 w-4" />
+              Import Template
             </Button>
             <Button 
               variant="outline"
-              className="gap-2 hover:bg-green-50 border-green-200"
-              onClick={handleExport}
+              className="gap-2"
+              onClick={handleExportStudents}
             >
               <Download className="h-4 w-4" />
-              Export
+              Export {filteredAndSortedStudents.length !== students.length && `(${filteredAndSortedStudents.length})`}
             </Button>
             <Button 
-              onClick={() => navigate('/students/manage')}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+              onClick={handleAddStudent}
+              className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
             >
               <Plus className="h-4 w-4" />
               Add Student
@@ -246,71 +291,74 @@ const Students = () => {
         </header>
 
         <main className="flex-1 p-6">
-          <div className="mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Total Students</h3>
-                    <p className="text-3xl font-bold text-blue-600">{totalStudents}</p>
-                  </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-blue-500 to-blue-300 rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-green-50 p-6 rounded-xl shadow-lg border border-green-100 hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Passed</h3>
-                    <p className="text-3xl font-bold text-green-600">{passedStudents}</p>
-                  </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-green-500 to-green-300 rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-purple-50 p-6 rounded-xl shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">In Exam Cycle</h3>
-                    <p className="text-3xl font-bold text-purple-600">{examCycleStudents}</p>
-                  </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-purple-500 to-purple-300 rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-white to-red-50 p-6 rounded-xl shadow-lg border border-red-100 hover:shadow-xl transition-all duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Failed</h3>
-                    <p className="text-3xl font-bold text-red-600">{failedStudents}</p>
-                  </div>
-                  <div className="w-4 h-16 bg-gradient-to-t from-red-500 to-red-300 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <StudentsFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            courseFilter={courseFilter}
+            onCourseFilterChange={setCourseFilter}
+            countryFilter={countryFilter}
+            onCountryFilterChange={setCountryFilter}
+            batchFilter={batchFilter}
+            onBatchFilterChange={setBatchFilter}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            onClearFilters={handleClearFilters}
+            onPrintSelected={handlePrintSelected}
+            courses={courses}
+            countries={countries}
+            batches={batches}
+            selectedStudentsCount={selectedStudents.length}
+          />
 
           <StudentsTable
-            students={students}
+            students={filteredAndSortedStudents}
             courses={courses}
-            referrals={referrals}
             onEdit={handleEditStudent}
             onDelete={handleDeleteStudent}
+            onDeleteMultiple={handleDeleteMultipleStudents}
             onView={handleViewStudent}
-            onPrint={handlePrintSelectedStudents}
+            onUpdatePayment={handleUpdatePayment}
+            selectedStudents={selectedStudents}
+            onStudentSelection={handleStudentSelection}
           />
+
+          {filteredAndSortedStudents.length === 0 && students.length > 0 && (
+            <div className="mt-8 text-center text-gray-500">
+              <p className="text-lg">No students match your search criteria</p>
+              <p className="text-sm">Try adjusting your filters or search terms</p>
+            </div>
+          )}
         </main>
       </div>
 
-      {/* Edit Student Modal */}
-      {showEditModal && selectedStudent && (
-        <div>Edit Student Modal Content Here</div>
+      {/* Payment Update Modal */}
+      {showPaymentModal && paymentUpdateStudent && (
+        <PaymentUpdateModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentUpdateStudent(null);
+          }}
+          student={paymentUpdateStudent}
+          onPaymentAdded={handlePaymentAdded}
+        />
       )}
 
-      {/* Delete Student Modal */}
-      {showDeleteModal && selectedStudent && (
-        <div>Delete Student Modal Content Here</div>
+      {/* Import Students Modal */}
+      {showImportModal && (
+        <ImportStudentsModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          courses={courses}
+          onImportComplete={handleImportComplete}
+        />
       )}
     </div>
   );
 };
 
 export default Students;
-

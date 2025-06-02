@@ -219,12 +219,10 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
               <TableHead className="font-bold text-white text-sm w-[50px]">
                 <Checkbox
                   checked={isAllSelected}
+                  indeterminate={isPartiallySelected}
                   onCheckedChange={handleSelectAll}
                   className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-600"
                 />
-                {isPartiallySelected && (
-                  <div className="text-xs text-blue-200 mt-1">Partial</div>
-                )}
               </TableHead>
               <TableHead className="font-bold text-white text-sm w-[60px]">S.No</TableHead>
               <TableHead className="font-bold text-white text-sm">Lead ID</TableHead>
