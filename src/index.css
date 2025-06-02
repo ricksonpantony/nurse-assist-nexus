@@ -1,3 +1,4 @@
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
@@ -89,256 +90,317 @@
   }
 }
 
-/* Enhanced Print Styles for Reports */
+/* Optimized Print Styles - Global for all print content */
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 0.5cm;
+    size: A4;
+    margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+    
+    @bottom-center {
+      content: "📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney";
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      color: #666;
+      text-align: center;
+      padding-top: 8pt;
+      border-top: 0.5pt solid #ddd;
+    }
+    
+    @bottom-right {
+      content: "Page " counter(page) " | " date();
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      color: #888;
+    }
   }
   
-  /* Hide everything by default, then show only what we need */
-  * {
+  /* Hide everything by default */
+  body * {
     visibility: hidden !important;
+  }
+  
+  /* Show only print content and its children */
+  .print-content,
+  .print-content * {
+    visibility: visible !important;
+  }
+  
+  /* Position print content properly */
+  .print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Explicitly hide non-printable elements */
+  .print\\:hidden,
+  button,
+  .print-hide,
+  header,
+  nav,
+  aside,
+  .sidebar,
+  .no-print,
+  .fixed,
+  .absolute:not(.print-content) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  * {
+    font-family: Arial, sans-serif !important;
     color: black !important;
     background: white !important;
     box-shadow: none !important;
     text-shadow: none !important;
   }
   
-  /* Hide UI elements that shouldn't be printed */
-  .print\\:hidden,
-  button:not(.print-show),
-  .no-print,
-  nav,
-  .sidebar,
-  aside,
-  header:not(.print-header),
-  .fixed:not(.print-content),
-  .filters,
-  .filter-section,
-  .dashboard-cards:not(.print-content),
-  .chart-container,
-  .export-buttons,
-  .report-controls,
-  .top-bar,
-  .page-footer:not(.print-footer),
-  .analytics-section:not(.print-content),
-  .report-filters,
-  .tabs:not(.print-content),
-  .graph-area,
-  [data-print="false"],
-  .space-y-6 > div:not(:last-child),
-  .space-y-6 > .grid,
-  .space-y-6 > .flex {
-    display: none !important;
-    visibility: hidden !important;
-  }
-  
-  /* Show only the main report content */
   body {
-    font-family: Arial, sans-serif !important;
-    font-size: 10pt !important;
+    font-size: 9pt !important;
     line-height: 1.2 !important;
     color: black !important;
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    visibility: visible !important;
   }
   
-  /* Show the last card in space-y-6 which contains the report table */
-  .space-y-6 > div:last-child,
-  .space-y-6 > div:last-child *,
-  .space-y-6 > .shadow-lg:last-child,
-  .space-y-6 > .shadow-lg:last-child * {
-    visibility: visible !important;
+  /* Compact print header */
+  .print-header {
     display: block !important;
-    background: white !important;
-    color: black !important;
-  }
-  
-  /* Print header styling */
-  body::before {
-    content: "Nurse Assist International (NAI)\A Student Report Overview" !important;
-    display: block !important;
-    visibility: visible !important;
     text-align: center !important;
-    margin-bottom: 10pt !important;
-    padding-bottom: 5pt !important;
-    border-bottom: 2pt solid black !important;
+    margin-bottom: 12pt !important;
+    padding-bottom: 8pt !important;
+    border-bottom: 1.5pt solid black !important;
+  }
+  
+  .print-title {
     font-size: 14pt !important;
     font-weight: bold !important;
+    margin-bottom: 4pt !important;
     color: black !important;
-    background: white !important;
-    white-space: pre !important;
   }
   
-  /* Print footer styling */
-  body::after {
-    content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney" !important;
-    display: block !important;
-    visibility: visible !important;
-    text-align: center !important;
-    margin-top: 10pt !important;
-    padding-top: 5pt !important;
-    border-top: 1pt solid #666 !important;
+  .print-subtitle {
+    font-size: 11pt !important;
+    font-weight: normal !important;
+    color: black !important;
+  }
+  
+  /* Compact section styling */
+  .print-section {
+    margin-bottom: 8pt !important;
+    break-inside: avoid !important;
+    border: 0.5pt solid #ccc !important;
+    padding: 6pt !important;
+    background: #fafafa !important;
+  }
+  
+  .print-section-title {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    margin-bottom: 4pt !important;
+    color: black !important;
+    border-bottom: 0.5pt solid #999 !important;
+    padding-bottom: 2pt !important;
+  }
+  
+  /* Compact grid layouts */
+  .print-grid-2 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6pt !important;
+  }
+  
+  .print-grid-3 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6pt !important;
+  }
+  
+  .print-grid-4 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 4pt !important;
+  }
+  
+  .print-field {
+    margin-bottom: 3pt !important;
+  }
+  
+  .print-field-label {
     font-size: 8pt !important;
-    color: #555 !important;
-    background: white !important;
-    white-space: pre !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    font-weight: bold !important;
+    color: #444 !important;
+    margin-bottom: 1pt !important;
   }
   
-  /* Report table styles */
-  .space-y-6 > div:last-child table,
-  .space-y-6 > div:last-child .overflow-x-auto,
-  .space-y-6 > div:last-child .overflow-x-auto table,
-  table.student-report-table,
-  table.payment-report-table,
-  .report-table {
+  .print-field-value {
+    font-size: 9pt !important;
+    color: black !important;
+  }
+  
+  /* Compact table styles */
+  .print-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    margin: 8pt 0 !important;
-    font-size: 7pt !important;
-    visibility: visible !important;
-    display: table !important;
-    color: black !important;
-    background: white !important;
-    overflow: visible !important;
+    margin-top: 4pt !important;
+    font-size: 8pt !important;
   }
   
-  .space-y-6 > div:last-child table thead,
-  .space-y-6 > div:last-child table tbody,
-  .space-y-6 > div:last-child table tr,
-  .space-y-6 > div:last-child table th,
-  .space-y-6 > div:last-child table td {
-    visibility: visible !important;
-    color: black !important;
-    background: white !important;
-    border: 0.5pt solid #333 !important;
-  }
-  
-  .space-y-6 > div:last-child table thead {
-    display: table-header-group !important;
-  }
-  
-  .space-y-6 > div:last-child table tbody {
-    display: table-row-group !important;
-  }
-  
-  .space-y-6 > div:last-child table tr {
-    display: table-row !important;
-    page-break-inside: avoid !important;
-  }
-  
-  .space-y-6 > div:last-child table th {
-    display: table-cell !important;
-    background: #f0f0f0 !important;
-    border: 1pt solid #333 !important;
-    padding: 2pt 4pt !important;
-    font-size: 7pt !important;
+  .print-table th {
+    background: #e5e5e5 !important;
+    border: 0.5pt solid #666 !important;
+    padding: 3pt !important;
+    font-size: 8pt !important;
     font-weight: bold !important;
     text-align: left !important;
-    color: black !important;
   }
   
-  .space-y-6 > div:last-child table td {
-    display: table-cell !important;
-    border: 0.5pt solid #666 !important;
-    padding: 2pt 4pt !important;
-    font-size: 6pt !important;
+  .print-table td {
+    border: 0.5pt solid #999 !important;
+    padding: 3pt !important;
+    font-size: 8pt !important;
     text-align: left !important;
-    color: black !important;
-    background: white !important;
   }
   
-  /* Zebra striping for readability */
-  .space-y-6 > div:last-child table tbody tr:nth-child(even) td {
+  .print-table tr:nth-child(even) td {
     background: #f8f8f8 !important;
   }
   
-  /* Badge styles in print */
-  .space-y-6 > div:last-child .badge,
-  .space-y-6 > div:last-child [class*="badge"] {
-    border: 0.5pt solid #666 !important;
-    padding: 1pt 2pt !important;
-    border-radius: 1pt !important;
-    font-size: 6pt !important;
-    background: white !important;
-    color: black !important;
-    display: inline !important;
-    visibility: visible !important;
+  /* Compact payment summary */
+  .print-payment-summary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 6pt !important;
+    margin-bottom: 8pt !important;
   }
   
-  /* Card title visibility */
-  .space-y-6 > div:last-child .card-header,
-  .space-y-6 > div:last-child .card-title {
-    visibility: visible !important;
-    display: block !important;
-    font-size: 12pt !important;
+  .print-payment-box {
+    border: 1pt solid #666 !important;
+    padding: 4pt !important;
+    text-align: center !important;
+    background: #f0f8ff !important;
+  }
+  
+  .print-payment-label {
+    font-size: 8pt !important;
     font-weight: bold !important;
-    margin-bottom: 5pt !important;
+    color: #444 !important;
+    margin-bottom: 2pt !important;
+  }
+  
+  .print-payment-amount {
+    font-size: 11pt !important;
+    font-weight: bold !important;
     color: black !important;
-    background: white !important;
   }
   
-  /* Remove any overflow hiding */
-  .overflow-x-auto,
-  .overflow-hidden,
-  .min-h-screen,
-  .h-screen {
-    overflow: visible !important;
-    min-height: auto !important;
-    height: auto !important;
-  }
-  
-  /* Remove transforms and positioning that might hide content */
-  * {
-    transform: none !important;
-    position: static !important;
-  }
-  
-  .fixed {
-    position: static !important;
-  }
-  
-  /* Ensure pagination info and totals are visible if present */
-  .space-y-6 > div:last-child .mt-6,
-  .space-y-6 > div:last-child .p-4,
-  .space-y-6 > div:last-child .bg-gray-50 {
-    visibility: visible !important;
-    display: block !important;
-    background: #f0f0f0 !important;
-    color: black !important;
-    margin-top: 5pt !important;
-    padding: 3pt !important;
+  /* Compact badge styles */
+  .print-badge {
+    display: inline-block !important;
+    padding: 1pt 4pt !important;
+    border: 0.5pt solid #666 !important;
+    border-radius: 2pt !important;
     font-size: 7pt !important;
     font-weight: bold !important;
+    background: white !important;
+    color: black !important;
   }
   
-  /* Hide checkbox column in print */
-  .space-y-6 > div:last-child table th:first-child,
-  .space-y-6 > div:last-child table td:first-child {
+  /* Prevent page breaks within sections */
+  .print-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  
+  .print-table {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Override conflicting styles */
+  .bg-gradient-to-br,
+  .bg-gradient-to-r,
+  .shadow-lg,
+  .backdrop-blur-sm {
+    background: white !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  
+  /* Ensure proper spacing between major sections */
+  .print-major-section {
+    margin-bottom: 10pt !important;
+  }
+  
+  /* Compact referral status */
+  .print-referral-status {
+    background: #f5f5f5 !important;
+    padding: 4pt !important;
+    border: 0.5pt solid #ccc !important;
+    margin-top: 4pt !important;
+  }
+
+  /* Reports Tab Print Styles */
+  /* Hide UI Elements */
+  nav, .sidebar, .header, .filters, .filter-section,
+  .dashboard-cards, .chart-container, .btn, button,
+  .export-buttons, .report-controls, .top-bar,
+  .print-button, .page-footer, .analytics-section,
+  .report-filters, .tabs, .graph-area {
     display: none !important;
+    visibility: hidden;
   }
-  
-  /* Adjust column widths for better fit */
-  .space-y-6 > div:last-child table th,
-  .space-y-6 > div:last-child table td {
-    max-width: none !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+
+  /* Expand table to full width */
+  .report-table, .student-report-table {
+    width: 100% !important;
+    margin: 0;
+    font-size: 11pt;
+    border-collapse: collapse;
   }
-  
-  /* Make specific columns wider for important data */
-  .space-y-6 > div:last-child table th:nth-child(3),
-  .space-y-6 > div:last-child table td:nth-child(3),
-  .space-y-6 > div:last-child table th:nth-child(4),
-  .space-y-6 > div:last-child table td:nth-child(4) {
-    min-width: 80pt !important;
+
+  .report-table th, .report-table td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+  }
+
+  /* Print Header */
+  body::before {
+    content: "Nurse Assist International (NAI)\AStudent Report Overview";
+    white-space: pre;
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14pt;
+    margin-bottom: 20px;
+  }
+
+  /* Print Footer */
+  body::after {
+    content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney\A📍 2/2 Sorrel Street, Parramatta 2150, Sydney";
+    white-space: pre;
+    display: block;
+    text-align: center;
+    font-size: 10pt;
+    color: #555;
+    margin-top: 30px;
+  }
+
+  /* Remove any page overflow */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure only print area shows */
+  .print-area {
+    display: block !important;
   }
 }
