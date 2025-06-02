@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,6 +35,7 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
     advance_payment_method: "",
     batch_id: "",
     referral_payment_amount: "0",
+    notes: lead.notes || "",
   });
   const [joinDate, setJoinDate] = useState<Date>(new Date());
   const [classStartDate, setClassStartDate] = useState<Date>();
@@ -73,6 +75,7 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
         referral_payment_amount: parseFloat(formData.referral_payment_amount),
         installments: 1, // Always set to 1 since we removed installment options
         advance_payment_method: formData.advance_payment_method || null,
+        notes: formData.notes || null,
       };
 
       await onTransfer(studentData);
@@ -308,6 +311,22 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
                   </Select>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Notes Section */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h3>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                rows={3}
+                placeholder="Enter any additional notes about the student"
+                className="mt-1"
+              />
             </div>
           </div>
 

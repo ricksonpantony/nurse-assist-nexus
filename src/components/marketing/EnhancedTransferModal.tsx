@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -44,6 +45,9 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     // Referral Information
     referral_id: lead.referral_id || "no-referral",
     referral_payment_amount: "0",
+    
+    // Notes
+    notes: lead.notes || "",
   });
 
   const [joinDate, setJoinDate] = useState<Date>(new Date());
@@ -90,6 +94,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
         country: formData.country === "no-country" ? null : formData.country,
         batch_id: formData.batch_id === "" ? null : formData.batch_id,
         advance_payment_method: formData.advance_payment_method || null,
+        notes: formData.notes || null,
       };
 
       console.log('Transferring student data:', studentData);
@@ -371,6 +376,18 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
               </Select>
             </div>
           )}
+
+          {/* Notes Section */}
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              rows={3}
+              placeholder="Enter any additional notes about the student"
+            />
+          </div>
 
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">

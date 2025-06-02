@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +21,7 @@ export interface Student {
   advance_payment: number;
   advance_payment_method: string | null;
   installments: number;
+  notes: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -60,7 +60,8 @@ export const useStudents = () => {
       const transformedData: Student[] = (data || []).map(item => ({
         ...item,
         status: isValidStatus(item.status) ? item.status : 'Pass',
-        advance_payment_method: item.advance_payment_method || null
+        advance_payment_method: item.advance_payment_method || null,
+        notes: item.notes || null
       }));
       
       setStudents(transformedData);
@@ -148,6 +149,7 @@ export const useStudents = () => {
         country: cleanStudentData.country || null,
         class_start_date: cleanStudentData.class_start_date || null,
         advance_payment_method: cleanStudentData.advance_payment_method || null,
+        notes: cleanStudentData.notes || null,
         // Ensure numeric fields are properly typed
         total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
         advance_payment: Number(cleanStudentData.advance_payment) || 0,
@@ -200,7 +202,8 @@ export const useStudents = () => {
       const transformedData: Student = {
         ...data,
         status: isValidStatus(data.status) ? data.status : 'Pass',
-        advance_payment_method: data.advance_payment_method || null
+        advance_payment_method: data.advance_payment_method || null,
+        notes: data.notes || null
       };
       
       setStudents(prev => [transformedData, ...prev]);
@@ -279,7 +282,8 @@ export const useStudents = () => {
       const transformedData: Student = {
         ...data,
         status: isValidStatus(data.status) ? data.status : 'Pass',
-        advance_payment_method: data.advance_payment_method || null
+        advance_payment_method: data.advance_payment_method || null,
+        notes: data.notes || null
       };
       
       setStudents(prev => prev.map(student => student.id === id ? transformedData : student));

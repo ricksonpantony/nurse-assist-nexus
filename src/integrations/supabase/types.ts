@@ -368,6 +368,7 @@ export type Database = {
           id: string
           installments: number | null
           join_date: string
+          notes: string | null
           passport_id: string | null
           phone: string
           referral_id: string | null
@@ -389,6 +390,7 @@ export type Database = {
           id: string
           installments?: number | null
           join_date: string
+          notes?: string | null
           passport_id?: string | null
           phone: string
           referral_id?: string | null
@@ -410,6 +412,7 @@ export type Database = {
           id?: string
           installments?: number | null
           join_date?: string
+          notes?: string | null
           passport_id?: string | null
           phone?: string
           referral_id?: string | null

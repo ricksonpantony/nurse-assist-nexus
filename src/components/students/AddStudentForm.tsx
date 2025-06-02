@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { countries } from '@/utils/countries';
@@ -24,6 +25,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     total_course_fee: 0,
     advance_payment: 0,
     advance_payment_method: '',
+    notes: '',
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -53,6 +55,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
       setFormData({
         ...updatedStudent,
         advance_payment_method: updatedStudent.advance_payment_method || '',
+        notes: updatedStudent.notes || '',
       });
     }
   }, [student]);
@@ -127,6 +130,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
         // Include payment method only if advance payment is made
         advance_payment_method: formData.advance_payment_method || null,
+        // Handle notes
+        notes: formData.notes || null,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -357,6 +362,18 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 </Select>
               </div>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              name="notes"
+              value={formData.notes || ''}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Enter any additional notes about the student"
+            />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
