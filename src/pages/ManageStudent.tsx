@@ -142,6 +142,7 @@ const ManageStudent = () => {
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
         referral_payment_amount: Number(formData.referral_payment_amount) || 0,
+        installments: 1, // Always set to 1 since we removed installment options
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
