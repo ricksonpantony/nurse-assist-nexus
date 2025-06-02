@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Plus } from "lucide-react";
@@ -41,6 +42,7 @@ const ManageStudent = () => {
     advance_payment: 0,
     advance_payment_method: '',
     referral_payment_amount: 0,
+    notes: '',
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -70,6 +72,7 @@ const ManageStudent = () => {
         ...updatedStudent,
         advance_payment_method: updatedStudent.advance_payment_method || '',
         referral_payment_amount: 0,
+        notes: updatedStudent.notes || '',
       });
     }
   }, [isEditing, currentStudent]);
@@ -148,6 +151,7 @@ const ManageStudent = () => {
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
         status: formData.status as Student['status'],
         advance_payment_method: formData.advance_payment_method || null,
+        notes: formData.notes || null,
       };
 
       console.log('Processed form data before save:', processedData);
@@ -468,6 +472,18 @@ const ManageStudent = () => {
                       </Select>
                     </div>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    value={formData.notes || ''}
+                    onChange={handleChange}
+                    rows={3}
+                    placeholder="Enter any additional notes about the student"
+                  />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
