@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
-import { CreditCard, Download, Filter, Printer } from 'lucide-react';
+import { CreditCard, Download, Filter, Printer, Trash2 } from 'lucide-react';
 import { formatDateForExcel } from '@/utils/excelUtils';
 import * as XLSX from 'xlsx';
 
@@ -46,7 +47,9 @@ export const PaymentReports = () => {
   const { courses } = useCourses();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
   
+  // ... keep existing code (filters state)
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -83,7 +86,7 @@ export const PaymentReports = () => {
     fetchPayments();
   }, []);
 
-  // Create payment breakdown for each student
+  // ... keep existing code (paymentBreakdown useMemo)
   const paymentBreakdown = useMemo(() => {
     const breakdown: PaymentBreakdown[] = [];
     
@@ -123,7 +126,7 @@ export const PaymentReports = () => {
     return breakdown;
   }, [students, courses, payments, filters.stage]);
 
-  // Filter breakdown based on criteria
+  // ... keep existing code (filteredBreakdown useMemo with all filtering logic)
   const filteredBreakdown = useMemo(() => {
     let filtered = [...paymentBreakdown];
 
@@ -191,7 +194,62 @@ export const PaymentReports = () => {
     }));
   }, [paymentBreakdown, filters, payments, sortBy, sortOrder]);
 
-  // Calculate totals
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(filteredBreakdown.map(item => item.student_id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (studentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedRows(prev => [...prev, studentId]);
+    } else {
+      setSelectedRows(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleBulkExport = () => {
+    const selectedData = filteredBreakdown.filter(item => 
+      selectedRows.includes(item.student_id)
+    );
+    
+    const exportData = selectedData.map((item) => ({
+      sl_number: item.sl_number,
+      student_id: item.student_id,
+      student_name: item.student_name,
+      course_title: item.course_title,
+      stage: item.stage,
+      student_status: item.student_status,
+      course_fee: item.course_fee,
+      advance_payment: item.advance_payment,
+      advance_date: item.advance_date ? formatDateForExcel(item.advance_date) : '',
+      second_payment: item.second_payment,
+      second_date: item.second_date ? formatDateForExcel(item.second_date) : '',
+      other_payments: item.other_payments,
+      other_dates: item.other_dates,
+      final_payment: item.final_payment,
+      final_date: item.final_date ? formatDateForExcel(item.final_date) : '',
+      balance_fee: item.balance_fee,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Selected Payment Report");
+
+    const currentDate = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `selected_payment_breakdown_report_${currentDate}.xlsx`);
+  };
+
+  const handleDeleteSelected = () => {
+    // This would typically call a delete function
+    console.log('Delete selected payment records:', selectedRows);
+    setSelectedRows([]);
+  };
+
+  // ... keep existing code (calculate totals)
   const totalStudents = filteredBreakdown.length;
   const totalCourseFees = filteredBreakdown.reduce((sum, item) => sum + item.course_fee, 0);
   const totalAdvancePayments = filteredBreakdown.reduce((sum, item) => sum + item.advance_payment, 0);
@@ -251,6 +309,9 @@ export const PaymentReports = () => {
     setSortBy('payment_date');
     setSortOrder('desc');
   };
+
+  const isAllSelected = filteredBreakdown.length > 0 && selectedRows.length === filteredBreakdown.length;
+  const isPartialSelected = selectedRows.length > 0 && selectedRows.length < filteredBreakdown.length;
 
   if (loading) {
     return <div className="p-6 text-center">Loading payment reports...</div>;
@@ -457,6 +518,32 @@ export const PaymentReports = () => {
         </Card>
       </div>
 
+      {/* Selection Actions */}
+      {selectedRows.length > 0 && (
+        <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium text-gray-700">
+                {selectedRows.length} record{selectedRows.length > 1 ? 's' : ''} selected
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleBulkExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                  <Download className="h-4 w-4" />
+                  Export Selected
+                </Button>
+                <Button onClick={handleDeleteSelected} variant="destructive" className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected
+                </Button>
+                <Button onClick={() => setSelectedRows([])} variant="outline">
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2">
         <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
@@ -479,6 +566,13 @@ export const PaymentReports = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox 
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      className={isPartialSelected ? "opacity-50" : ""}
+                    />
+                  </TableHead>
                   <TableHead className="w-16">Sl No.</TableHead>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Student Name</TableHead>
@@ -499,7 +593,16 @@ export const PaymentReports = () => {
               </TableHeader>
               <TableBody>
                 {filteredBreakdown.map((item) => (
-                  <TableRow key={item.student_id}>
+                  <TableRow 
+                    key={item.student_id}
+                    className={selectedRows.includes(item.student_id) ? 'bg-blue-50' : ''}
+                  >
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedRows.includes(item.student_id)}
+                        onCheckedChange={(checked) => handleSelectRow(item.student_id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{item.sl_number}</TableCell>
                     <TableCell>{item.student_id}</TableCell>
                     <TableCell className="font-medium">{item.student_name}</TableCell>

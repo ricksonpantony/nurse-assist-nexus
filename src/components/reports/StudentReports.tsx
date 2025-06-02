@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -9,13 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Download, Filter, Printer, Users } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar, Download, Filter, Printer, Users, Trash2 } from 'lucide-react';
 import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
 import { countries } from '@/utils/countries';
 
 export const StudentReports = () => {
   const { students } = useStudents();
   const { courses } = useCourses();
+  
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -110,6 +112,49 @@ export const StudentReports = () => {
   const totalStudents = filteredStudents.length;
   const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
 
+  // Selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(filteredStudents.map(student => student.id));
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+
+  const handleSelectStudent = (studentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudents(prev => prev.filter(id => id !== studentId));
+    }
+  };
+
+  const handleBulkExport = () => {
+    const selectedStudentData = filteredStudents.filter(student => 
+      selectedStudents.includes(student.id)
+    );
+    exportStudentsToExcel(selectedStudentData, courses);
+  };
+
+  const handleDeleteSelected = () => {
+    // This would typically call a delete function
+    console.log('Delete selected students:', selectedStudents);
+    setSelectedStudents([]);
+  };
+
+  // Get unique countries from students for the filter dropdown
+  const uniqueCountries = useMemo(() => {
+    const studentCountries = students
+      .map(student => student.country)
+      .filter(country => country && country.trim() !== '')
+      .filter((country, index, array) => array.indexOf(country) === index)
+      .sort();
+    return studentCountries;
+  }, [students]);
+
+  const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
+  const isPartialSelected = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
+
   const getStatusBadge = (status: string) => {
     const colors = {
       'Attended Online': 'bg-blue-100 text-blue-800',
@@ -148,16 +193,6 @@ export const StudentReports = () => {
       country: 'all',
     });
   };
-
-  // Get unique countries from students for the filter dropdown
-  const uniqueCountries = useMemo(() => {
-    const studentCountries = students
-      .map(student => student.country)
-      .filter(country => country && country.trim() !== '')
-      .filter((country, index, array) => array.indexOf(country) === index)
-      .sort();
-    return studentCountries;
-  }, [students]);
 
   return (
     <div className="space-y-6">
@@ -347,6 +382,32 @@ export const StudentReports = () => {
         </Card>
       </div>
 
+      {/* Selection Actions */}
+      {selectedStudents.length > 0 && (
+        <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium text-gray-700">
+                {selectedStudents.length} student{selectedStudents.length > 1 ? 's' : ''} selected
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleBulkExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                  <Download className="h-4 w-4" />
+                  Export Selected
+                </Button>
+                <Button onClick={handleDeleteSelected} variant="destructive" className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Selected
+                </Button>
+                <Button onClick={() => setSelectedStudents([])} variant="outline">
+                  Clear Selection
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2">
         <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
@@ -369,6 +430,13 @@ export const StudentReports = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox 
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      className={isPartialSelected ? "opacity-50" : ""}
+                    />
+                  </TableHead>
                   <TableHead className="w-12">#</TableHead>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Full Name</TableHead>
@@ -383,7 +451,16 @@ export const StudentReports = () => {
               </TableHeader>
               <TableBody>
                 {filteredStudents.map((student, index) => (
-                  <TableRow key={student.id}>
+                  <TableRow 
+                    key={student.id}
+                    className={selectedStudents.includes(student.id) ? 'bg-blue-50' : ''}
+                  >
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedStudents.includes(student.id)}
+                        onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell>{student.id}</TableCell>
                     <TableCell className="font-medium">{student.full_name}</TableCell>
