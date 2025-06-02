@@ -147,7 +147,7 @@ export const useStudents = () => {
         // Ensure numeric fields are properly typed
         total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
         advance_payment: Number(cleanStudentData.advance_payment) || 0,
-        installments: Number(cleanStudentData.installments) || 1,
+        installments: 1, // Always set to 1
       };
       
       console.log('Clean insert data:', insertData);
@@ -231,6 +231,11 @@ export const useStudents = () => {
         }
         return acc;
       }, {} as any);
+      
+      // Ensure installments is always 1 if provided
+      if ('installments' in cleanData) {
+        cleanData.installments = 1;
+      }
       
       // Add updated_at timestamp
       cleanData.updated_at = new Date().toISOString();

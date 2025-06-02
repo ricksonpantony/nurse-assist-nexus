@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,6 @@ const ManageStudent = () => {
     status: 'Attended Online' as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
-    installments: 1,
     referral_payment_amount: 0,
   };
 
@@ -131,7 +129,7 @@ const ManageStudent = () => {
         ...formData,
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
-        installments: Number(formData.installments) || 1,
+        installments: 1, // Set default value of 1 for installments
         referral_payment_amount: Number(formData.referral_payment_amount) || 0,
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
@@ -435,18 +433,6 @@ const ManageStudent = () => {
                       value={formData.advance_payment || 0}
                       onChange={handleChange}
                       placeholder="Enter advance payment"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="installments">Installments</Label>
-                    <Input
-                      id="installments"
-                      name="installments"
-                      type="number"
-                      min="1"
-                      value={formData.installments || 1}
-                      onChange={handleChange}
-                      placeholder="Number of installments"
                     />
                   </div>
                 </div>

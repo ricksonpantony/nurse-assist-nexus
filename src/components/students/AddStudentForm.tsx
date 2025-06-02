@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     status: 'Attended Online',
     total_course_fee: 0,
     advance_payment: 0,
-    installments: 1,
   };
 
   const [formData, setFormData] = useState(initialState);
@@ -108,7 +106,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         ...formData,
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
-        installments: Number(formData.installments) || 1,
+        installments: 1, // Set default value of 1 for installments
         // Remove course_id if it's "none" to store as null/empty
         course_id: formData.course_id === 'none' ? null : formData.course_id,
         // Handle empty dates - set to null instead of empty string
@@ -322,18 +320,6 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                 value={formData.advance_payment || 0}
                 onChange={handleChange}
                 placeholder="Enter advance payment"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="installments">Installments</Label>
-              <Input
-                id="installments"
-                name="installments"
-                type="number"
-                min="1"
-                value={formData.installments || 1}
-                onChange={handleChange}
-                placeholder="Number of installments"
               />
             </div>
           </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,6 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
     course_id: lead.interested_course_id || "",
     status: "Enrolled",
     total_course_fee: "",
-    installments: "1",
     advance_payment: "0",
     batch_id: "",
     referral_payment_amount: "0",
@@ -60,7 +58,7 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
         join_date: format(joinDate, 'yyyy-MM-dd'),
         class_start_date: classStartDate ? format(classStartDate, 'yyyy-MM-dd') : null,
         total_course_fee: parseFloat(formData.total_course_fee),
-        installments: parseInt(formData.installments),
+        installments: 1, // Set default value of 1 for installments
         advance_payment: parseFloat(formData.advance_payment),
         referral_id: lead.referral_id,
         referral_payment_amount: parseFloat(formData.referral_payment_amount),
@@ -258,7 +256,7 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
 
           <div className="bg-white p-6 rounded-xl shadow-sm border">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="total_course_fee">Total Course Fee *</Label>
                 <Input
@@ -268,16 +266,6 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
                   value={formData.total_course_fee}
                   onChange={(e) => handleInputChange('total_course_fee', e.target.value)}
                   required
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="installments">Installments</Label>
-                <Input
-                  id="installments"
-                  type="number"
-                  value={formData.installments}
-                  onChange={(e) => handleInputChange('installments', e.target.value)}
                   className="mt-1"
                 />
               </div>
