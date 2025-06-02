@@ -90,7 +90,7 @@
   }
 }
 
-/* Optimized Print Styles for Single-Page Student Report */
+/* Optimized Print Styles - Global for all print content */
 @media print {
   @page {
     size: A4;
@@ -114,6 +114,44 @@
     }
   }
   
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+  
+  /* Show only print content and its children */
+  .print-content,
+  .print-content * {
+    visibility: visible !important;
+  }
+  
+  /* Position print content properly */
+  .print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Explicitly hide non-printable elements */
+  .print\\:hidden,
+  button,
+  .print-hide,
+  header,
+  nav,
+  aside,
+  .sidebar,
+  .no-print,
+  .fixed,
+  .absolute:not(.print-content) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
   * {
     font-family: Arial, sans-serif !important;
     color: black !important;
@@ -129,25 +167,6 @@
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-  
-  /* Hide non-printable elements */
-  .print\\:hidden,
-  button,
-  .print-hide,
-  header,
-  nav,
-  aside,
-  .sidebar,
-  .no-print {
-    display: none !important;
-    visibility: hidden !important;
-  }
-  
-  /* Show only print content - specifically for marketing lead details */
-  .print-content {
-    display: block !important;
-    visibility: visible !important;
   }
   
   /* Compact print header */
@@ -302,21 +321,6 @@
   .print-table {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-  }
-  
-  /* Main content container */
-  .print-content {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-  
-  /* Hide modal overlays */
-  .fixed, .absolute {
-    position: static !important;
   }
   
   /* Override conflicting styles */
