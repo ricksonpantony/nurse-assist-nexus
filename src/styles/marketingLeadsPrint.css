@@ -1,0 +1,304 @@
+
+/* Marketing Leads Print Styles - Dedicated CSS file */
+@media print {
+  /* Hide everything by default when printing from marketing page */
+  .marketing-page * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the print content and its children */
+  .marketing-leads-print-content,
+  .marketing-leads-print-content * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  /* Position print content properly */
+  .marketing-leads-print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* Page setup - A4 Landscape */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* Print header styling */
+  .marketing-leads-print-header {
+    text-align: center !important;
+    margin-bottom: 15pt !important;
+    padding-bottom: 8pt !important;
+    border-bottom: 2pt solid black !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-title {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    margin-bottom: 6pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-subtitle {
+    font-size: 12pt !important;
+    color: #444 !important;
+    margin-bottom: 6pt !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-date {
+    font-size: 10pt !important;
+    color: #666 !important;
+    display: block !important;
+  }
+
+  /* Summary section */
+  .marketing-leads-print-summary {
+    margin-bottom: 15pt !important;
+    padding: 8pt !important;
+    border: 1pt solid #ccc !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-summary h3 {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-bottom: 6pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-summary p {
+    font-size: 10pt !important;
+    margin: 3pt 0 !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Table styling for print - Optimized for landscape */
+  .marketing-leads-print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10pt !important;
+    font-size: 7pt !important;
+    color: black !important;
+    display: table !important;
+    visibility: visible !important;
+    table-layout: fixed !important;
+  }
+
+  .marketing-leads-print-table thead {
+    display: table-header-group !important;
+  }
+
+  .marketing-leads-print-table tbody {
+    display: table-row-group !important;
+  }
+
+  .marketing-leads-print-table tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .marketing-leads-print-table th {
+    background: #e8e8e8 !important;
+    border: 1pt solid #333 !important;
+    padding: 3pt 2pt !important;
+    font-size: 7pt !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    color: black !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    vertical-align: top !important;
+  }
+
+  .marketing-leads-print-table td {
+    border: 0.5pt solid #666 !important;
+    padding: 2pt 1pt !important;
+    font-size: 6pt !important;
+    color: black !important;
+    vertical-align: top !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+  }
+
+  /* Column width optimization for landscape - Leads table specific */
+  .marketing-leads-print-table th:nth-child(1),
+  .marketing-leads-print-table td:nth-child(1) {
+    width: 4% !important; /* S.No */
+  }
+
+  .marketing-leads-print-table th:nth-child(2),
+  .marketing-leads-print-table td:nth-child(2) {
+    width: 8% !important; /* Lead ID */
+  }
+
+  .marketing-leads-print-table th:nth-child(3),
+  .marketing-leads-print-table td:nth-child(3) {
+    width: 12% !important; /* Name */
+  }
+
+  .marketing-leads-print-table th:nth-child(4),
+  .marketing-leads-print-table td:nth-child(4) {
+    width: 12% !important; /* Email */
+  }
+
+  .marketing-leads-print-table th:nth-child(5),
+  .marketing-leads-print-table td:nth-child(5) {
+    width: 8% !important; /* Phone */
+  }
+
+  .marketing-leads-print-table th:nth-child(6),
+  .marketing-leads-print-table td:nth-child(6) {
+    width: 8% !important; /* Country */
+  }
+
+  .marketing-leads-print-table th:nth-child(7),
+  .marketing-leads-print-table td:nth-child(7) {
+    width: 12% !important; /* Course Interest */
+  }
+
+  .marketing-leads-print-table th:nth-child(8),
+  .marketing-leads-print-table td:nth-child(8) {
+    width: 8% !important; /* Status */
+  }
+
+  .marketing-leads-print-table th:nth-child(9),
+  .marketing-leads-print-table td:nth-child(9) {
+    width: 8% !important; /* Expected Date */
+  }
+
+  .marketing-leads-print-table th:nth-child(10),
+  .marketing-leads-print-table td:nth-child(10) {
+    width: 10% !important; /* Referral */
+  }
+
+  .marketing-leads-print-table th:nth-child(11),
+  .marketing-leads-print-table td:nth-child(11) {
+    width: 8% !important; /* Created */
+  }
+
+  .marketing-leads-print-table tr:nth-child(even) td {
+    background: #f8f8f8 !important;
+  }
+
+  /* Badge styling for print */
+  .marketing-leads-print-badge {
+    display: inline-block !important;
+    padding: 1pt 2pt !important;
+    border: 0.5pt solid #666 !important;
+    border-radius: 1pt !important;
+    font-size: 5pt !important;
+    font-weight: bold !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Override any conflicting styles */
+  .marketing-leads-print-content .bg-gradient-to-br,
+  .marketing-leads-print-content .bg-gradient-to-r,
+  .marketing-leads-print-content .shadow-lg,
+  .marketing-leads-print-content .backdrop-blur-sm {
+    background: white !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Footer contact info */
+  .marketing-leads-print-content::after {
+    content: "📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney";
+    display: block !important;
+    text-align: center !important;
+    font-size: 8pt !important;
+    color: #666 !important;
+    margin-top: 20pt !important;
+    padding-top: 8pt !important;
+    border-top: 1pt solid #ddd !important;
+  }
+
+  /* Force display for all print elements */
+  .marketing-leads-print-content table,
+  .marketing-leads-print-content thead,
+  .marketing-leads-print-content tbody,
+  .marketing-leads-print-content tr,
+  .marketing-leads-print-content th,
+  .marketing-leads-print-content td {
+    display: table !important;
+  }
+
+  .marketing-leads-print-content thead {
+    display: table-header-group !important;
+  }
+
+  .marketing-leads-print-content tbody {
+    display: table-row-group !important;
+  }
+
+  .marketing-leads-print-content tr {
+    display: table-row !important;
+  }
+
+  .marketing-leads-print-content th,
+  .marketing-leads-print-content td {
+    display: table-cell !important;
+  }
+
+  /* Ensure proper text overflow handling */
+  .marketing-leads-print-table th,
+  .marketing-leads-print-table td {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+  }
+
+  /* Allow course names and notes to wrap */
+  .marketing-leads-print-table td:nth-child(7),
+  .marketing-leads-print-table td:nth-child(10) {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Statistics grid styling */
+  .marketing-leads-print-stats {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10pt !important;
+    margin-bottom: 15pt !important;
+  }
+
+  .marketing-leads-print-stat-box {
+    padding: 8pt !important;
+    border: 1pt solid #333 !important;
+    background: #f0f0f0 !important;
+    text-align: center !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-stat-label {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    margin-bottom: 3pt !important;
+    display: block !important;
+  }
+
+  .marketing-leads-print-stat-value {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    color: black !important;
+    display: block !important;
+  }
+}

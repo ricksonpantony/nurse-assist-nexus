@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Download } from "lucide-react";
@@ -11,6 +12,7 @@ import { useStudents } from "@/hooks/useStudents";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import "@/styles/marketingLeadsPrint.css";
 
 const Marketing = () => {
   const { leads, loading, updateLead, deleteLead } = useLeads();
@@ -117,43 +119,121 @@ const Marketing = () => {
   const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 marketing-page">
       {/* Print Content for Selected Leads */}
       {selectedLeadsForPrint.length > 0 && (
-        <LeadsPrintView 
-          leads={selectedLeadsForPrint} 
-          courses={courses} 
-          referrals={referrals} 
-        />
+        <div className="marketing-leads-print-content">
+          {/* Print Header */}
+          <div className="marketing-leads-print-header">
+            <div className="marketing-leads-print-title">Nurse Assist International (NAI)</div>
+            <div className="marketing-leads-print-subtitle">Selected Leads Report</div>
+            <div className="marketing-leads-print-date">Generated on: {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+          </div>
+
+          {/* Print Statistics Summary */}
+          <div className="marketing-leads-print-summary">
+            <h3>Report Summary</h3>
+            <div className="marketing-leads-print-stats">
+              <div className="marketing-leads-print-stat-box">
+                <div className="marketing-leads-print-stat-label">Total Selected Leads</div>
+                <div className="marketing-leads-print-stat-value">{selectedLeadsForPrint.length}</div>
+              </div>
+              <div className="marketing-leads-print-stat-box">
+                <div className="marketing-leads-print-stat-label">Active Leads</div>
+                <div className="marketing-leads-print-stat-value">
+                  {selectedLeadsForPrint.filter(l => ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'].includes(l.lead_status || 'New')).length}
+                </div>
+              </div>
+              <div className="marketing-leads-print-stat-box">
+                <div className="marketing-leads-print-stat-label">Converted Leads</div>
+                <div className="marketing-leads-print-stat-value">
+                  {selectedLeadsForPrint.filter(l => l.lead_status === 'Converted to Student').length}
+                </div>
+              </div>
+              <div className="marketing-leads-print-stat-box">
+                <div className="marketing-leads-print-stat-label">Report Date</div>
+                <div className="marketing-leads-print-stat-value">{format(new Date(), 'dd/MM/yyyy')}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Print Leads Table */}
+          <div className="marketing-leads-print-summary">
+            <h3>Lead Details</h3>
+            <table className="marketing-leads-print-table">
+              <thead>
+                <tr>
+                  <th>S.No</th>
+                  <th>Lead ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Country</th>
+                  <th>Course Interest</th>
+                  <th>Status</th>
+                  <th>Expected Date</th>
+                  <th>Referral</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedLeadsForPrint.map((lead, index) => {
+                  const course = courses.find(c => c.id === lead.interested_course_id);
+                  const referral = referrals.find(r => r.id === lead.referral_id);
+                  return (
+                    <tr key={lead.id}>
+                      <td>{index + 1}</td>
+                      <td>{lead.lead_id || lead.id}</td>
+                      <td>{lead.full_name}</td>
+                      <td>{lead.email}</td>
+                      <td>{lead.phone}</td>
+                      <td>{lead.country || 'Not specified'}</td>
+                      <td>{course ? course.title : 'Not specified'}</td>
+                      <td>
+                        <span className="marketing-leads-print-badge">{lead.lead_status || 'New'}</span>
+                      </td>
+                      <td>
+                        {lead.expected_joining_date ? format(new Date(lead.expected_joining_date), 'dd/MM/yyyy') : 'Not specified'}
+                      </td>
+                      <td>{referral ? referral.full_name : 'Direct'}</td>
+                      <td>{format(new Date(lead.created_at), 'dd/MM/yyyy')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* Print Content - Hidden on screen, visible when printing */}
-      <div className="print-content hidden print:block">
+      <div className="marketing-leads-print-content">
         {/* Print Header */}
-        <div className="print-header">
-          <div className="print-title">Nurse Assist International (NAI)</div>
-          <div className="print-subtitle">Marketing Lead Management Report</div>
+        <div className="marketing-leads-print-header">
+          <div className="marketing-leads-print-title">Nurse Assist International (NAI)</div>
+          <div className="marketing-leads-print-subtitle">Marketing Lead Management Report</div>
+          <div className="marketing-leads-print-date">Generated on: {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
         </div>
 
         {/* Print Statistics Summary */}
-        <div className="print-section print-major-section">
-          <div className="print-section-title">Lead Statistics Summary</div>
-          <div className="print-grid-4">
-            <div className="print-payment-box">
-              <div className="print-payment-label">Total Leads</div>
-              <div className="print-payment-amount">{totalLeads}</div>
+        <div className="marketing-leads-print-summary">
+          <h3>Lead Statistics Summary</h3>
+          <div className="marketing-leads-print-stats">
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Total Leads</div>
+              <div className="marketing-leads-print-stat-value">{totalLeads}</div>
             </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Active Leads</div>
-              <div className="print-payment-amount">{activeLeads}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Active Leads</div>
+              <div className="marketing-leads-print-stat-value">{activeLeads}</div>
             </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Converted</div>
-              <div className="print-payment-amount">{convertedLeads}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Converted</div>
+              <div className="marketing-leads-print-stat-value">{convertedLeads}</div>
             </div>
-            <div className="print-payment-box">
-              <div className="print-payment-label">Conversion Rate</div>
-              <div className="print-payment-amount">
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Conversion Rate</div>
+              <div className="marketing-leads-print-stat-value">
                 {totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0}%
               </div>
             </div>
@@ -161,11 +241,12 @@ const Marketing = () => {
         </div>
 
         {/* Print Leads Table */}
-        <div className="print-section">
-          <div className="print-section-title">Lead Details</div>
-          <table className="print-table">
+        <div className="marketing-leads-print-summary">
+          <h3>Lead Details</h3>
+          <table className="marketing-leads-print-table">
             <thead>
               <tr>
+                <th>S.No</th>
                 <th>Lead ID</th>
                 <th>Name</th>
                 <th>Email</th>
@@ -173,23 +254,31 @@ const Marketing = () => {
                 <th>Country</th>
                 <th>Course Interest</th>
                 <th>Status</th>
+                <th>Expected Date</th>
+                <th>Referral</th>
                 <th>Created</th>
               </tr>
             </thead>
             <tbody>
-              {leads.map((lead) => {
+              {leads.map((lead, index) => {
                 const course = courses.find(c => c.id === lead.interested_course_id);
+                const referral = referrals.find(r => r.id === lead.referral_id);
                 return (
                   <tr key={lead.id}>
+                    <td>{index + 1}</td>
                     <td>{lead.lead_id || lead.id}</td>
                     <td>{lead.full_name}</td>
                     <td>{lead.email}</td>
                     <td>{lead.phone}</td>
-                    <td>{lead.country}</td>
+                    <td>{lead.country || 'Not specified'}</td>
                     <td>{course ? course.title : 'Not specified'}</td>
                     <td>
-                      <span className="print-badge">{lead.lead_status}</span>
+                      <span className="marketing-leads-print-badge">{lead.lead_status || 'New'}</span>
                     </td>
+                    <td>
+                      {lead.expected_joining_date ? format(new Date(lead.expected_joining_date), 'dd/MM/yyyy') : 'Not specified'}
+                    </td>
+                    <td>{referral ? referral.full_name : 'Direct'}</td>
                     <td>{format(new Date(lead.created_at), 'dd/MM/yyyy')}</td>
                   </tr>
                 );
@@ -199,40 +288,50 @@ const Marketing = () => {
         </div>
 
         {/* Print Lead Status Distribution */}
-        <div className="print-section">
-          <div className="print-section-title">Lead Status Distribution</div>
-          <div className="print-grid-3">
-            <div className="print-field">
-              <div className="print-field-label">New Leads</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'New').length}</div>
+        <div className="marketing-leads-print-summary">
+          <h3>Lead Status Distribution</h3>
+          <div className="marketing-leads-print-stats">
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">New Leads</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'New').length}</div>
             </div>
-            <div className="print-field">
-              <div className="print-field-label">In Progress</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'In Progress').length}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">In Progress</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'In Progress').length}</div>
             </div>
-            <div className="print-field">
-              <div className="print-field-label">Contacted</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Contacted').length}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Contacted</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Contacted').length}</div>
             </div>
-            <div className="print-field">
-              <div className="print-field-label">Qualified</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Qualified').length}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Qualified</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Qualified').length}</div>
             </div>
-            <div className="print-field">
-              <div className="print-field-label">Converted</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Converted to Student').length}</div>
+          </div>
+          <div className="marketing-leads-print-stats">
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Converted</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Converted to Student').length}</div>
             </div>
-            <div className="print-field">
-              <div className="print-field-label">Lost</div>
-              <div className="print-field-value">{leads.filter(l => l.lead_status === 'Lost').length}</div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Lost</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Lost').length}</div>
+            </div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Follow-up Pending</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Follow-up Pending').length}</div>
+            </div>
+            <div className="marketing-leads-print-stat-box">
+              <div className="marketing-leads-print-stat-label">Waiting Documents</div>
+              <div className="marketing-leads-print-stat-value">{leads.filter(l => l.lead_status === 'Waiting for Documents / Payment').length}</div>
             </div>
           </div>
         </div>
 
         {/* Print Course Interest Analysis */}
-        <div className="print-section">
-          <div className="print-section-title">Course Interest Analysis</div>
-          <table className="print-table">
+        <div className="marketing-leads-print-summary">
+          <h3>Course Interest Analysis</h3>
+          <table className="marketing-leads-print-table">
             <thead>
               <tr>
                 <th>Course</th>
@@ -255,14 +354,6 @@ const Marketing = () => {
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* Print Report Generated Info */}
-        <div className="print-section">
-          <div className="print-field">
-            <div className="print-field-label">Report Generated</div>
-            <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-          </div>
         </div>
       </div>
 
