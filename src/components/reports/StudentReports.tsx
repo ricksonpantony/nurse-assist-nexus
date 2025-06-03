@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Download, Filter, Printer, Users, Trash2 } from 'lucide-react';
 import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
 import { countries } from '@/utils/countries';
+import '../../../styles/studentReportsPrint.css';
 
 export const StudentReports = () => {
   const { students } = useStudents();
@@ -112,6 +113,11 @@ export const StudentReports = () => {
   const totalStudents = filteredStudents.length;
   const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
 
+  // Get selected students data
+  const selectedStudentsData = filteredStudents.filter(student => 
+    selectedStudents.includes(student.id)
+  );
+
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -140,6 +146,14 @@ export const StudentReports = () => {
     // This would typically call a delete function
     console.log('Delete selected students:', selectedStudents);
     setSelectedStudents([]);
+  };
+
+  const handlePrintSelected = () => {
+    if (selectedStudents.length === 0) {
+      alert('Please select students to print');
+      return;
+    }
+    window.print();
   };
 
   // Get unique countries from students for the filter dropdown
@@ -195,9 +209,67 @@ export const StudentReports = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 student-reports-page">
+      {/* Print Content - Hidden on screen, visible only when printing */}
+      <div className="student-reports-print-content" style={{ display: 'none' }}>
+        <div className="student-reports-print-header">
+          <div className="student-reports-print-title">
+            Nurse Assist International (NAI)
+          </div>
+          <div className="student-reports-print-subtitle">
+            Selected Student Reports
+          </div>
+          <div className="student-reports-print-date">
+            Generated on: {new Date().toLocaleDateString()}
+          </div>
+        </div>
+
+        <div className="student-reports-print-summary">
+          <h3>Report Summary</h3>
+          <p>Total Selected Students: {selectedStudentsData.length}</p>
+          <p>Total Course Fees: ${selectedStudentsData.reduce((sum, student) => sum + student.total_course_fee, 0).toLocaleString()}</p>
+        </div>
+
+        <table className="student-reports-print-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Student ID</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Course</th>
+              <th>Join Date</th>
+              <th>Status</th>
+              <th>Course Fee</th>
+              <th>Country</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedStudentsData.map((student, index) => (
+              <tr key={student.id}>
+                <td>{index + 1}</td>
+                <td>{student.id}</td>
+                <td>{student.full_name}</td>
+                <td>{student.email}</td>
+                <td>{student.phone}</td>
+                <td>{getCourseName(student.course_id)}</td>
+                <td>{formatDateForExcel(student.join_date)}</td>
+                <td>
+                  <span className="student-reports-print-badge">
+                    {student.status}
+                  </span>
+                </td>
+                <td>${student.total_course_fee.toLocaleString()}</td>
+                <td>{student.country || 'N/A'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
+      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 no-print">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Filter className="h-5 w-5" />
@@ -356,7 +428,7 @@ export const StudentReports = () => {
       </Card>
 
       {/* Report Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -384,7 +456,7 @@ export const StudentReports = () => {
 
       {/* Selection Actions */}
       {selectedStudents.length > 0 && (
-        <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+        <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50 selection-actions">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="text-sm font-medium text-gray-700">
@@ -394,6 +466,10 @@ export const StudentReports = () => {
                 <Button onClick={handleBulkExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
                   <Download className="h-4 w-4" />
                   Export Selected
+                </Button>
+                <Button onClick={handlePrintSelected} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 print-selected-btn">
+                  <Printer className="h-4 w-4" />
+                  Print Selected
                 </Button>
                 <Button onClick={handleDeleteSelected} variant="destructive" className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />
@@ -409,7 +485,7 @@ export const StudentReports = () => {
       )}
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 no-print">
         <Button onClick={handleExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
           <Download className="h-4 w-4" />
           Export to Excel
@@ -421,7 +497,7 @@ export const StudentReports = () => {
       </div>
 
       {/* Report Table */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg no-print">
         <CardHeader>
           <CardTitle>Student Report ({totalStudents} students)</CardTitle>
         </CardHeader>
