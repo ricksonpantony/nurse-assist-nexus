@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Download, Filter, Printer, Users, Trash2 } from 'lucide-react';
 import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
 import { countries } from '@/utils/countries';
-import '../../../styles/studentReportsPrint.css';
+import '../../styles/studentReportsPrint.css';
 
 export const StudentReports = () => {
   const { students } = useStudents();
