@@ -19,45 +19,44 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
   };
 
   return (
-    <div className="marketing-leads-print-content">
+    <div className="print-content hidden print:block">
       {/* Print Header */}
-      <div className="marketing-leads-print-header">
-        <div className="marketing-leads-print-title">Nurse Assist International (NAI)</div>
-        <div className="marketing-leads-print-subtitle">Selected Leads Report</div>
-        <div className="marketing-leads-print-date">Generated on: {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+      <div className="print-header">
+        <div className="print-title">Nurse Assist International (NAI)</div>
+        <div className="print-subtitle">Selected Leads Report</div>
       </div>
 
       {/* Print Statistics Summary */}
-      <div className="marketing-leads-print-summary">
-        <h3>Report Summary</h3>
-        <div className="marketing-leads-print-stats">
-          <div className="marketing-leads-print-stat-box">
-            <div className="marketing-leads-print-stat-label">Total Selected Leads</div>
-            <div className="marketing-leads-print-stat-value">{leads.length}</div>
+      <div className="print-section print-major-section">
+        <div className="print-section-title">Report Summary</div>
+        <div className="print-grid-4">
+          <div className="print-payment-box">
+            <div className="print-payment-label">Total Selected Leads</div>
+            <div className="print-payment-amount">{leads.length}</div>
           </div>
-          <div className="marketing-leads-print-stat-box">
-            <div className="marketing-leads-print-stat-label">Active Leads</div>
-            <div className="marketing-leads-print-stat-value">
+          <div className="print-payment-box">
+            <div className="print-payment-label">Active Leads</div>
+            <div className="print-payment-amount">
               {leads.filter(l => ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'].includes(l.lead_status || 'New')).length}
             </div>
           </div>
-          <div className="marketing-leads-print-stat-box">
-            <div className="marketing-leads-print-stat-label">Converted Leads</div>
-            <div className="marketing-leads-print-stat-value">
+          <div className="print-payment-box">
+            <div className="print-payment-label">Converted Leads</div>
+            <div className="print-payment-amount">
               {leads.filter(l => l.lead_status === 'Converted to Student').length}
             </div>
           </div>
-          <div className="marketing-leads-print-stat-box">
-            <div className="marketing-leads-print-stat-label">Report Date</div>
-            <div className="marketing-leads-print-stat-value">{format(new Date(), 'dd/MM/yyyy')}</div>
+          <div className="print-payment-box">
+            <div className="print-payment-label">Report Date</div>
+            <div className="print-payment-amount">{format(new Date(), 'dd/MM/yyyy')}</div>
           </div>
         </div>
       </div>
 
       {/* Print Leads Table */}
-      <div className="marketing-leads-print-summary">
-        <h3>Lead Details</h3>
-        <table className="marketing-leads-print-table">
+      <div className="print-section">
+        <div className="print-section-title">Lead Details</div>
+        <table className="print-table">
           <thead>
             <tr>
               <th>S.No</th>
@@ -87,7 +86,7 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
                   <td>{lead.country || 'Not specified'}</td>
                   <td>{course ? course.title : 'Not specified'}</td>
                   <td>
-                    <span className="marketing-leads-print-badge">{lead.lead_status || 'New'}</span>
+                    <span className="print-badge">{lead.lead_status || 'New'}</span>
                   </td>
                   <td>
                     {lead.expected_joining_date ? format(new Date(lead.expected_joining_date), 'dd/MM/yyyy') : 'Not specified'}
@@ -107,103 +106,115 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
         const referral = getReferral(lead.referral_id || "");
         
         return (
-          <div key={lead.id} className="marketing-leads-print-summary">
-            <h3>Lead #{index + 1} - {lead.full_name} ({lead.lead_id || lead.id})</h3>
+          <div key={lead.id} className="print-section print-major-section">
+            <div className="print-section-title">Lead #{index + 1} - {lead.full_name} ({lead.lead_id || lead.id})</div>
             
-            <div className="marketing-leads-print-stats">
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Full Name</div>
-                <div className="marketing-leads-print-stat-value">{lead.full_name}</div>
+            <div className="print-grid-3">
+              <div className="print-field">
+                <div className="print-field-label">Full Name</div>
+                <div className="print-field-value">{lead.full_name}</div>
               </div>
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Email</div>
-                <div className="marketing-leads-print-stat-value">{lead.email}</div>
+              <div className="print-field">
+                <div className="print-field-label">Email</div>
+                <div className="print-field-value">{lead.email}</div>
               </div>
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Phone</div>
-                <div className="marketing-leads-print-stat-value">{lead.phone}</div>
+              <div className="print-field">
+                <div className="print-field-label">Phone</div>
+                <div className="print-field-value">{lead.phone}</div>
               </div>
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Country</div>
-                <div className="marketing-leads-print-stat-value">{lead.country || 'Not specified'}</div>
+              <div className="print-field">
+                <div className="print-field-label">Country</div>
+                <div className="print-field-value">{lead.country || 'Not specified'}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Passport/ID</div>
+                <div className="print-field-value">{lead.passport_id || 'Not provided'}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Lead Status</div>
+                <div className="print-field-value">{lead.lead_status || 'New'}</div>
               </div>
             </div>
 
             {lead.address && (
-              <div className="marketing-leads-print-stats">
-                <div className="marketing-leads-print-stat-box">
-                  <div className="marketing-leads-print-stat-label">Address</div>
-                  <div className="marketing-leads-print-stat-value">{lead.address}</div>
-                </div>
+              <div className="print-field">
+                <div className="print-field-label">Address</div>
+                <div className="print-field-value">{lead.address}</div>
               </div>
             )}
 
-            <div className="marketing-leads-print-stats">
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Interested Course</div>
-                <div className="marketing-leads-print-stat-value">{course ? course.title : 'Not specified'}</div>
+            <div className="print-grid-3">
+              <div className="print-field">
+                <div className="print-field-label">Interested Course</div>
+                <div className="print-field-value">{course ? course.title : 'Not specified'}</div>
               </div>
               {course && (
                 <>
-                  <div className="marketing-leads-print-stat-box">
-                    <div className="marketing-leads-print-stat-label">Course Fee</div>
-                    <div className="marketing-leads-print-stat-value">${course.fee}</div>
+                  <div className="print-field">
+                    <div className="print-field-label">Course Fee</div>
+                    <div className="print-field-value">${course.fee}</div>
                   </div>
-                  <div className="marketing-leads-print-stat-box">
-                    <div className="marketing-leads-print-stat-label">Course Duration</div>
-                    <div className="marketing-leads-print-stat-value">{course.period_months} months</div>
+                  <div className="print-field">
+                    <div className="print-field-label">Course Duration</div>
+                    <div className="print-field-value">{course.period_months} months</div>
                   </div>
                 </>
               )}
               {lead.expected_joining_date && (
-                <div className="marketing-leads-print-stat-box">
-                  <div className="marketing-leads-print-stat-label">Expected Joining Date</div>
-                  <div className="marketing-leads-print-stat-value">{format(new Date(lead.expected_joining_date), 'dd/MM/yyyy')}</div>
+                <div className="print-field">
+                  <div className="print-field-label">Expected Joining Date</div>
+                  <div className="print-field-value">{format(new Date(lead.expected_joining_date), 'dd/MM/yyyy')}</div>
                 </div>
               )}
             </div>
 
-            <div className="marketing-leads-print-stats">
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Referral Source</div>
-                <div className="marketing-leads-print-stat-value">{referral ? referral.full_name : 'Direct (No Referral)'}</div>
+            <div className="print-grid-3">
+              <div className="print-field">
+                <div className="print-field-label">Referral Source</div>
+                <div className="print-field-value">{referral ? referral.full_name : 'Direct (No Referral)'}</div>
               </div>
               {referral && (
                 <>
-                  <div className="marketing-leads-print-stat-box">
-                    <div className="marketing-leads-print-stat-label">Referral ID</div>
-                    <div className="marketing-leads-print-stat-value">{referral.referral_id}</div>
+                  <div className="print-field">
+                    <div className="print-field-label">Referral ID</div>
+                    <div className="print-field-value">{referral.referral_id}</div>
                   </div>
-                  <div className="marketing-leads-print-stat-box">
-                    <div className="marketing-leads-print-stat-label">Referral Contact</div>
-                    <div className="marketing-leads-print-stat-value">{referral.email}</div>
+                  <div className="print-field">
+                    <div className="print-field-label">Referral Contact</div>
+                    <div className="print-field-value">{referral.email}</div>
                   </div>
                 </>
               )}
             </div>
 
-            <div className="marketing-leads-print-stats">
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Lead Created</div>
-                <div className="marketing-leads-print-stat-value">{format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm')}</div>
+            <div className="print-grid-2">
+              <div className="print-field">
+                <div className="print-field-label">Lead Created</div>
+                <div className="print-field-value">{format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm')}</div>
               </div>
-              <div className="marketing-leads-print-stat-box">
-                <div className="marketing-leads-print-stat-label">Last Updated</div>
-                <div className="marketing-leads-print-stat-value">{format(new Date(lead.updated_at), 'dd/MM/yyyy HH:mm')}</div>
+              <div className="print-field">
+                <div className="print-field-label">Last Updated</div>
+                <div className="print-field-value">{format(new Date(lead.updated_at), 'dd/MM/yyyy HH:mm')}</div>
               </div>
             </div>
 
             {lead.notes && (
-              <div className="marketing-leads-print-stats">
-                <div className="marketing-leads-print-stat-box">
-                  <div className="marketing-leads-print-stat-label">Notes</div>
-                  <div className="marketing-leads-print-stat-value">{lead.notes}</div>
-                </div>
+              <div className="print-field">
+                <div className="print-field-label">Notes</div>
+                <div className="print-field-value">{lead.notes}</div>
               </div>
             )}
           </div>
         );
       })}
+
+      {/* Print Report Generated Info */}
+      <div className="print-section">
+        <div className="print-field">
+          <div className="print-field-label">Report Generated</div>
+          <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+        </div>
+      </div>
     </div>
   );
 };
