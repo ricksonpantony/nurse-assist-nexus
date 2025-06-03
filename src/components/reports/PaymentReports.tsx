@@ -362,17 +362,16 @@ export const PaymentReports = () => {
               <th>Student ID</th>
               <th>Student Name</th>
               <th>Course</th>
-              <th>Status</th>
               <th>Student Status</th>
               <th>Course Fee</th>
               <th>Advance Payment</th>
-              <th>Advance Date</th>
+              <th>Date</th>
               <th>Second Payment</th>
-              <th>Second Date</th>
+              <th>Date</th>
               <th>Other Payments</th>
-              <th>Other Dates</th>
+              <th>Date</th>
               <th>Final Payment</th>
-              <th>Final Date</th>
+              <th>Date</th>
               <th>Balance Fee</th>
             </tr>
           </thead>
@@ -383,11 +382,6 @@ export const PaymentReports = () => {
                 <td>{item.student_id}</td>
                 <td>{item.student_name}</td>
                 <td>{item.course_title}</td>
-                <td>
-                  <span className="payment-reports-print-badge">
-                    {item.stage}
-                  </span>
-                </td>
                 <td>
                   <span className="payment-reports-print-badge">
                     {item.student_status}
@@ -678,17 +672,16 @@ export const PaymentReports = () => {
                   <TableHead>Student ID</TableHead>
                   <TableHead>Student Name</TableHead>
                   <TableHead>Course</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Student Status</TableHead>
                   <TableHead>Course Fee</TableHead>
                   <TableHead>Advance Payment</TableHead>
-                  <TableHead>Advance Date</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Second Payment</TableHead>
-                  <TableHead>Second Date</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Other Payments</TableHead>
-                  <TableHead>Other Dates</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Final Payment</TableHead>
-                  <TableHead>Final Date</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Balance Fee</TableHead>
                 </TableRow>
               </TableHeader>
@@ -708,11 +701,6 @@ export const PaymentReports = () => {
                     <TableCell>{item.student_id}</TableCell>
                     <TableCell className="font-medium">{item.student_name}</TableCell>
                     <TableCell>{item.course_title}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-blue-100 text-blue-800">
-                        {item.stage}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       <Badge className="bg-gray-100 text-gray-800">
                         {item.student_status}
