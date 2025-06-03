@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Download, Filter, Printer, Trash2 } from 'lucide-react';
 import { formatDateForExcel } from '@/utils/excelUtils';
 import * as XLSX from 'xlsx';
+import '../../styles/paymentReportsPrint.css';
 
 interface Payment {
   id: string;
@@ -194,6 +195,11 @@ export const PaymentReports = () => {
     }));
   }, [paymentBreakdown, filters, payments, sortBy, sortOrder]);
 
+  // Get selected payment data for printing
+  const selectedPaymentData = filteredBreakdown.filter(item => 
+    selectedRows.includes(item.student_id)
+  );
+
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -241,6 +247,14 @@ export const PaymentReports = () => {
 
     const currentDate = new Date().toISOString().split('T')[0];
     XLSX.writeFile(wb, `selected_payment_breakdown_report_${currentDate}.xlsx`);
+  };
+
+  const handlePrintSelected = () => {
+    if (selectedRows.length === 0) {
+      alert('Please select payment records to print');
+      return;
+    }
+    window.print();
   };
 
   const handleDeleteSelected = () => {
@@ -318,7 +332,90 @@ export const PaymentReports = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 payment-reports-page">
+      {/* Print Content - Hidden on screen, visible only when printing */}
+      <div className="payment-reports-print-content" style={{ display: 'none' }}>
+        <div className="payment-reports-print-header">
+          <div className="payment-reports-print-title">
+            Nurse Assist International (NAI)
+          </div>
+          <div className="payment-reports-print-subtitle">
+            Payment Breakdown Report
+          </div>
+          <div className="payment-reports-print-date">
+            Generated on: {new Date().toLocaleDateString()}
+          </div>
+        </div>
+
+        <div className="payment-reports-print-summary">
+          <h3>Report Summary</h3>
+          <p>Total Selected Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</p>
+          <p>Total Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</p>
+          <p>Total Advance Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</p>
+          <p>Total Balance Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</p>
+        </div>
+
+        <table className="payment-reports-print-table">
+          <thead>
+            <tr>
+              <th>Sl No.</th>
+              <th>Student ID</th>
+              <th>Student Name</th>
+              <th>Course</th>
+              <th>Status</th>
+              <th>Student Status</th>
+              <th>Course Fee</th>
+              <th>Advance Payment</th>
+              <th>Advance Date</th>
+              <th>Second Payment</th>
+              <th>Second Date</th>
+              <th>Other Payments</th>
+              <th>Other Dates</th>
+              <th>Final Payment</th>
+              <th>Final Date</th>
+              <th>Balance Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).map((item) => (
+              <tr key={item.student_id}>
+                <td>{item.sl_number}</td>
+                <td>{item.student_id}</td>
+                <td>{item.student_name}</td>
+                <td>{item.course_title}</td>
+                <td>
+                  <span className="payment-reports-print-badge">
+                    {item.stage}
+                  </span>
+                </td>
+                <td>
+                  <span className="payment-reports-print-badge">
+                    {item.student_status}
+                  </span>
+                </td>
+                <td>${item.course_fee.toLocaleString()}</td>
+                <td>${item.advance_payment.toLocaleString()}</td>
+                <td>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</td>
+                <td>${item.second_payment.toLocaleString()}</td>
+                <td>{item.second_date ? formatDateForExcel(item.second_date) : '-'}</td>
+                <td>${item.other_payments.toLocaleString()}</td>
+                <td>{item.other_dates || '-'}</td>
+                <td>${item.final_payment.toLocaleString()}</td>
+                <td>{item.final_date ? formatDateForExcel(item.final_date) : '-'}</td>
+                <td>${item.balance_fee.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="payment-reports-print-totals">
+          <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
+          <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
+          <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
+          <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
+        </div>
+      </div>
+
       {/* Filters Card */}
       <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
         <CardHeader>
@@ -530,6 +627,10 @@ export const PaymentReports = () => {
                 <Button onClick={handleBulkExport} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
                   <Download className="h-4 w-4" />
                   Export Selected
+                </Button>
+                <Button onClick={handlePrintSelected} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                  <Printer className="h-4 w-4" />
+                  Print Selected
                 </Button>
                 <Button onClick={handleDeleteSelected} variant="destructive" className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />

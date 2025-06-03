@@ -1,0 +1,316 @@
+
+/* Payment Reports Print Styles - Dedicated CSS file */
+@media print {
+  /* Hide everything by default when printing from payment reports */
+  .payment-reports-page * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the print content and its children */
+  .payment-reports-print-content,
+  .payment-reports-print-content * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  /* Position print content properly */
+  .payment-reports-print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+  }
+
+  /* Page setup - A4 Landscape */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* Print header styling */
+  .payment-reports-print-header {
+    text-align: center !important;
+    margin-bottom: 15pt !important;
+    padding-bottom: 8pt !important;
+    border-bottom: 2pt solid black !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-title {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    margin-bottom: 6pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-subtitle {
+    font-size: 12pt !important;
+    color: #444 !important;
+    margin-bottom: 6pt !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-date {
+    font-size: 10pt !important;
+    color: #666 !important;
+    display: block !important;
+  }
+
+  /* Summary section */
+  .payment-reports-print-summary {
+    margin-bottom: 15pt !important;
+    padding: 8pt !important;
+    border: 1pt solid #ccc !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-summary h3 {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-bottom: 6pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-summary p {
+    font-size: 10pt !important;
+    margin: 3pt 0 !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Table styling for print - Optimized for landscape */
+  .payment-reports-print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 10pt !important;
+    font-size: 7pt !important;
+    color: black !important;
+    display: table !important;
+    visibility: visible !important;
+    table-layout: fixed !important;
+  }
+
+  .payment-reports-print-table thead {
+    display: table-header-group !important;
+  }
+
+  .payment-reports-print-table tbody {
+    display: table-row-group !important;
+  }
+
+  .payment-reports-print-table tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .payment-reports-print-table th {
+    background: #e8e8e8 !important;
+    border: 1pt solid #333 !important;
+    padding: 3pt 2pt !important;
+    font-size: 7pt !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    color: black !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    vertical-align: top !important;
+  }
+
+  .payment-reports-print-table td {
+    border: 0.5pt solid #666 !important;
+    padding: 2pt 1pt !important;
+    font-size: 6pt !important;
+    color: black !important;
+    vertical-align: top !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+  }
+
+  /* Column width optimization for landscape - Payment table specific */
+  .payment-reports-print-table th:nth-child(1),
+  .payment-reports-print-table td:nth-child(1) {
+    width: 3% !important; /* Sl No. */
+  }
+
+  .payment-reports-print-table th:nth-child(2),
+  .payment-reports-print-table td:nth-child(2) {
+    width: 6% !important; /* Student ID */
+  }
+
+  .payment-reports-print-table th:nth-child(3),
+  .payment-reports-print-table td:nth-child(3) {
+    width: 10% !important; /* Student Name */
+  }
+
+  .payment-reports-print-table th:nth-child(4),
+  .payment-reports-print-table td:nth-child(4) {
+    width: 8% !important; /* Course */
+  }
+
+  .payment-reports-print-table th:nth-child(5),
+  .payment-reports-print-table td:nth-child(5) {
+    width: 5% !important; /* Status */
+  }
+
+  .payment-reports-print-table th:nth-child(6),
+  .payment-reports-print-table td:nth-child(6) {
+    width: 6% !important; /* Student Status */
+  }
+
+  .payment-reports-print-table th:nth-child(7),
+  .payment-reports-print-table td:nth-child(7) {
+    width: 6% !important; /* Course Fee */
+  }
+
+  .payment-reports-print-table th:nth-child(8),
+  .payment-reports-print-table td:nth-child(8) {
+    width: 6% !important; /* Advance Payment */
+  }
+
+  .payment-reports-print-table th:nth-child(9),
+  .payment-reports-print-table td:nth-child(9) {
+    width: 6% !important; /* Advance Date */
+  }
+
+  .payment-reports-print-table th:nth-child(10),
+  .payment-reports-print-table td:nth-child(10) {
+    width: 6% !important; /* Second Payment */
+  }
+
+  .payment-reports-print-table th:nth-child(11),
+  .payment-reports-print-table td:nth-child(11) {
+    width: 6% !important; /* Second Date */
+  }
+
+  .payment-reports-print-table th:nth-child(12),
+  .payment-reports-print-table td:nth-child(12) {
+    width: 6% !important; /* Other Payments */
+  }
+
+  .payment-reports-print-table th:nth-child(13),
+  .payment-reports-print-table td:nth-child(13) {
+    width: 8% !important; /* Other Dates */
+  }
+
+  .payment-reports-print-table th:nth-child(14),
+  .payment-reports-print-table td:nth-child(14) {
+    width: 6% !important; /* Final Payment */
+  }
+
+  .payment-reports-print-table th:nth-child(15),
+  .payment-reports-print-table td:nth-child(15) {
+    width: 6% !important; /* Final Date */
+  }
+
+  .payment-reports-print-table th:nth-child(16),
+  .payment-reports-print-table td:nth-child(16) {
+    width: 6% !important; /* Balance Fee */
+  }
+
+  .payment-reports-print-table tr:nth-child(even) td {
+    background: #f8f8f8 !important;
+  }
+
+  /* Badge styling for print */
+  .payment-reports-print-badge {
+    display: inline-block !important;
+    padding: 1pt 2pt !important;
+    border: 0.5pt solid #666 !important;
+    border-radius: 1pt !important;
+    font-size: 5pt !important;
+    font-weight: bold !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Override any conflicting styles */
+  .payment-reports-print-content .bg-gradient-to-br,
+  .payment-reports-print-content .bg-gradient-to-r,
+  .payment-reports-print-content .shadow-lg,
+  .payment-reports-print-content .backdrop-blur-sm {
+    background: white !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Footer contact info */
+  .payment-reports-print-content::after {
+    content: "📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney";
+    display: block !important;
+    text-align: center !important;
+    font-size: 8pt !important;
+    color: #666 !important;
+    margin-top: 20pt !important;
+    padding-top: 8pt !important;
+    border-top: 1pt solid #ddd !important;
+  }
+
+  /* Force display for all print elements */
+  .payment-reports-print-content table,
+  .payment-reports-print-content thead,
+  .payment-reports-print-content tbody,
+  .payment-reports-print-content tr,
+  .payment-reports-print-content th,
+  .payment-reports-print-content td {
+    display: table !important;
+  }
+
+  .payment-reports-print-content thead {
+    display: table-header-group !important;
+  }
+
+  .payment-reports-print-content tbody {
+    display: table-row-group !important;
+  }
+
+  .payment-reports-print-content tr {
+    display: table-row !important;
+  }
+
+  .payment-reports-print-content th,
+  .payment-reports-print-content td {
+    display: table-cell !important;
+  }
+
+  /* Ensure proper text overflow handling */
+  .payment-reports-print-table th,
+  .payment-reports-print-table td {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+  }
+
+  /* Allow course names and dates to wrap */
+  .payment-reports-print-table td:nth-child(4),
+  .payment-reports-print-table td:nth-child(13) {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Totals section styling */
+  .payment-reports-print-totals {
+    margin-top: 15pt !important;
+    padding: 8pt !important;
+    border: 1pt solid #333 !important;
+    background: #f0f0f0 !important;
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-totals div {
+    display: inline-block !important;
+    margin-right: 15pt !important;
+    margin-bottom: 3pt !important;
+  }
+}
