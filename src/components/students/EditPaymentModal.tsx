@@ -78,6 +78,15 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
 
       const changeLog = changes.length > 0 ? changes.join(', ') : null;
 
+      console.log('Updating payment with data:', {
+        payment_date: paymentDate,
+        stage,
+        amount: parseFloat(amount),
+        payment_mode: paymentMode,
+        change_log: changeLog
+      });
+
+      // Update the payment record
       const { error } = await supabase
         .from('payments')
         .update({
@@ -89,7 +98,12 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
         })
         .eq('id', payment.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Payment updated successfully');
 
       toast({
         title: "Success",
@@ -101,7 +115,7 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
       console.error('Error updating payment:', error);
       toast({
         title: "Error",
-        description: "Failed to update payment record",
+        description: `Failed to update payment record: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
