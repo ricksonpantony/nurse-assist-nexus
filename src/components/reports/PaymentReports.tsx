@@ -31,6 +31,8 @@ interface PaymentBreakdown {
   course_title: string;
   stage: string;
   student_status: string;
+  student_batch: string;
+  student_country: string;
   course_fee: number;
   advance_payment: number;
   advance_date: string;
@@ -50,7 +52,7 @@ export const PaymentReports = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   
-  // ... keep existing code (filters state)
+  // Enhanced filters state
   const [filters, setFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -60,10 +62,33 @@ export const PaymentReports = () => {
     paymentMode: 'all',
     student: 'all',
     studentStatus: 'all',
+    course: 'all',
+    batch: 'all',
+    country: 'all',
+    balanceFilter: 'all', // 'all', 'with_balance', 'no_balance'
   });
 
   const [sortBy, setSortBy] = useState('payment_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Get unique values for filters
+  const uniqueBatches = useMemo(() => {
+    const batches = students
+      .map(student => student.batch_id)
+      .filter(batch => batch && batch.trim() !== '')
+      .filter((batch, index, array) => array.indexOf(batch) === index)
+      .sort();
+    return batches;
+  }, [students]);
+
+  const uniqueCountries = useMemo(() => {
+    const countries = students
+      .map(student => student.country)
+      .filter(country => country && country.trim() !== '')
+      .filter((country, index, array) => array.indexOf(country) === index)
+      .sort();
+    return countries;
+  }, [students]);
 
   // Fetch payments
   useEffect(() => {
@@ -87,7 +112,6 @@ export const PaymentReports = () => {
     fetchPayments();
   }, []);
 
-  // ... keep existing code (paymentBreakdown useMemo)
   const paymentBreakdown = useMemo(() => {
     const breakdown: PaymentBreakdown[] = [];
     
@@ -111,6 +135,8 @@ export const PaymentReports = () => {
         course_title: course?.title || 'No Course Assigned',
         stage: filters.stage === 'all' ? 'All' : filters.stage,
         student_status: student.status,
+        student_batch: student.batch_id || '',
+        student_country: student.country || '',
         course_fee: student.total_course_fee,
         advance_payment: advancePayment?.amount || 0,
         advance_date: advancePayment?.payment_date || '',
@@ -127,7 +153,6 @@ export const PaymentReports = () => {
     return breakdown;
   }, [students, courses, payments, filters.stage]);
 
-  // ... keep existing code (filteredBreakdown useMemo with all filtering logic)
   const filteredBreakdown = useMemo(() => {
     let filtered = [...paymentBreakdown];
 
@@ -163,11 +188,34 @@ export const PaymentReports = () => {
       filtered = filtered.filter(item => item.student_status === filters.studentStatus);
     }
 
-    // If specific stage is selected, filter to show only students with that payment stage
+    // Filter by course
+    if (filters.course && filters.course !== 'all') {
+      const studentsInCourse = students.filter(s => s.course_id === filters.course).map(s => s.id);
+      filtered = filtered.filter(item => studentsInCourse.includes(item.student_id));
+    }
+
+    // Filter by batch
+    if (filters.batch && filters.batch !== 'all') {
+      filtered = filtered.filter(item => item.student_batch === filters.batch);
+    }
+
+    // Filter by country
+    if (filters.country && filters.country !== 'all') {
+      filtered = filtered.filter(item => item.student_country === filters.country);
+    }
+
+    // Filter by payment stage - show only students who have made that specific payment
     if (filters.stage && filters.stage !== 'all') {
       const relevantPayments = payments.filter(p => p.stage === filters.stage);
       const studentIdsWithStage = [...new Set(relevantPayments.map(p => p.student_id))];
       filtered = filtered.filter(item => studentIdsWithStage.includes(item.student_id));
+    }
+
+    // Filter by balance payment status
+    if (filters.balanceFilter === 'with_balance') {
+      filtered = filtered.filter(item => item.balance_fee > 0);
+    } else if (filters.balanceFilter === 'no_balance') {
+      filtered = filtered.filter(item => item.balance_fee <= 0);
     }
 
     // Sort by student status if selected
@@ -193,7 +241,7 @@ export const PaymentReports = () => {
       ...item,
       sl_number: index + 1
     }));
-  }, [paymentBreakdown, filters, payments, sortBy, sortOrder]);
+  }, [paymentBreakdown, filters, payments, sortBy, sortOrder, students]);
 
   // Get selected payment data for printing
   const selectedPaymentData = filteredBreakdown.filter(item => 
@@ -263,7 +311,6 @@ export const PaymentReports = () => {
     setSelectedRows([]);
   };
 
-  // ... keep existing code (calculate totals)
   const totalStudents = filteredBreakdown.length;
   const totalCourseFees = filteredBreakdown.reduce((sum, item) => sum + item.course_fee, 0);
   const totalAdvancePayments = filteredBreakdown.reduce((sum, item) => sum + item.advance_payment, 0);
@@ -319,6 +366,10 @@ export const PaymentReports = () => {
       paymentMode: 'all',
       student: 'all',
       studentStatus: 'all',
+      course: 'all',
+      batch: 'all',
+      country: 'all',
+      balanceFilter: 'all',
     });
     setSortBy('payment_date');
     setSortOrder('desc');
@@ -362,7 +413,6 @@ export const PaymentReports = () => {
               <th>Student ID</th>
               <th>Student Name</th>
               <th>Course</th>
-              <th>Student Status</th>
               <th>Course Fee</th>
               <th>Advance Payment</th>
               <th>Date</th>
@@ -382,11 +432,6 @@ export const PaymentReports = () => {
                 <td>{item.student_id}</td>
                 <td>{item.student_name}</td>
                 <td>{item.course_title}</td>
-                <td>
-                  <span className="payment-reports-print-badge">
-                    {item.student_status}
-                  </span>
-                </td>
                 <td>${item.course_fee.toLocaleString()}</td>
                 <td>${item.advance_payment.toLocaleString()}</td>
                 <td>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</td>
@@ -489,7 +534,7 @@ export const PaymentReports = () => {
               </Select>
             </div>
 
-            {/* Student Status Filter - Updated with new status values */}
+            {/* Student Status Filter */}
             <div className="space-y-2">
               <Label>Student Status</Label>
               <Select value={filters.studentStatus} onValueChange={(value) => setFilters(prev => ({ ...prev, studentStatus: value }))}>
@@ -503,6 +548,75 @@ export const PaymentReports = () => {
                       {status}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Course Filter */}
+            <div className="space-y-2">
+              <Label>Course</Label>
+              <Select value={filters.course} onValueChange={(value) => setFilters(prev => ({ ...prev, course: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Batch Filter */}
+            <div className="space-y-2">
+              <Label>Batch</Label>
+              <Select value={filters.batch} onValueChange={(value) => setFilters(prev => ({ ...prev, batch: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {uniqueBatches.map(batch => (
+                    <SelectItem key={batch} value={batch}>
+                      {batch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Country Filter */}
+            <div className="space-y-2">
+              <Label>Country</Label>
+              <Select value={filters.country} onValueChange={(value) => setFilters(prev => ({ ...prev, country: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All countries" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {uniqueCountries.map(country => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Balance Filter */}
+            <div className="space-y-2">
+              <Label>Balance Status</Label>
+              <Select value={filters.balanceFilter} onValueChange={(value) => setFilters(prev => ({ ...prev, balanceFilter: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All balance status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Students</SelectItem>
+                  <SelectItem value="with_balance">With Balance Due</SelectItem>
+                  <SelectItem value="no_balance">No Balance Due</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -672,7 +786,6 @@ export const PaymentReports = () => {
                   <TableHead>Student ID</TableHead>
                   <TableHead>Student Name</TableHead>
                   <TableHead>Course</TableHead>
-                  <TableHead>Student Status</TableHead>
                   <TableHead>Course Fee</TableHead>
                   <TableHead>Advance Payment</TableHead>
                   <TableHead>Date</TableHead>
@@ -701,11 +814,6 @@ export const PaymentReports = () => {
                     <TableCell>{item.student_id}</TableCell>
                     <TableCell className="font-medium">{item.student_name}</TableCell>
                     <TableCell>{item.course_title}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-gray-100 text-gray-800">
-                        {item.student_status}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="font-bold">${item.course_fee.toLocaleString()}</TableCell>
                     <TableCell>${item.advance_payment.toLocaleString()}</TableCell>
                     <TableCell>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</TableCell>
