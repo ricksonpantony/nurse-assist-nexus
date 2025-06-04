@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { LoginForm } from "./LoginForm";
+import { NAIPreloader } from "./NAIPreloader";
 
 interface AuthContextType {
   user: User | null;
@@ -101,14 +102,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <NAIPreloader />;
   }
 
   if (!user) {
