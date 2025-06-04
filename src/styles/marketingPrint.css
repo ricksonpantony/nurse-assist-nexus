@@ -85,29 +85,10 @@
     display: block !important;
   }
 
-  /* Summary section */
+  /* Hide summary section when printing */
   .marketing-print-summary {
-    margin-bottom: 10pt !important;
-    padding: 6pt !important;
-    border: 1pt solid #ccc !important;
-    background: #f9f9f9 !important;
-    display: block !important;
-    page-break-inside: avoid !important;
-  }
-
-  .marketing-print-summary h3 {
-    font-size: 11pt !important;
-    font-weight: bold !important;
-    margin-bottom: 4pt !important;
-    color: black !important;
-    display: block !important;
-  }
-
-  .marketing-print-summary p {
-    font-size: 9pt !important;
-    margin: 2pt 0 !important;
-    color: black !important;
-    display: block !important;
+    display: none !important;
+    visibility: hidden !important;
   }
 
   /* Table styling for print - Optimized for landscape */
@@ -312,8 +293,7 @@
   }
 
   /* Prevent page breaks in critical sections */
-  .marketing-print-header,
-  .marketing-print-summary {
+  .marketing-print-header {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
