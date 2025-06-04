@@ -20,6 +20,15 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
 
   return (
     <div className="print-content hidden print:block">
+      <style>{`
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 1cm;
+          }
+        }
+      `}</style>
+      
       {/* Print Header */}
       <div className="print-header">
         <div className="print-title">Nurse Assist International (NAI)</div>

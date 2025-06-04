@@ -1,5 +1,3 @@
-
-
 /* Student Reports Print Styles - Dedicated CSS file */
 @media print {
   /* Hide everything by default when printing from student reports */
@@ -268,4 +266,3 @@
     word-break: break-word !important;
   }
 }
-

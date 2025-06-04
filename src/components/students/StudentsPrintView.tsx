@@ -66,6 +66,11 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
             background-color: #f0f0f0;
             font-weight: bold;
           }
+          
+          @page {
+            size: A4 landscape;
+            margin: 1cm;
+          }
         }
       `}</style>
       
