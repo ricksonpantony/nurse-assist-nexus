@@ -313,4 +313,16 @@
     margin-right: 15pt !important;
     margin-bottom: 3pt !important;
   }
+
+  /* Force landscape orientation for all print elements */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Override any inline styles that might force portrait */
+  * {
+    -webkit-transform: none !important;
+    transform: none !important;
+  }
 }
