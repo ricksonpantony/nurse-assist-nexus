@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
@@ -269,12 +268,13 @@ export const StudentsTable = ({
                   <TableCell>
                     <div className="flex gap-1">
                       <Button
-                        variant="ghost"
+                        variant="default"
                         size="sm"
                         onClick={() => onView(student)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 text-xs px-2"
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200 gap-2 text-xs px-3 py-1 h-8"
                         title="View Student Account"
                       >
+                        <User className="h-3 w-3" />
                         View Account
                       </Button>
                       <Button

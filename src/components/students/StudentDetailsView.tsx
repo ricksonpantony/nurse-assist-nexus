@@ -6,13 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap, Users, Plus, FileText, Save } from "lucide-react";
+import { X, Printer, Trash2, RefreshCw, Phone, Mail, MapPin, Calendar, CreditCard, User, GraduationCap, Users, Plus, FileText, Save, Edit } from "lucide-react";
 import { useStudents } from "@/hooks/useStudents";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { PaymentRecordForm } from "./PaymentRecordForm";
 import { QuickAddReferralModal } from "./QuickAddReferralModal";
+import { EditPaymentModal } from "./EditPaymentModal";
 
 interface StudentDetailsViewProps {
   student: any;
@@ -38,6 +39,8 @@ export const StudentDetailsView = ({
   const [referralPaymentAmount, setReferralPaymentAmount] = useState("");
   const [notes, setNotes] = useState(student.notes || "");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
 
   useEffect(() => {
     setSelectedReferralId(student.referral_id || "direct");
@@ -174,6 +177,17 @@ export const StudentDetailsView = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleEditPayment = (payment: any) => {
+    setEditingPayment(payment);
+    setShowEditPaymentModal(true);
+  };
+
+  const handlePaymentEditSuccess = () => {
+    setShowEditPaymentModal(false);
+    setEditingPayment(null);
+    onRefresh();
   };
 
   return (
@@ -625,6 +639,7 @@ export const StudentDetailsView = ({
                           <TableHead>Stage</TableHead>
                           <TableHead>Amount</TableHead>
                           <TableHead>Payment Mode</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -636,10 +651,38 @@ export const StudentDetailsView = ({
                             </TableCell>
                             <TableCell className="font-medium">${payment.amount.toLocaleString()}</TableCell>
                             <TableCell>{payment.payment_mode}</TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditPayment(payment)}
+                                className="gap-1 text-blue-600 hover:text-blue-800"
+                              >
+                                <Edit className="h-3 w-3" />
+                                Edit
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
+                    
+                    {/* Change Log Section */}
+                    {student.payments.some((payment: any) => payment.change_log) && (
+                      <div className="p-4 bg-gray-50 border-t">
+                        <h5 className="font-medium text-sm text-gray-700 mb-2">Payment History Changes</h5>
+                        <div className="space-y-1">
+                          {student.payments
+                            .filter((payment: any) => payment.change_log)
+                            .map((payment: any, index: number) => (
+                              <div key={index} className="text-xs text-gray-600 bg-white p-2 rounded border-l-2 border-orange-300">
+                                <div className="font-medium">{payment.stage} - {formatDate(payment.payment_date)}</div>
+                                <div className="text-orange-700">{payment.change_log}</div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
@@ -752,6 +795,19 @@ export const StudentDetailsView = ({
           <QuickAddReferralModal
             onClose={() => setShowQuickAddReferral(false)}
             onSuccess={handleQuickAddReferralSuccess}
+          />
+        )}
+
+        {/* Edit Payment Modal */}
+        {showEditPaymentModal && editingPayment && (
+          <EditPaymentModal
+            payment={editingPayment}
+            isOpen={showEditPaymentModal}
+            onClose={() => {
+              setShowEditPaymentModal(false);
+              setEditingPayment(null);
+            }}
+            onSuccess={handlePaymentEditSuccess}
           />
         )}
       </div>
