@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -27,11 +28,22 @@ export const StudentReports = () => {
     year: new Date().getFullYear().toString(),
     status: 'all',
     course: 'all',
+    batch: 'all',
     country: 'all',
   });
 
   const [sortBy, setSortBy] = useState('join_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Get unique batches from students for the filter dropdown
+  const uniqueBatches = useMemo(() => {
+    const studentBatches = students
+      .map(student => student.batch_id)
+      .filter(batch => batch && batch.trim() !== '')
+      .filter((batch, index, array) => array.indexOf(batch) === index)
+      .sort();
+    return studentBatches;
+  }, [students]);
 
   // Filter and sort students based on criteria
   const filteredStudents = useMemo(() => {
@@ -66,6 +78,11 @@ export const StudentReports = () => {
     // Filter by course
     if (filters.course && filters.course !== 'all') {
       filtered = filtered.filter(student => student.course_id === filters.course);
+    }
+
+    // Filter by batch
+    if (filters.batch && filters.batch !== 'all') {
+      filtered = filtered.filter(student => student.batch_id === filters.batch);
     }
 
     // Filter by country
@@ -204,6 +221,7 @@ export const StudentReports = () => {
       year: new Date().getFullYear().toString(),
       status: 'all',
       course: 'all',
+      batch: 'all',
       country: 'all',
     });
   };
@@ -363,6 +381,24 @@ export const StudentReports = () => {
                   {courses.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Batch Filter */}
+            <div className="space-y-2">
+              <Label>Batch</Label>
+              <Select value={filters.batch} onValueChange={(value) => setFilters(prev => ({ ...prev, batch: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {uniqueBatches.map(batch => (
+                    <SelectItem key={batch} value={batch}>
+                      {batch}
                     </SelectItem>
                   ))}
                 </SelectContent>
