@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Eye, Edit, Trash2, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
+import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 
 interface StudentsTableProps {
   students: Student[];
@@ -36,6 +37,7 @@ export const StudentsTable = ({
 }: StudentsTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Calculate pagination
   const totalItems = students.length;
@@ -71,6 +73,16 @@ export const StudentsTable = ({
     }
   };
 
+  const handleMultiDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmMultiDelete = () => {
+    onDeleteMultiple(selectedStudents);
+    setShowDeleteModal(false);
+    onStudentSelection([]);
+  };
+
   const getCourse = (courseId: string | null) => {
     return courses.find(c => c.id === courseId);
   };
@@ -104,6 +116,11 @@ export const StudentsTable = ({
     return pages;
   };
 
+  // Get student names for delete confirmation
+  const selectedStudentNames = students
+    .filter(student => selectedStudents.includes(student.id))
+    .map(student => student.full_name);
+
   return (
     <div className="space-y-4">
       {/* Pagination Controls Top */}
@@ -128,11 +145,23 @@ export const StudentsTable = ({
           </span>
         </div>
         
-        {selectedStudents.length > 0 && (
-          <div className="text-sm text-blue-600 font-medium">
-            {selectedStudents.length} of {totalItems} students selected
-          </div>
-        )}
+        <div className="flex items-center gap-4">
+          {selectedStudents.length > 0 && (
+            <>
+              <div className="text-sm text-blue-600 font-medium">
+                {selectedStudents.length} of {totalItems} students selected
+              </div>
+              <Button
+                variant="destructive"
+                onClick={handleMultiDelete}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Selected ({selectedStudents.length})
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Table */}
@@ -243,10 +272,10 @@ export const StudentsTable = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => onView(student)}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
-                        title="View Student"
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 text-xs px-2"
+                        title="View Student Account"
                       >
-                        <Eye className="h-4 w-4" />
+                        View Account
                       </Button>
                       <Button
                         variant="ghost"
@@ -318,6 +347,15 @@ export const StudentsTable = ({
           </Pagination>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmMultiDelete}
+        count={selectedStudents.length}
+        studentNames={selectedStudentNames}
+      />
     </div>
   );
 };

@@ -1,9 +1,8 @@
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X, SortAsc, SortDesc, Printer } from "lucide-react";
+import { Search, X, SortAsc, SortDesc, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface StudentsFilterProps {
@@ -51,8 +50,6 @@ export const StudentsFilter = ({
   batches,
   selectedStudentsCount
 }: StudentsFilterProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const statusOptions = [
     'Attended Online',
     'Attend sessions', 
@@ -89,14 +86,6 @@ export const StudentsFilter = ({
                 className="pl-10"
               />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-            </Button>
             {selectedStudentsCount > 0 && (
               <Button
                 variant="outline"
@@ -119,121 +108,119 @@ export const StudentsFilter = ({
             )}
           </div>
 
-          {/* Advanced Filters - Collapsible */}
-          {isExpanded && (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t">
-              {/* Status Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Status</label>
-                <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {statusOptions.map(status => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Course Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Course</label>
-                <Select value={courseFilter} onValueChange={onCourseFilterChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All courses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Courses</SelectItem>
-                    {courses.map(course => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Country Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Country</label>
-                <Select value={countryFilter} onValueChange={onCountryFilterChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All countries" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {countries.map(country => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Batch Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Batch</label>
-                <Select value={batchFilter} onValueChange={onBatchFilterChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All batches" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Batches</SelectItem>
-                    {batches.map(batch => (
-                      <SelectItem key={batch} value={batch}>
-                        {batch}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Sort By */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Sort By</label>
-                <Select value={sortBy} onValueChange={onSortByChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Sort Order */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Sort Order</label>
-                <Button
-                  variant="outline"
-                  onClick={() => onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="w-full justify-start"
-                >
-                  {sortOrder === 'asc' ? (
-                    <>
-                      <SortAsc className="h-4 w-4 mr-2" />
-                      Ascending
-                    </>
-                  ) : (
-                    <>
-                      <SortDesc className="h-4 w-4 mr-2" />
-                      Descending
-                    </>
-                  )}
-                </Button>
-              </div>
+          {/* Advanced Filters - Always Visible */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-4 border-t">
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statusOptions.map(status => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            {/* Course Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Course</label>
+              <Select value={courseFilter} onValueChange={onCourseFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Country Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Country</label>
+              <Select value={countryFilter} onValueChange={onCountryFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All countries" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {countries.map(country => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Batch Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Batch</label>
+              <Select value={batchFilter} onValueChange={onBatchFilterChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {batches.map(batch => (
+                    <SelectItem key={batch} value={batch}>
+                      {batch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sort By */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Sort By</label>
+              <Select value={sortBy} onValueChange={onSortByChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Sort Order</label>
+              <Button
+                variant="outline"
+                onClick={() => onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="w-full justify-start"
+              >
+                {sortOrder === 'asc' ? (
+                  <>
+                    <SortAsc className="h-4 w-4 mr-2" />
+                    Ascending
+                  </>
+                ) : (
+                  <>
+                    <SortDesc className="h-4 w-4 mr-2" />
+                    Descending
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
