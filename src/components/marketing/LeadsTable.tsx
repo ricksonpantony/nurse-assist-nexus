@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Eye, Edit, Trash2, UserPlus, Search, Printer } from "lucide-react";
 import { Lead } from "@/hooks/useLeads";
 import { Course } from "@/hooks/useCourses";
@@ -30,6 +32,8 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
 
   const filteredAndSortedLeads = leads
     .filter(lead => {
@@ -68,6 +72,23 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
       }
     });
 
+  // Calculate pagination
+  const totalItems = filteredAndSortedLeads.length;
+  const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalItems / itemsPerPage);
+  const startIndex = itemsPerPage === -1 ? 0 : (currentPage - 1) * itemsPerPage;
+  const endIndex = itemsPerPage === -1 ? totalItems : startIndex + itemsPerPage;
+  const currentLeads = filteredAndSortedLeads.slice(startIndex, endIndex);
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = value === "all" ? -1 : parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const getCourse = (courseId: string) => {
     return courses.find(c => c.id === courseId);
   };
@@ -86,6 +107,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
+      // Select all leads from all pages
       setSelectedLeads(filteredAndSortedLeads.map(lead => lead.id));
     } else {
       setSelectedLeads([]);
@@ -108,6 +130,19 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
 
   const isAllSelected = filteredAndSortedLeads.length > 0 && selectedLeads.length === filteredAndSortedLeads.length;
   const isPartiallySelected = selectedLeads.length > 0 && selectedLeads.length < filteredAndSortedLeads.length;
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <div className="space-y-6">
@@ -194,6 +229,35 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
         </div>
       </div>
 
+      {/* Pagination Controls Top */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <Select value={itemsPerPage === -1 ? "all" : itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="200">200</SelectItem>
+              <SelectItem value="500">500</SelectItem>
+              <SelectItem value="1000">1000</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-600">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} leads
+          </span>
+        </div>
+        
+        {selectedLeads.length > 0 && (
+          <div className="text-sm text-blue-600 font-medium">
+            {selectedLeads.length} of {totalItems} leads selected
+          </div>
+        )}
+      </div>
+
       {/* Modern Leads Table */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
         {/* Header with total count */}
@@ -239,11 +303,12 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedLeads.map((lead, index) => {
+            {currentLeads.map((lead, index) => {
               const course = getCourse(lead.interested_course_id || "");
               const referral = getReferral(lead.referral_id || "");
               const isConverted = lead.lead_status === 'Converted to Student';
               const isSelected = selectedLeads.includes(lead.id);
+              const actualIndex = startIndex + index + 1;
               
               return (
                 <TableRow 
@@ -260,7 +325,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
                       onClick={(e) => e.stopPropagation()}
                     />
                   </TableCell>
-                  <TableCell className="font-medium text-center">{index + 1}</TableCell>
+                  <TableCell className="font-medium text-center">{actualIndex}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-xs">
@@ -394,7 +459,7 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
           </TableBody>
         </Table>
         
-        {filteredAndSortedLeads.length === 0 && (
+        {currentLeads.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-400 text-lg mb-2">No leads found</div>
             <div className="text-gray-500 text-sm">
@@ -403,6 +468,41 @@ export const LeadsTable = ({ leads, courses, referrals, onEdit, onDelete, onView
           </div>
         )}
       </div>
+
+      {/* Pagination Bottom */}
+      {itemsPerPage !== -1 && totalPages > 1 && (
+        <div className="flex items-center justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {getPageNumbers().map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(pageNum)}
+                    isActive={pageNum === currentPage}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };

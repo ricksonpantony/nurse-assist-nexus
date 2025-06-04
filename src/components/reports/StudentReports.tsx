@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Calendar, Download, Filter, Printer, Users, Trash2 } from 'lucide-react';
 import { exportStudentsToExcel, formatDateForExcel } from '@/utils/excelUtils';
 import { countries } from '@/utils/countries';
@@ -20,6 +20,8 @@ export const StudentReports = () => {
   const { courses } = useCourses();
   
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -126,6 +128,23 @@ export const StudentReports = () => {
     return filtered;
   }, [students, filters, sortBy, sortOrder]);
 
+  // Calculate pagination
+  const totalItems = filteredStudents.length;
+  const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalItems / itemsPerPage);
+  const startIndex = itemsPerPage === -1 ? 0 : (currentPage - 1) * itemsPerPage;
+  const endIndex = itemsPerPage === -1 ? totalItems : startIndex + itemsPerPage;
+  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = value === "all" ? -1 : parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   // Calculate totals
   const totalStudents = filteredStudents.length;
   const totalCourseFees = filteredStudents.reduce((sum, student) => sum + student.total_course_fee, 0);
@@ -138,6 +157,7 @@ export const StudentReports = () => {
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
+      // Select all students from all pages
       setSelectedStudents(filteredStudents.map(student => student.id));
     } else {
       setSelectedStudents([]);
@@ -224,6 +244,19 @@ export const StudentReports = () => {
       batch: 'all',
       country: 'all',
     });
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   };
 
   return (
@@ -532,6 +565,35 @@ export const StudentReports = () => {
         </Button>
       </div>
 
+      {/* Pagination Controls Top */}
+      <div className="flex items-center justify-between no-print">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <Select value={itemsPerPage === -1 ? "all" : itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="200">200</SelectItem>
+              <SelectItem value="500">500</SelectItem>
+              <SelectItem value="1000">1000</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-600">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} students
+          </span>
+        </div>
+        
+        {selectedStudents.length > 0 && (
+          <div className="text-sm text-blue-600 font-medium">
+            {selectedStudents.length} of {totalItems} students selected
+          </div>
+        )}
+      </div>
+
       {/* Report Table */}
       <Card className="shadow-lg no-print">
         <CardHeader>
@@ -562,38 +624,76 @@ export const StudentReports = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.map((student, index) => (
-                  <TableRow 
-                    key={student.id}
-                    className={selectedStudents.includes(student.id) ? 'bg-blue-50' : ''}
-                  >
-                    <TableCell>
-                      <Checkbox 
-                        checked={selectedStudents.includes(student.id)}
-                        onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{index + 1}</TableCell>
-                    <TableCell>{student.id}</TableCell>
-                    <TableCell className="font-medium">{student.full_name}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>{student.phone}</TableCell>
-                    <TableCell>{getCourseName(student.course_id)}</TableCell>
-                    <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(student.status)}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
-                    <TableCell>{student.country || 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
+                {currentStudents.map((student, index) => {
+                  const actualIndex = startIndex + index + 1;
+                  return (
+                    <TableRow 
+                      key={student.id}
+                      className={selectedStudents.includes(student.id) ? 'bg-blue-50' : ''}
+                    >
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedStudents.includes(student.id)}
+                          onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">{actualIndex}</TableCell>
+                      <TableCell>{student.id}</TableCell>
+                      <TableCell className="font-medium">{student.full_name}</TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.phone}</TableCell>
+                      <TableCell>{getCourseName(student.course_id)}</TableCell>
+                      <TableCell>{formatDateForExcel(student.join_date)}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadge(student.status)}>
+                          {student.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
+                      <TableCell>{student.country || 'N/A'}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination Bottom */}
+      {itemsPerPage !== -1 && totalPages > 1 && (
+        <div className="flex items-center justify-center no-print">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {getPageNumbers().map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => handlePageChange(pageNum)}
+                    isActive={pageNum === currentPage}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
