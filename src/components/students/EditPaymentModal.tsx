@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ interface Payment {
   stage: string;
   amount: number;
   payment_mode: string;
+  change_log?: string;
 }
 
 interface EditPaymentModalProps {
@@ -30,7 +31,28 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
   const [amount, setAmount] = useState(payment.amount.toString());
   const [paymentMode, setPaymentMode] = useState(payment.payment_mode);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Get user profile for display name
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        setCurrentUser({
+          email: user.email,
+          name: profile?.full_name || user.email
+        });
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const stages = [
     'Advance',
@@ -61,29 +83,39 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
 
     setLoading(true);
     try {
-      // Create change log entry
+      // Create detailed change entries
       const changes = [];
+      const timestamp = new Date().toISOString();
+      const userInfo = currentUser ? `${currentUser.name} (${currentUser.email})` : 'System';
+
       if (parseFloat(amount) !== payment.amount) {
-        changes.push(`Amount changed from $${payment.amount.toLocaleString()} to $${parseFloat(amount).toLocaleString()}`);
+        changes.push(`[${format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss')}] ${userInfo}: Amount changed from $${payment.amount.toLocaleString()} to $${parseFloat(amount).toLocaleString()}`);
       }
       if (paymentDate !== payment.payment_date) {
-        changes.push(`Date changed from ${format(new Date(payment.payment_date), 'dd/MM/yyyy')} to ${format(new Date(paymentDate), 'dd/MM/yyyy')}`);
+        changes.push(`[${format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss')}] ${userInfo}: Date changed from ${format(new Date(payment.payment_date), 'dd/MM/yyyy')} to ${format(new Date(paymentDate), 'dd/MM/yyyy')}`);
       }
       if (stage !== payment.stage) {
-        changes.push(`Stage changed from ${payment.stage} to ${stage}`);
+        changes.push(`[${format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss')}] ${userInfo}: Stage changed from "${payment.stage}" to "${stage}"`);
       }
       if (paymentMode !== payment.payment_mode) {
-        changes.push(`Payment mode changed from ${payment.payment_mode} to ${paymentMode}`);
+        changes.push(`[${format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss')}] ${userInfo}: Payment mode changed from "${payment.payment_mode}" to "${paymentMode}"`);
       }
 
-      const changeLog = changes.length > 0 ? changes.join(', ') : null;
+      // Combine new changes with existing change log
+      let updatedChangeLog = payment.change_log || '';
+      if (changes.length > 0) {
+        const newChanges = changes.join('\n');
+        updatedChangeLog = updatedChangeLog 
+          ? `${updatedChangeLog}\n${newChanges}` 
+          : newChanges;
+      }
 
       console.log('Updating payment with data:', {
         payment_date: paymentDate,
         stage,
         amount: parseFloat(amount),
         payment_mode: paymentMode,
-        change_log: changeLog
+        change_log: updatedChangeLog
       });
 
       // Update the payment record
@@ -94,7 +126,7 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
           stage,
           amount: parseFloat(amount),
           payment_mode: paymentMode,
-          change_log: changeLog
+          change_log: updatedChangeLog
         })
         .eq('id', payment.id);
 
@@ -107,7 +139,7 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
 
       toast({
         title: "Success",
-        description: "Payment record updated successfully",
+        description: "Payment record updated successfully with change history",
       });
       onSuccess();
       onClose();
@@ -125,7 +157,7 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Payment Record</DialogTitle>
         </DialogHeader>
@@ -189,6 +221,19 @@ export const EditPaymentModal = ({ payment, isOpen, onClose, onSuccess }: EditPa
               </SelectContent>
             </Select>
           </div>
+          
+          {payment.change_log && (
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right text-sm font-medium">
+                Change History
+              </Label>
+              <div className="col-span-3 max-h-32 overflow-y-auto bg-gray-50 p-2 rounded text-xs">
+                <pre className="whitespace-pre-wrap text-gray-700">
+                  {payment.change_log}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
