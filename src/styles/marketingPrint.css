@@ -1,0 +1,351 @@
+
+/* Marketing Print Styles - Landscape mode */
+@media print {
+  /* Hide everything by default when printing from marketing page */
+  .marketing-page * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the print content and its children */
+  .marketing-print-content,
+  .marketing-print-content * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  /* Position print content properly */
+  .marketing-print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15px !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    overflow: visible !important;
+    height: auto !important;
+    page-break-after: auto !important;
+  }
+
+  /* Force landscape orientation */
+  @page {
+    size: A4 landscape !important;
+    margin: 1cm !important;
+    orientation: landscape !important;
+  }
+
+  /* Override any body styles that might interfere */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Force all elements to respect landscape layout */
+  html {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Print header styling */
+  .marketing-print-header {
+    text-align: center !important;
+    margin-bottom: 10pt !important;
+    padding-bottom: 6pt !important;
+    border-bottom: 2pt solid black !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+  }
+
+  .marketing-print-title {
+    font-size: 14pt !important;
+    font-weight: bold !important;
+    margin-bottom: 4pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .marketing-print-subtitle {
+    font-size: 11pt !important;
+    color: #444 !important;
+    margin-bottom: 4pt !important;
+    display: block !important;
+  }
+
+  .marketing-print-date {
+    font-size: 9pt !important;
+    color: #666 !important;
+    display: block !important;
+  }
+
+  /* Summary section */
+  .marketing-print-summary {
+    margin-bottom: 10pt !important;
+    padding: 6pt !important;
+    border: 1pt solid #ccc !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+  }
+
+  .marketing-print-summary h3 {
+    font-size: 11pt !important;
+    font-weight: bold !important;
+    margin-bottom: 4pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .marketing-print-summary p {
+    font-size: 9pt !important;
+    margin: 2pt 0 !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Table styling for print - Optimized for landscape */
+  .marketing-print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 8pt !important;
+    margin-bottom: 20pt !important;
+    font-size: 7pt !important;
+    color: black !important;
+    display: table !important;
+    visibility: visible !important;
+    table-layout: fixed !important;
+    max-width: none !important;
+    page-break-inside: auto !important;
+    overflow: visible !important;
+  }
+
+  .marketing-print-table thead {
+    display: table-header-group !important;
+  }
+
+  .marketing-print-table tbody {
+    display: table-row-group !important;
+  }
+
+  .marketing-print-table tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    height: auto !important;
+  }
+
+  .marketing-print-table th {
+    background: #e8e8e8 !important;
+    border: 1pt solid #333 !important;
+    padding: 2pt 1pt !important;
+    font-size: 7pt !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    color: black !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    vertical-align: top !important;
+    height: auto !important;
+  }
+
+  .marketing-print-table td {
+    border: 0.5pt solid #666 !important;
+    padding: 1pt 0.5pt !important;
+    font-size: 6pt !important;
+    color: black !important;
+    vertical-align: top !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+    height: auto !important;
+  }
+
+  /* Optimized column widths for landscape marketing reports */
+  .marketing-print-table th:nth-child(1),
+  .marketing-print-table td:nth-child(1) {
+    width: 8% !important;
+  }
+
+  .marketing-print-table th:nth-child(2),
+  .marketing-print-table td:nth-child(2) {
+    width: 12% !important;
+  }
+
+  .marketing-print-table th:nth-child(3),
+  .marketing-print-table td:nth-child(3) {
+    width: 12% !important;
+  }
+
+  .marketing-print-table th:nth-child(4),
+  .marketing-print-table td:nth-child(4) {
+    width: 8% !important;
+  }
+
+  .marketing-print-table th:nth-child(5),
+  .marketing-print-table td:nth-child(5) {
+    width: 8% !important;
+  }
+
+  .marketing-print-table th:nth-child(6),
+  .marketing-print-table td:nth-child(6) {
+    width: 15% !important;
+  }
+
+  .marketing-print-table th:nth-child(7),
+  .marketing-print-table td:nth-child(7) {
+    width: 12% !important;
+  }
+
+  .marketing-print-table th:nth-child(8),
+  .marketing-print-table td:nth-child(8) {
+    width: 15% !important;
+  }
+
+  .marketing-print-table th:nth-child(9),
+  .marketing-print-table td:nth-child(9) {
+    width: 10% !important;
+  }
+
+  .marketing-print-table tr:nth-child(even) td {
+    background: #f8f8f8 !important;
+  }
+
+  /* Badge styling for print */
+  .marketing-print-badge {
+    display: inline-block !important;
+    padding: 0.5pt 1pt !important;
+    border: 0.5pt solid #666 !important;
+    border-radius: 1pt !important;
+    font-size: 5pt !important;
+    font-weight: bold !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Override any conflicting styles */
+  .marketing-print-content .bg-gradient-to-br,
+  .marketing-print-content .bg-gradient-to-r,
+  .marketing-print-content .shadow-lg,
+  .marketing-print-content .backdrop-blur-sm {
+    background: white !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Create a proper footer element */
+  .marketing-print-footer {
+    position: fixed !important;
+    bottom: 0.5cm !important;
+    left: 0 !important;
+    right: 0 !important;
+    text-align: center !important;
+    font-size: 7pt !important;
+    color: #666 !important;
+    padding: 4pt !important;
+    border-top: 1pt solid #ddd !important;
+    background: white !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Force display for all print elements */
+  .marketing-print-content table,
+  .marketing-print-content thead,
+  .marketing-print-content tbody,
+  .marketing-print-content tr,
+  .marketing-print-content th,
+  .marketing-print-content td {
+    display: table !important;
+  }
+
+  .marketing-print-content thead {
+    display: table-header-group !important;
+  }
+
+  .marketing-print-content tbody {
+    display: table-row-group !important;
+  }
+
+  .marketing-print-content tr {
+    display: table-row !important;
+  }
+
+  .marketing-print-content th,
+  .marketing-print-content td {
+    display: table-cell !important;
+  }
+
+  /* Text overflow handling */
+  .marketing-print-table th,
+  .marketing-print-table td {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+  }
+
+  /* Allow certain columns to wrap */
+  .marketing-print-table td:nth-child(2),
+  .marketing-print-table td:nth-child(6) {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Force landscape orientation override */
+  * {
+    -webkit-transform: none !important;
+    transform: none !important;
+  }
+
+  /* Remove any max-width constraints and prevent overflow */
+  .marketing-print-content,
+  .marketing-print-content * {
+    max-width: none !important;
+    min-width: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Prevent page breaks in critical sections */
+  .marketing-print-header,
+  .marketing-print-summary {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Control page breaks around table */
+  .marketing-print-table {
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    break-before: auto !important;
+    break-after: auto !important;
+  }
+
+  /* Ensure content doesn't exceed page boundaries */
+  .marketing-print-content {
+    max-height: none !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hide any empty elements that might cause blank pages */
+  .marketing-print-content > *:empty {
+    display: none !important;
+  }
+
+  /* Prevent overflow and extra pages */
+  .marketing-print-content {
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Ensure table doesn't create extra pages */
+  .marketing-print-table tbody tr:last-child {
+    page-break-after: avoid !important;
+  }
+}
