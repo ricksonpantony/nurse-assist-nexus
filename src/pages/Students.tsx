@@ -228,7 +228,7 @@ const Students = () => {
     // Use setTimeout to ensure the component is rendered before printing
     setTimeout(() => {
       window.print();
-      // setShowPrintView(false);
+      setShowPrintView(false);
     }, 100);
   };
 
