@@ -51,12 +51,21 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (error) {
-        toast.error(error.message);
+        // Handle specific authentication errors
+        if (error.message.includes("Invalid login credentials") || 
+            error.message.includes("invalid_credentials") ||
+            error.message.includes("Email not confirmed")) {
+          toast.error("Username or password is incorrect. Please check your credentials and try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Please check your email and confirm your account before signing in.");
+        } else {
+          toast.error(error.message || "An error occurred during sign in");
+        }
         return;
       }
 
@@ -65,7 +74,8 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         onLoginSuccess();
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      console.error("Login error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
