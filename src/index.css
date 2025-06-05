@@ -382,15 +382,15 @@
   }
 
   /* Print Footer */
-  body::after {
-    content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney\A📍 2/2 Sorrel Street, Parramatta 2150, Sydney";
-    white-space: pre;
-    display: block;
-    text-align: center;
-    font-size: 10pt;
-    color: #555;
-    margin-top: 30px;
-  }
+  // body::after {
+  //   content: "📞 +61 478 320 397     ✉️ admin@nurseassistinternational.com\A📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney\A📍 2/2 Sorrel Street, Parramatta 2150, Sydney";
+  //   white-space: pre;
+  //   display: block;
+  //   text-align: center;
+  //   font-size: 10pt;
+  //   color: #555;
+  //   margin-top: 30px;
+  // }
 
   /* Remove any page overflow */
   html, body {

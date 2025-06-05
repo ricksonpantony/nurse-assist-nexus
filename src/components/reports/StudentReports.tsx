@@ -319,9 +319,9 @@ export const StudentReports = () => {
         </table>
 
         {/* Proper footer element */}
-        {/* <div className="student-reports-print-footer">
+        <div className="student-reports-print-footer">
           📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney
-        </div> */}
+        </div>
       </div>
 
       {/* Filters Card */}
