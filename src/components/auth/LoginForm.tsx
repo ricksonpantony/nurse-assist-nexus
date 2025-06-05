@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Building2, Mail, LogIn } from "lucide-react";
+import { Eye, EyeOff, Building2, Mail, LogIn, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface LoginFormProps {
@@ -17,9 +17,36 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Number verification states
+  const [num1, setNum1] = useState(Math.floor(Math.random() * 10) + 1);
+  const [num2, setNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [isVerificationValid, setIsVerificationValid] = useState(false);
+
+  const correctAnswer = num1 + num2;
+
+  const generateNewNumbers = () => {
+    setNum1(Math.floor(Math.random() * 10) + 1);
+    setNum2(Math.floor(Math.random() * 10) + 1);
+    setUserAnswer("");
+    setIsVerificationValid(false);
+  };
+
+  const handleVerificationChange = (value: string) => {
+    setUserAnswer(value);
+    const answer = parseInt(value);
+    setIsVerificationValid(answer === correctAnswer);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isVerificationValid) {
+      toast.error("Please solve the math problem correctly");
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -151,10 +178,48 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                 </div>
               </div>
 
+              {/* Number Verification */}
+              <div className="space-y-2">
+                <Label htmlFor="verification" className="text-sm font-medium text-blue-100">
+                  Security Verification
+                </Label>
+                <div className="flex items-center space-x-3 p-4 bg-white/5 rounded-lg border border-white/20">
+                  <div className="text-white text-lg font-semibold">
+                    {num1} + {num2} = ?
+                  </div>
+                  <Input
+                    id="verification"
+                    type="number"
+                    placeholder="Answer"
+                    value={userAnswer}
+                    onChange={(e) => handleVerificationChange(e.target.value)}
+                    className="w-20 h-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:border-blue-300 focus:ring-blue-300/50 transition-all duration-200 backdrop-blur-sm text-center"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={generateNewNumbers}
+                    className="text-blue-200 hover:text-white transition-colors"
+                    title="Generate new numbers"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                  {userAnswer && (
+                    <div className="text-sm">
+                      {isVerificationValid ? (
+                        <span className="text-green-300">✓</span>
+                      ) : (
+                        <span className="text-red-300">✗</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="w-full h-12 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 hover:from-blue-400/90 hover:to-indigo-500/90 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg backdrop-blur-sm border border-white/20"
+                disabled={isLoading || !isVerificationValid}
+                className="w-full h-12 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 hover:from-blue-400/90 hover:to-indigo-500/90 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
