@@ -331,6 +331,9 @@ export const PaymentReports = () => {
   const totalFinalPayments = filteredBreakdown.reduce((sum, item) => sum + item.final_payment, 0);
   const totalBalanceFee = filteredBreakdown.reduce((sum, item) => sum + item.balance_fee, 0);
 
+  // Calculate total paid (all payment stages combined)
+  const totalPaidAmount = totalAdvancePayments + totalSecondPayments + totalOtherPayments + totalFinalPayments;
+
   // Get unique payment stages, modes, and student statuses
   const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
   const paymentModes = [...new Set(payments.map(p => p.payment_mode))].filter(mode => mode && mode.trim() !== '');
@@ -436,6 +439,10 @@ export const PaymentReports = () => {
           <p>Total Selected Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</p>
           <p>Total Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</p>
           <p>Total Advance Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</p>
+          <p>Total Second Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</p>
+          <p>Total Other Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</p>
+          <p>Total Final Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</p>
+          <p>Total Paid Amount: ${((selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment + item.second_payment + item.other_payments + item.final_payment, 0)).toLocaleString()}</p>
           <p>Total Balance Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</p>
         </div>
 
@@ -484,6 +491,10 @@ export const PaymentReports = () => {
           <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
           <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
           <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
+          <div>Second: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</div>
+          <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
+          <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
+          <div><strong>Total Paid: ${((selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment + item.second_payment + item.other_payments + item.final_payment, 0)).toLocaleString()}</strong></div>
           <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
         </div>
       </div>
@@ -708,7 +719,7 @@ export const PaymentReports = () => {
       </Card>
 
       {/* Payment Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="text-center">
@@ -741,6 +752,15 @@ export const PaymentReports = () => {
             <div className="text-center">
               <p className="text-yellow-100 text-sm">Second</p>
               <p className="text-xl font-bold">${totalSecondPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-indigo-100 text-sm">Other</p>
+              <p className="text-xl font-bold">${totalOtherPayments.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
@@ -874,15 +894,21 @@ export const PaymentReports = () => {
               </TableBody>
             </Table>
             
-            {/* Totals Row */}
+            {/* Enhanced Totals Row */}
             {filteredBreakdown.length > 0 && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                <div className="grid grid-cols-6 gap-4 text-sm font-bold">
+                <div className="grid grid-cols-4 gap-4 text-sm font-bold mb-2">
                   <div>Total Students: {totalStudents}</div>
                   <div>Course Fees: ${totalCourseFees.toLocaleString()}</div>
                   <div>Advance: ${totalAdvancePayments.toLocaleString()}</div>
                   <div>Second: ${totalSecondPayments.toLocaleString()}</div>
+                </div>
+                <div className="grid grid-cols-4 gap-4 text-sm font-bold mb-2">
+                  <div>Other: ${totalOtherPayments.toLocaleString()}</div>
                   <div>Final: ${totalFinalPayments.toLocaleString()}</div>
+                  <div className="text-blue-600">
+                    <strong>Total Paid: ${totalPaidAmount.toLocaleString()}</strong>
+                  </div>
                   <div className={totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}>
                     Balance: ${totalBalanceFee.toLocaleString()}
                   </div>
