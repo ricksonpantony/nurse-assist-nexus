@@ -170,15 +170,15 @@ export const useStudents = () => {
       
       // Extract referral payment amount before saving student
       const referralPaymentAmount = studentData.referral_payment_amount || 0;
-      const { referral_payment_amount, ...cleanStudentData } = studentData;
+      const { referral_payment_amount, ...cleanStudentDataWithoutReferral } = studentData;
       
       // Clean the data to handle null values properly
       const insertData = cleanStudentData({
-        ...cleanStudentData,
+        ...cleanStudentDataWithoutReferral,
         id: newStudentId,
         // Ensure numeric fields are properly typed
-        total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
-        advance_payment: Number(cleanStudentData.advance_payment) || 0,
+        total_course_fee: Number(cleanStudentDataWithoutReferral.total_course_fee) || 0,
+        advance_payment: Number(cleanStudentDataWithoutReferral.advance_payment) || 0,
         installments: 1, // Always set to 1
       });
       
