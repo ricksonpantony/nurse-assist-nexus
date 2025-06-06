@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
-import { CreditCard, Download, Filter, Printer, Trash2 } from 'lucide-react';
+import { CreditCard, Download, Filter, Printer, Trash2, Calendar } from 'lucide-react';
 import { formatDateForExcel } from '@/utils/excelUtils';
 import * as XLSX from 'xlsx';
 import '../../styles/paymentReportsPrint.css';
@@ -375,6 +375,27 @@ export const PaymentReports = () => {
     setSortOrder('desc');
   };
 
+  // Date range helper functions
+  const setTodayRange = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: today,
+      dateTo: today
+    }));
+  };
+
+  const setYesterdayRange = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: yesterdayStr,
+      dateTo: yesterdayStr
+    }));
+  };
+
   const isAllSelected = filteredBreakdown.length > 0 && selectedRows.length === filteredBreakdown.length;
   const isPartialSelected = selectedRows.length > 0 && selectedRows.length < filteredBreakdown.length;
 
@@ -661,6 +682,14 @@ export const PaymentReports = () => {
             </Button>
             <Button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} variant="outline">
               Sort: {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+            </Button>
+            <Button onClick={setTodayRange} variant="outline" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Today
+            </Button>
+            <Button onClick={setYesterdayRange} variant="outline" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Yesterday
             </Button>
           </div>
         </CardContent>

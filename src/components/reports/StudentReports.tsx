@@ -246,6 +246,27 @@ export const StudentReports = () => {
     });
   };
 
+  // Date range helper functions
+  const setTodayRange = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: today,
+      dateTo: today
+    }));
+  };
+
+  const setYesterdayRange = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    setFilters(prev => ({
+      ...prev,
+      dateFrom: yesterdayStr,
+      dateTo: yesterdayStr
+    }));
+  };
+
   // Generate page numbers for pagination
   const getPageNumbers = () => {
     const pages = [];
@@ -496,6 +517,14 @@ export const StudentReports = () => {
             <Button onClick={clearFilters} variant="outline" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Clear Filters
+            </Button>
+            <Button onClick={setTodayRange} variant="outline" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Today
+            </Button>
+            <Button onClick={setYesterdayRange} variant="outline" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Yesterday
             </Button>
           </div>
         </CardContent>
