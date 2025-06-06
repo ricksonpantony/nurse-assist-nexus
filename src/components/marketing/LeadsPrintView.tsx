@@ -26,43 +26,6 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
             size: A4 landscape;
             margin: 1cm;
           }
-
-          /* Prevent blank pages */
-          .print-content {
-            page-break-after: avoid !important;
-          }
-
-          .print-content > *:last-child {
-            margin-bottom: 0 !important;
-            padding-bottom: 0 !important;
-            page-break-after: avoid !important;
-          }
-
-          /* Hide empty elements */
-          .print-content > *:empty {
-            display: none !important;
-          }
-
-          /* Optimize page breaks */
-          .print-section {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-
-          .print-major-section {
-            page-break-before: auto;
-            page-break-after: auto;
-          }
-
-          .print-table {
-            page-break-inside: auto;
-            break-inside: auto;
-          }
-
-          .print-table tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
         }
       `}</style>
       
@@ -152,7 +115,7 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
         const referral = getReferral(lead.referral_id || "");
         
         return (
-          <div key={lead.id} className="print-section">
+          <div key={lead.id} className="print-section print-major-section">
             <div className="print-section-title">Lead #{index + 1} - {lead.full_name} ({lead.lead_id || lead.id})</div>
             
             <div className="print-grid-3">
@@ -255,7 +218,7 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
       })}
 
       {/* Print Report Generated Info */}
-      <div className="print-section" style={{ marginBottom: 0, paddingBottom: 0 }}>
+      <div className="print-section">
         <div className="print-field">
           <div className="print-field-label">Report Generated</div>
           <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>

@@ -163,7 +163,7 @@ const Marketing = () => {
         </div>
 
         {/* Print Leads Table */}
-        <div style={{ marginBottom: '0' }}>
+        <div style={{ marginBottom: '10pt' }}>
           <h3 style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '6pt', color: 'black' }}>Lead Details</h3>
           <table className="marketing-print-table">
             <thead>
@@ -201,6 +201,11 @@ const Marketing = () => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Print Footer */}
+        <div className="marketing-print-footer">
+          <div>📞 +61 470 320 397 | ✉ admin@nurseassistinternational.com | 🏢 Suite 104, Level 1, 25 Grene Street, Parramatta, 2150, Sydney</div>
         </div>
       </div>
 

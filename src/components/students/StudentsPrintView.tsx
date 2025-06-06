@@ -45,6 +45,10 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
             display: block !important; 
           }
           
+          .page-break { 
+            page-break-before: always; 
+          }
+          
           .table-print {
             width: 100%;
             border-collapse: collapse;
@@ -66,33 +70,6 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
           @page {
             size: A4 landscape;
             margin: 1cm;
-          }
-
-          /* Prevent blank pages */
-          .print-content {
-            page-break-after: avoid !important;
-          }
-
-          .print-content > *:last-child {
-            margin-bottom: 0 !important;
-            padding-bottom: 0 !important;
-            page-break-after: avoid !important;
-          }
-
-          /* Hide empty elements */
-          .print-content > *:empty {
-            display: none !important;
-          }
-
-          /* Optimize page breaks */
-          .table-print {
-            page-break-inside: auto;
-            break-inside: auto;
-          }
-
-          .table-print tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
           }
         }
       `}</style>
