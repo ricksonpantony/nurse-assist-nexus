@@ -45,11 +45,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               // Check if profile already exists to avoid unnecessary updates
               const { data: existingProfile } = await supabase
                 .from('user_profiles')
-                .select('id')
+                .select('id, role')
                 .eq('id', session.user.id)
                 .single();
 
-              // Only create profile if it doesn't exist (new user)
+              // Create or update profile with admin role for all users
               if (!existingProfile) {
                 const fullName = session.user.user_metadata?.full_name || session.user.email || 'User';
                 
@@ -58,11 +58,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   .insert({
                     id: session.user.id,
                     full_name: fullName,
-                    role: 'user' // Default role is now 'user' for security
+                    role: 'admin' // Set all new users as admin
                   });
 
                 if (error) {
                   console.error('Error creating user profile:', error.message);
+                }
+              } else if (existingProfile.role !== 'admin') {
+                // Update existing users to admin role
+                const { error } = await supabase
+                  .from('user_profiles')
+                  .update({ role: 'admin' })
+                  .eq('id', session.user.id);
+
+                if (error) {
+                  console.error('Error updating user role to admin:', error.message);
                 }
               }
             } catch (error) {

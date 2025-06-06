@@ -31,25 +31,12 @@ serve(async (req) => {
       })
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabaseClient
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403
-      })
-    }
-
+    // All authenticated users are now admins, so skip role check
     const { method } = req
     const body = method !== 'GET' ? await req.json() : null
 
     if (method === 'POST' && req.url.includes('/create-user')) {
-      const { email, password, full_name, role = 'user' } = body
+      const { email, password, full_name, role = 'admin' } = body
 
       // Create user with admin API
       const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
@@ -65,10 +52,10 @@ serve(async (req) => {
         })
       }
 
-      // Update user profile with role
+      // Update user profile with admin role by default
       await supabaseClient
         .from('user_profiles')
-        .update({ full_name, role })
+        .update({ full_name, role: role || 'admin' })
         .eq('id', newUser.user.id)
 
       return new Response(JSON.stringify({ success: true, user: newUser.user }), {

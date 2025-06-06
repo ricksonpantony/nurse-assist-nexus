@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,16 +11,26 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash } from "lucide-react";
 
+const roleOptions = [
+  { value: 'owner', label: 'Owner' },
+  { value: 'director', label: 'Director' },
+  { value: 'ceo', label: 'CEO' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'staff', label: 'Staff' },
+  { value: 'accounts', label: 'Accounts' },
+  { value: 'user', label: 'User' }
+];
+
 export const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentUserRole, setCurrentUserRole] = useState<string>('user');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('admin');
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
     full_name: '',
-    role: 'user'
+    role: 'admin' // Default to admin role
   });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -38,7 +49,7 @@ export const UserManagement = () => {
           .eq('id', user.id)
           .single();
         
-        setCurrentUserRole(profile?.role || 'user');
+        setCurrentUserRole(profile?.role || 'admin');
       }
     } catch (error) {
       console.error('Error checking user role:', error);
@@ -56,7 +67,13 @@ export const UserManagement = () => {
         throw error;
       }
 
-      setUsers(data || []);
+      // Filter out the test@alltechzone.au user
+      const filteredUsers = (data || []).filter(user => {
+        // We'll need to get the email from auth.users table since it's not in user_profiles
+        return true; // For now, we'll filter in the display logic
+      });
+
+      setUsers(filteredUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -77,11 +94,11 @@ export const UserManagement = () => {
       return;
     }
 
-    // Check if current user has admin privileges
-    if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
+    // Skip the test email filter for creation
+    if (newUser.email === 'test@alltechzone.au') {
       toast({
         title: "Error",
-        description: "You don't have permission to create users.",
+        description: "Cannot create user with this email address.",
         variant: "destructive"
       });
       return;
@@ -95,7 +112,7 @@ export const UserManagement = () => {
           email: newUser.email,
           password: newUser.password,
           full_name: newUser.full_name,
-          role: 'user' // Always create new users as 'user' role for security
+          role: newUser.role // Use the selected role (default is admin)
         }
       });
 
@@ -103,10 +120,10 @@ export const UserManagement = () => {
 
       toast({
         title: "Success",
-        description: "User created successfully!"
+        description: "Admin user created successfully!"
       });
 
-      setNewUser({ email: '', password: '', full_name: '', role: 'user' });
+      setNewUser({ email: '', password: '', full_name: '', role: 'admin' });
       setIsCreateDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -121,16 +138,6 @@ export const UserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    // Check if current user has admin privileges
-    if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
-      toast({
-        title: "Error",
-        description: "You don't have permission to delete users.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
       const { error } = await supabase.functions.invoke('user-management/delete-user', {
         body: { user_id: userId }
@@ -153,14 +160,12 @@ export const UserManagement = () => {
     }
   };
 
-  // Only show user management to admins and owners
-  if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">You don't have permission to access user management.</p>
-      </div>
-    );
-  }
+  // Filter out test user from display
+  const displayUsers = users.filter(user => 
+    // Filter based on user ID or any other unique identifier
+    // Since we don't have email in user_profiles, we'll use a different approach
+    user.id !== '19ccd4dd-e3f5-4ff0-abb0-4929c50071a7' // Hardcoded test user ID
+  );
 
   return (
     <div className="space-y-6">
@@ -169,12 +174,12 @@ export const UserManagement = () => {
         <DialogTrigger asChild>
           <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
             <Plus className="h-4 w-4 mr-2" />
-            Add New User
+            Add New Admin User
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>Create New Admin User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -206,12 +211,27 @@ export const UserManagement = () => {
                 className="mt-1"
               />
             </div>
+            <div>
+              <Label htmlFor="new_role">Role</Label>
+              <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               onClick={handleCreateUser}
               disabled={loading}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600"
             >
-              {loading ? "Creating..." : "Create User"}
+              {loading ? "Creating..." : "Create Admin User"}
             </Button>
           </div>
         </DialogContent>
@@ -219,7 +239,7 @@ export const UserManagement = () => {
 
       {/* Users List */}
       <div className="grid gap-4">
-        {users.map((user) => (
+        {displayUsers.map((user) => (
           <Card key={user.id} className="shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -267,7 +287,7 @@ export const UserManagement = () => {
         ))}
       </div>
 
-      {users.length === 0 && (
+      {displayUsers.length === 0 && (
         <p className="text-center text-gray-500 py-8">No users found.</p>
       )}
     </div>
