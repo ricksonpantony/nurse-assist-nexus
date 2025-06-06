@@ -25,7 +25,10 @@
     font-family: Arial, sans-serif !important;
     overflow: visible !important;
     height: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important; /* Prevent page break after content */
+    page-break-before: avoid !important; /* Prevent page break before content */
+    break-after: avoid !important;
+    break-before: avoid !important;
   }
 
   /* Force landscape orientation - Critical for proper layout */
@@ -42,14 +45,14 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important; /* Changed to auto to avoid extra space */
     overflow: visible !important;
   }
 
   /* Force all elements to respect landscape layout */
   html {
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important; /* Changed to auto to avoid extra space */
     overflow: visible !important;
   }
 
@@ -121,15 +124,15 @@
     visibility: visible !important;
     table-layout: fixed !important;
     max-width: none !important;
-    page-break-inside: auto !important;
-    overflow: visible !important;
+    page-break-inside оборот: avoid !important; /* Prevent extra page breaks within table rows */
+    break-inside: avoid !important;
   }
 
   .payment-reports-print-table thead {
     display: table-header-group !important;
   }
 
-  .payment-reports-print-table tbody {
+  .payment-report-print-table tbody {
     display: table-row-group !important;
   }
 
@@ -238,7 +241,7 @@
     backdrop-filter: none !important;
   }
 
-  /* Remove the ::after pseudo-element and create a proper footer */
+  /* Remove the ::after pseudo-element to prevent extra pages */
   .payment-reports-print-content::after {
     display: none !important;
   }
@@ -325,9 +328,9 @@
   /* Control page breaks around table */
   .payment-reports-print-table {
     page-break-before: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important; /* Prevent page break after table */
     break-before: auto !important;
-    break-after: auto !important;
+    break-after: avoid !important;
   }
 
   /* Ensure content doesn't exceed page boundaries */
@@ -340,13 +343,5 @@
   /* Hide any empty elements that might cause blank pages */
   .payment-reports-print-content > *:empty {
     display: none !important;
-  }
-
-  /* Force extra pages by adding a blank page at the end */
-  .payment-reports-print-content::after {
-    content: "";
-    display: block;
-    height: 100vh; /* Forces a new page */
-    visibility: visible !important;
   }
 }
