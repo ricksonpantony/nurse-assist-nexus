@@ -14,6 +14,7 @@ export const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('user');
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -23,21 +24,47 @@ export const UserManagement = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
+    checkCurrentUserRole();
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching users:', error);
-      return;
+  const checkCurrentUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        setCurrentUserRole(profile?.role || 'user');
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
     }
+  };
 
-    setUsers(data || []);
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateUser = async () => {
@@ -45,6 +72,16 @@ export const UserManagement = () => {
       toast({
         title: "Error",
         description: "Email and password are required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if current user has admin privileges
+    if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
+      toast({
+        title: "Error",
+        description: "You don't have permission to create users.",
         variant: "destructive"
       });
       return;
@@ -75,7 +112,7 @@ export const UserManagement = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create user.",
+        description: "Failed to create user. Please try again.",
         variant: "destructive"
       });
     }
@@ -84,6 +121,16 @@ export const UserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    // Check if current user has admin privileges
+    if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
+      toast({
+        title: "Error",
+        description: "You don't have permission to delete users.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase.functions.invoke('user-management/delete-user', {
         body: { user_id: userId }
@@ -100,11 +147,20 @@ export const UserManagement = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete user.",
+        description: "Failed to delete user. Please try again.",
         variant: "destructive"
       });
     }
   };
+
+  // Only show user management to admins and owners
+  if (currentUserRole !== 'admin' && currentUserRole !== 'owner') {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">You don't have permission to access user management.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -169,9 +225,10 @@ export const UserManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="font-medium">{user.full_name || 'No name provided'}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
+                  <p className="text-sm text-gray-600">Role: {user.role}</p>
+                  <p className="text-xs text-gray-500">ID: {user.id}</p>
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    user.role === 'admin' 
+                    user.role === 'admin' || user.role === 'owner'
                       ? 'bg-red-100 text-red-800' 
                       : 'bg-green-100 text-green-800'
                   }`}>

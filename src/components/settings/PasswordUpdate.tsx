@@ -42,8 +42,28 @@ export const PasswordUpdate = () => {
     });
   };
 
+  const verifyCurrentPassword = async (currentPassword: string): Promise<boolean> => {
+    try {
+      // Create a temporary session to verify current password
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        throw new Error("User email not found");
+      }
+
+      // Try to sign in with current credentials to verify password
+      const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      return !error;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const handleUpdatePassword = async () => {
-    // Validation
+    // Enhanced validation
     if (!passwords.current || !passwords.new || !passwords.confirm) {
       toast({
         title: "Error",
@@ -62,10 +82,25 @@ export const PasswordUpdate = () => {
       return;
     }
 
-    if (passwords.new.length < 6) {
+    if (passwords.new.length < 8) {
       toast({
         title: "Error",
-        description: "New password must be at least 6 characters long.",
+        description: "New password must be at least 8 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check password strength
+    const hasUpperCase = /[A-Z]/.test(passwords.new);
+    const hasLowerCase = /[a-z]/.test(passwords.new);
+    const hasNumbers = /\d/.test(passwords.new);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(passwords.new);
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      toast({
+        title: "Error",
+        description: "Password must contain at least one uppercase letter, one lowercase letter, and one number.",
         variant: "destructive"
       });
       return;
@@ -84,6 +119,20 @@ export const PasswordUpdate = () => {
     setLoading(true);
 
     try {
+      // Verify current password first
+      const isCurrentPasswordValid = await verifyCurrentPassword(passwords.current);
+      
+      if (!isCurrentPasswordValid) {
+        toast({
+          title: "Error",
+          description: "Current password is incorrect.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Update password
       const { error } = await supabase.auth.updateUser({
         password: passwords.new
       });
@@ -101,7 +150,7 @@ export const PasswordUpdate = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update password.",
+        description: "Failed to update password. Please try again.",
         variant: "destructive"
       });
     }
@@ -117,42 +166,48 @@ export const PasswordUpdate = () => {
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="current_password">Current Password</Label>
+        <Label htmlFor="current_password">Current Password <span className="text-red-500">*</span></Label>
         <Input
           id="current_password"
           type="password"
           value={passwords.current}
           onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
           className="mt-1"
+          required
         />
       </div>
 
       <div>
-        <Label htmlFor="new_password">New Password</Label>
+        <Label htmlFor="new_password">New Password <span className="text-red-500">*</span></Label>
         <Input
           id="new_password"
           type="password"
           value={passwords.new}
           onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
           className="mt-1"
+          required
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Password must be at least 8 characters with uppercase, lowercase, and numbers.
+        </p>
       </div>
 
       <div>
-        <Label htmlFor="confirm_password">Confirm New Password</Label>
+        <Label htmlFor="confirm_password">Confirm New Password <span className="text-red-500">*</span></Label>
         <Input
           id="confirm_password"
           type="password"
           value={passwords.confirm}
           onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
           className="mt-1"
+          required
         />
       </div>
 
       {/* Human Verification */}
       <div className="p-4 bg-gray-50 rounded-lg border">
         <Label className="text-sm font-medium text-gray-700">
-          Human Verification: What is {humanVerification.question}?
+          Security Verification: What is {humanVerification.question}?
         </Label>
         <Input
           type="number"
@@ -160,6 +215,7 @@ export const PasswordUpdate = () => {
           onChange={(e) => setHumanVerification({ ...humanVerification, userAnswer: e.target.value })}
           className="mt-2"
           placeholder="Enter your answer"
+          required
         />
         <Button
           type="button"

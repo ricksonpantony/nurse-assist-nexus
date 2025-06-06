@@ -35,42 +35,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle user profile creation/update for admin access
+        // Handle user profile creation for new sign-ins only
         if (session?.user && event === 'SIGNED_IN') {
           setTimeout(async () => {
             try {
-              // Split full name into first and last name parts
-              const fullName = session.user.user_metadata?.full_name || session.user.email || 'Admin User';
-              const nameParts = fullName.split(' ');
-              const firstName = nameParts[0] || 'Admin';
-              const lastName = nameParts.slice(1).join(' ') || 'User';
-
-              // Try to upsert user profile with admin role using direct database operations
-              const { error } = await supabase
+              // Check if profile already exists to avoid unnecessary updates
+              const { data: existingProfile } = await supabase
                 .from('user_profiles')
-                .upsert({
-                  id: session.user.id,
-                  // full_name: fullName,
-                  // first_name: firstName,
-                  // last_name: lastName,
-                  role: 'admin'
-                }, {
-                  onConflict: 'id'
-                });
+                .select('id')
+                .eq('id', session.user.id)
+                .single();
 
-              if (error) {
-                console.error('Error handling user profile:', error);
-                // Don't throw error - just log it and continue
-              } else {
-                console.log('User profile handled successfully');
+              // Only create profile if it doesn't exist (new user)
+              if (!existingProfile) {
+                const fullName = session.user.user_metadata?.full_name || session.user.email || 'User';
+                
+                const { error } = await supabase
+                  .from('user_profiles')
+                  .insert({
+                    id: session.user.id,
+                    full_name: fullName,
+                    role: 'user' // Default role is now 'user' for security
+                  });
+
+                if (error) {
+                  console.error('Error creating user profile:', error.message);
+                }
               }
             } catch (error) {
               console.error('Error in user profile handling:', error);
-              // Don't throw error - just log it and continue
             }
           }, 100);
         }
@@ -81,7 +77,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);

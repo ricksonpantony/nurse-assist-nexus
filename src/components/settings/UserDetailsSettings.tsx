@@ -71,7 +71,19 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
     try {
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-console.log(formData.first_name)
+
+      // Check if user is trying to change their own role to admin/owner
+      if (userProfile.role !== 'admin' && userProfile.role !== 'owner' && 
+          (formData.role === 'admin' || formData.role === 'owner')) {
+        toast({
+          title: "Error",
+          description: "You cannot elevate your own role to admin or owner. Contact an administrator.",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       // Update user profile
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -87,7 +99,6 @@ console.log(formData.first_name)
         .eq('id', user.id);
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
         throw profileError;
       }
 
@@ -98,7 +109,6 @@ console.log(formData.first_name)
         });
 
         if (authError) {
-          console.error('Email update error:', authError);
           throw authError;
         }
 
@@ -115,10 +125,9 @@ console.log(formData.first_name)
 
       onUpdate();
     } catch (error: any) {
-      console.error('Update profile error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update profile.",
+        description: "Failed to update profile. Please try again.",
         variant: "destructive"
       });
     }
@@ -203,6 +212,11 @@ console.log(formData.first_name)
             ))}
           </SelectContent>
         </Select>
+        {(userProfile.role !== 'admin' && userProfile.role !== 'owner') && (
+          <p className="text-xs text-amber-600 mt-1">
+            Note: You cannot elevate your role to admin or owner. Contact an administrator for role changes.
+          </p>
+        )}
       </div>
 
       <Button
