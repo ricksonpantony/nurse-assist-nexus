@@ -93,7 +93,6 @@
     background: #f9f9f9 !important;
     display: block !important;
     page-break-inside: avoid !important;
-    page-break-before: always !important;
   }
 
   .payment-reports-print-summary h3 {
@@ -125,7 +124,6 @@
     max-width: none !important;
     page-break-inside: auto !important;
     overflow: visible !important;
-    page-break-after: always !important;
   }
 
   .payment-reports-print-table thead {
@@ -241,6 +239,11 @@
     backdrop-filter: none !important;
   }
 
+  /* Remove the ::after pseudo-element and create a proper footer */
+  .payment-reports-print-content::after {
+    display: none !important;
+  }
+
   /* Create a proper footer element */
   .payment-reports-print-footer {
     position: fixed !important;
@@ -255,11 +258,6 @@
     background: white !important;
     display: block !important;
     page-break-inside: avoid !important;
-  }
-
-  /* Totals section */
-  .payment-reports-print-totals {
-    page-break-before: always !important;
   }
 
   /* Force display for all print elements */
@@ -343,12 +341,5 @@
   /* Hide any empty elements that might cause blank pages */
   .payment-reports-print-content > *:empty {
     display: none !important;
-  }
-
-  /* Add an empty page at the end */
-  .payment-reports-print-content::after {
-    content: "";
-    display: block;
-    height: 100vh; /* Forces a new page */
   }
 }
