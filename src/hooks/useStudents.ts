@@ -125,6 +125,42 @@ export const useStudents = () => {
     }
   };
 
+  const cleanStudentData = (studentData: any) => {
+    // Clean the data to ensure proper null handling for UUID fields
+    const cleanData = { ...studentData };
+    
+    // Convert empty strings to null for UUID fields
+    if (cleanData.course_id === '' || cleanData.course_id === 'none') {
+      cleanData.course_id = null;
+    }
+    if (cleanData.referral_id === '' || cleanData.referral_id === 'direct') {
+      cleanData.referral_id = null;
+    }
+    if (cleanData.batch_id === '') {
+      cleanData.batch_id = null;
+    }
+    if (cleanData.passport_id === '') {
+      cleanData.passport_id = null;
+    }
+    if (cleanData.address === '') {
+      cleanData.address = null;
+    }
+    if (cleanData.country === '') {
+      cleanData.country = null;
+    }
+    if (cleanData.class_start_date === '') {
+      cleanData.class_start_date = null;
+    }
+    if (cleanData.advance_payment_method === '') {
+      cleanData.advance_payment_method = null;
+    }
+    if (cleanData.notes === '') {
+      cleanData.notes = null;
+    }
+
+    return cleanData;
+  };
+
   const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'> & { referral_payment_amount?: number }) => {
     try {
       const newStudentId = await generateStudentId();
@@ -136,25 +172,15 @@ export const useStudents = () => {
       const referralPaymentAmount = studentData.referral_payment_amount || 0;
       const { referral_payment_amount, ...cleanStudentData } = studentData;
       
-      // Prepare the data for insertion - ensure proper data types and null handling
-      const insertData = {
+      // Clean the data to handle null values properly
+      const insertData = cleanStudentData({
         ...cleanStudentData,
         id: newStudentId,
-        // Handle null values properly for database insertion
-        course_id: cleanStudentData.course_id || null,
-        batch_id: cleanStudentData.batch_id || null,
-        referral_id: cleanStudentData.referral_id || null,
-        passport_id: cleanStudentData.passport_id || null,
-        address: cleanStudentData.address || null,
-        country: cleanStudentData.country || null,
-        class_start_date: cleanStudentData.class_start_date || null,
-        advance_payment_method: cleanStudentData.advance_payment_method || null,
-        notes: cleanStudentData.notes || null,
         // Ensure numeric fields are properly typed
         total_course_fee: Number(cleanStudentData.total_course_fee) || 0,
         advance_payment: Number(cleanStudentData.advance_payment) || 0,
         installments: 1, // Always set to 1
-      };
+      });
       
       console.log('Clean insert data:', insertData);
       
@@ -185,11 +211,11 @@ export const useStudents = () => {
       }
 
       // Add referral payment if provided and referral exists
-      if (referralPaymentAmount > 0 && studentData.referral_id && studentData.referral_id !== "direct") {
+      if (referralPaymentAmount > 0 && insertData.referral_id) {
         await supabase
           .from('referral_payments')
           .insert([{
-            referral_id: studentData.referral_id,
+            referral_id: insertData.referral_id,
             student_id: newStudentId,
             amount: referralPaymentAmount,
             payment_date: new Date().toISOString().split('T')[0],
@@ -230,29 +256,28 @@ export const useStudents = () => {
       
       // Extract referral payment amount before updating student
       const referralPaymentAmount = studentData.referral_payment_amount || 0;
-      const { referral_payment_amount, ...cleanStudentData } = studentData;
+      const { referral_payment_amount, ...studentDataWithoutReferralPayment } = studentData;
       
-      // Remove undefined values and prepare clean update object
-      const cleanData = Object.entries(cleanStudentData).reduce((acc, [key, value]) => {
+      // Clean the data to handle null values properly
+      const cleanData = cleanStudentData({
+        ...studentDataWithoutReferralPayment,
+        updated_at: new Date().toISOString(),
+        installments: 1, // Always set to 1
+      });
+      
+      // Remove undefined values
+      const finalData = Object.entries(cleanData).reduce((acc, [key, value]) => {
         if (value !== undefined) {
           acc[key] = value;
         }
         return acc;
       }, {} as any);
       
-      // Ensure installments is always 1 if provided
-      if ('installments' in cleanData) {
-        cleanData.installments = 1;
-      }
-      
-      // Add updated_at timestamp
-      cleanData.updated_at = new Date().toISOString();
-      
-      console.log('Clean update data:', cleanData);
+      console.log('Clean update data:', finalData);
       
       const { data, error } = await supabase
         .from('students')
-        .update(cleanData)
+        .update(finalData)
         .eq('id', id)
         .select()
         .single();
@@ -263,11 +288,11 @@ export const useStudents = () => {
       }
 
       // Add referral payment if provided and referral exists
-      if (referralPaymentAmount > 0 && cleanData.referral_id && cleanData.referral_id !== "direct") {
+      if (referralPaymentAmount > 0 && finalData.referral_id) {
         await supabase
           .from('referral_payments')
           .insert([{
-            referral_id: cleanData.referral_id,
+            referral_id: finalData.referral_id,
             student_id: id,
             amount: referralPaymentAmount,
             payment_date: new Date().toISOString().split('T')[0],

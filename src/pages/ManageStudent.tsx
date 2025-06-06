@@ -70,6 +70,8 @@ const ManageStudent = () => {
       }
       setFormData({
         ...updatedStudent,
+        course_id: updatedStudent.course_id || '',
+        referral_id: updatedStudent.referral_id || '',
         advance_payment_method: updatedStudent.advance_payment_method || '',
         referral_payment_amount: 0,
         notes: updatedStudent.notes || '',
@@ -78,7 +80,7 @@ const ManageStudent = () => {
   }, [isEditing, currentStudent]);
 
   useEffect(() => {
-    if (formData.course_id && formData.course_id !== 'none') {
+    if (formData.course_id && formData.course_id !== 'none' && formData.course_id !== '') {
       const selectedCourse = courses.find(course => course.id === formData.course_id);
       if (selectedCourse && selectedCourse.fee) {
         console.log('Auto-populating course fee:', selectedCourse.fee);
@@ -145,8 +147,9 @@ const ManageStudent = () => {
         advance_payment: Number(formData.advance_payment) || 0,
         referral_payment_amount: Number(formData.referral_payment_amount) || 0,
         installments: 1, // Always set to 1 since we removed installment options
-        course_id: formData.course_id === 'none' ? null : formData.course_id,
-        referral_id: formData.referral_id === 'direct' ? null : formData.referral_id,
+        // Convert empty strings to null for UUID fields
+        course_id: formData.course_id === 'none' || formData.course_id === '' ? null : formData.course_id,
+        referral_id: formData.referral_id === 'direct' || formData.referral_id === '' ? null : formData.referral_id,
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
         status: formData.status as Student['status'],
