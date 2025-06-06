@@ -38,10 +38,12 @@ interface PaymentBreakdown {
   advance_date: string;
   second_payment: number;
   second_date: string;
-  other_payments: number;
-  other_dates: string;
+  third_payment: number;
+  third_date: string;
   final_payment: number;
   final_date: string;
+  other_payments: number;
+  other_dates: string;
   balance_fee: number;
 }
 
@@ -122,8 +124,9 @@ export const PaymentReports = () => {
       // Organize payments by stage
       const advancePayment = studentPayments.find(p => p.stage === 'Advance');
       const secondPayment = studentPayments.find(p => p.stage === 'Second');
+      const thirdPayment = studentPayments.find(p => p.stage === 'Third');
       const finalPayment = studentPayments.find(p => p.stage === 'Final');
-      const otherPayments = studentPayments.filter(p => !['Advance', 'Second', 'Final'].includes(p.stage));
+      const otherPayments = studentPayments.filter(p => !['Advance', 'Second', 'Third', 'Final'].includes(p.stage));
       
       const totalPaid = studentPayments.reduce((sum, p) => sum + p.amount, 0);
       const balanceFee = student.total_course_fee - totalPaid;
@@ -142,10 +145,12 @@ export const PaymentReports = () => {
         advance_date: advancePayment?.payment_date || '',
         second_payment: secondPayment?.amount || 0,
         second_date: secondPayment?.payment_date || '',
-        other_payments: otherPayments.reduce((sum, p) => sum + p.amount, 0),
-        other_dates: otherPayments.map(p => formatDateForExcel(p.payment_date)).join(', '),
+        third_payment: thirdPayment?.amount || 0,
+        third_date: thirdPayment?.payment_date || '',
         final_payment: finalPayment?.amount || 0,
         final_date: finalPayment?.payment_date || '',
+        other_payments: otherPayments.reduce((sum, p) => sum + p.amount, 0),
+        other_dates: otherPayments.map(p => formatDateForExcel(p.payment_date)).join(', '),
         balance_fee: balanceFee,
       });
     });
@@ -294,10 +299,12 @@ export const PaymentReports = () => {
       advance_date: item.advance_date ? formatDateForExcel(item.advance_date) : '',
       second_payment: item.second_payment,
       second_date: item.second_date ? formatDateForExcel(item.second_date) : '',
-      other_payments: item.other_payments,
-      other_dates: item.other_dates,
+      third_payment: item.third_payment,
+      third_date: item.third_date ? formatDateForExcel(item.third_date) : '',
       final_payment: item.final_payment,
       final_date: item.final_date ? formatDateForExcel(item.final_date) : '',
+      other_payments: item.other_payments,
+      other_dates: item.other_dates,
       balance_fee: item.balance_fee,
     }));
 
@@ -327,9 +334,11 @@ export const PaymentReports = () => {
   const totalCourseFees = filteredBreakdown.reduce((sum, item) => sum + item.course_fee, 0);
   const totalAdvancePayments = filteredBreakdown.reduce((sum, item) => sum + item.advance_payment, 0);
   const totalSecondPayments = filteredBreakdown.reduce((sum, item) => sum + item.second_payment, 0);
-  const totalOtherPayments = filteredBreakdown.reduce((sum, item) => sum + item.other_payments, 0);
+  const totalThirdPayments = filteredBreakdown.reduce((sum, item) => sum + item.third_payment, 0);
   const totalFinalPayments = filteredBreakdown.reduce((sum, item) => sum + item.final_payment, 0);
+  const totalOtherPayments = filteredBreakdown.reduce((sum, item) => sum + item.other_payments, 0);
   const totalBalanceFee = filteredBreakdown.reduce((sum, item) => sum + item.balance_fee, 0);
+  const totalPaidAmount = totalAdvancePayments + totalSecondPayments + totalThirdPayments + totalFinalPayments + totalOtherPayments;
 
   // Get unique payment stages, modes, and student statuses
   const paymentStages = [...new Set(payments.map(p => p.stage))].filter(stage => stage && stage.trim() !== '');
@@ -349,10 +358,12 @@ export const PaymentReports = () => {
       advance_date: item.advance_date ? formatDateForExcel(item.advance_date) : '',
       second_payment: item.second_payment,
       second_date: item.second_date ? formatDateForExcel(item.second_date) : '',
-      other_payments: item.other_payments,
-      other_dates: item.other_dates,
+      third_payment: item.third_payment,
+      third_date: item.third_date ? formatDateForExcel(item.third_date) : '',
       final_payment: item.final_payment,
       final_date: item.final_date ? formatDateForExcel(item.final_date) : '',
+      other_payments: item.other_payments,
+      other_dates: item.other_dates,
       balance_fee: item.balance_fee,
     }));
 
@@ -436,6 +447,10 @@ export const PaymentReports = () => {
           <p>Total Selected Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</p>
           <p>Total Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</p>
           <p>Total Advance Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</p>
+          <p>Total Second Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</p>
+          <p>Total Third Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.third_payment, 0).toLocaleString()}</p>
+          <p>Total Final Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</p>
+          <p>Total Other Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</p>
           <p>Total Balance Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</p>
         </div>
 
@@ -451,9 +466,11 @@ export const PaymentReports = () => {
               <th>Date</th>
               <th>Second Payment</th>
               <th>Date</th>
-              <th>Other Payments</th>
+              <th>Third Payment</th>
               <th>Date</th>
               <th>Final Payment</th>
+              <th>Date</th>
+              <th>Other Payments</th>
               <th>Date</th>
               <th>Balance Fee</th>
             </tr>
@@ -470,10 +487,12 @@ export const PaymentReports = () => {
                 <td>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</td>
                 <td>${item.second_payment.toLocaleString()}</td>
                 <td>{item.second_date ? formatDateForExcel(item.second_date) : '-'}</td>
-                <td>${item.other_payments.toLocaleString()}</td>
-                <td>{item.other_dates || '-'}</td>
+                <td>${item.third_payment.toLocaleString()}</td>
+                <td>{item.third_date ? formatDateForExcel(item.third_date) : '-'}</td>
                 <td>${item.final_payment.toLocaleString()}</td>
                 <td>{item.final_date ? formatDateForExcel(item.final_date) : '-'}</td>
+                <td>${item.other_payments.toLocaleString()}</td>
+                <td>{item.other_dates || '-'}</td>
                 <td>${item.balance_fee.toLocaleString()}</td>
               </tr>
             ))}
@@ -484,6 +503,10 @@ export const PaymentReports = () => {
           <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
           <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
           <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
+          <div>Second: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</div>
+          <div>Third: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.third_payment, 0).toLocaleString()}</div>
+          <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
+          <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
           <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
         </div>
       </div>
@@ -707,8 +730,8 @@ export const PaymentReports = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Payment Summary Cards - Updated with all payment stages */}
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="text-center">
@@ -745,11 +768,29 @@ export const PaymentReports = () => {
           </CardContent>
         </Card>
 
+        <Card className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-indigo-100 text-sm">Third</p>
+              <p className="text-xl font-bold">${totalThirdPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-orange-100 text-sm">Final</p>
               <p className="text-xl font-bold">${totalFinalPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-pink-500 to-pink-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-pink-100 text-sm">Other</p>
+              <p className="text-xl font-bold">${totalOtherPayments.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
@@ -832,9 +873,11 @@ export const PaymentReports = () => {
                   <TableHead>Date</TableHead>
                   <TableHead>Second Payment</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Other Payments</TableHead>
+                  <TableHead>Third Payment</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Final Payment</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Other Payments</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Balance Fee</TableHead>
                 </TableRow>
@@ -860,12 +903,14 @@ export const PaymentReports = () => {
                     <TableCell>{item.advance_date ? formatDateForExcel(item.advance_date) : '-'}</TableCell>
                     <TableCell>${item.second_payment.toLocaleString()}</TableCell>
                     <TableCell>{item.second_date ? formatDateForExcel(item.second_date) : '-'}</TableCell>
+                    <TableCell>${item.third_payment.toLocaleString()}</TableCell>
+                    <TableCell>{item.third_date ? formatDateForExcel(item.third_date) : '-'}</TableCell>
+                    <TableCell>${item.final_payment.toLocaleString()}</TableCell>
+                    <TableCell>{item.final_date ? formatDateForExcel(item.final_date) : '-'}</TableCell>
                     <TableCell>${item.other_payments.toLocaleString()}</TableCell>
                     <TableCell className="max-w-32 truncate" title={item.other_dates}>
                       {item.other_dates || '-'}
                     </TableCell>
-                    <TableCell>${item.final_payment.toLocaleString()}</TableCell>
-                    <TableCell>{item.final_date ? formatDateForExcel(item.final_date) : '-'}</TableCell>
                     <TableCell className={`font-bold ${item.balance_fee > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       ${item.balance_fee.toLocaleString()}
                     </TableCell>
@@ -877,14 +922,21 @@ export const PaymentReports = () => {
             {/* Totals Row */}
             {filteredBreakdown.length > 0 && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                <div className="grid grid-cols-6 gap-4 text-sm font-bold">
+                <div className="grid grid-cols-8 gap-4 text-sm font-bold">
                   <div>Total Students: {totalStudents}</div>
                   <div>Course Fees: ${totalCourseFees.toLocaleString()}</div>
                   <div>Advance: ${totalAdvancePayments.toLocaleString()}</div>
                   <div>Second: ${totalSecondPayments.toLocaleString()}</div>
+                  <div>Third: ${totalThirdPayments.toLocaleString()}</div>
                   <div>Final: ${totalFinalPayments.toLocaleString()}</div>
+                  <div>Other: ${totalOtherPayments.toLocaleString()}</div>
                   <div className={totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}>
                     Balance: ${totalBalanceFee.toLocaleString()}
+                  </div>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-lg font-bold text-blue-600">
+                    Total Paid Amount: ${totalPaidAmount.toLocaleString()}
                   </div>
                 </div>
               </div>
