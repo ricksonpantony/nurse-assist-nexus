@@ -19,14 +19,14 @@
     top: 0 !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 15px !important;
+    padding: 0 !important; /* Reduced padding to minimize space */
     background: white !important;
     color: black !important;
     font-family: Arial, sans-serif !important;
-    overflow: visible !important;
+    overflow: hidden !important; /* Prevent overflow causing extra pages */
     height: auto !important;
-    page-break-after: avoid !important; /* Prevent page break after content */
-    page-break-before: avoid !important; /* Prevent page break before content */
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
     break-after: avoid !important;
     break-before: avoid !important;
   }
@@ -34,7 +34,7 @@
   /* Force landscape orientation - Critical for proper layout */
   @page {
     size: A4 landscape !important;
-    margin: 1cm !important;
+    margin: 0.5cm !important; /* Reduced margin to fit more content */
     orientation: landscape !important;
   }
 
@@ -45,69 +45,69 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: auto !important; /* Changed to auto to avoid extra space */
-    overflow: visible !important;
+    height: auto !important;
+    overflow: hidden !important;
   }
 
   /* Force all elements to respect landscape layout */
   html {
     width: 100% !important;
-    height: auto !important; /* Changed to auto to avoid extra space */
-    overflow: visible !important;
+    height: auto !important;
+    overflow: hidden !important;
   }
 
   /* Print header styling */
   .payment-reports-print-header {
     text-align: center !important;
-    margin-bottom: 10pt !important;
-    padding-bottom: 6pt !important;
-    border-bottom: 2pt solid black !important;
+    margin-bottom: 5pt !important; /* Reduced margin */
+    padding-bottom: 3pt !important; /* Reduced padding */
+    border-bottom: 1pt solid black !important; /* Thinner border */
     display: block !important;
     page-break-inside: avoid !important;
   }
 
   .payment-reports-print-title {
-    font-size: 14pt !important;
+    font-size: 12pt !important; /* Reduced font size */
     font-weight: bold !important;
-    margin-bottom: 4pt !important;
+    margin-bottom: 2pt !important;
     color: black !important;
     display: block !important;
   }
 
   .payment-reports-print-subtitle {
-    font-size: 11pt !important;
+    font-size: 9pt !important; /* Reduced font size */
     color: #444 !important;
-    margin-bottom: 4pt !important;
+    margin-bottom: 2pt !important;
     display: block !important;
   }
 
   .payment-reports-print-date {
-    font-size: 9pt !important;
+    font-size: 7pt !important; /* Reduced font size */
     color: #666 !important;
     display: block !important;
   }
 
   /* Summary section */
   .payment-reports-print-summary {
-    margin-bottom: 10pt !important;
-    padding: 6pt !important;
-    border: 1pt solid #ccc !important;
+    margin-bottom: 5pt !important; /* Reduced margin */
+    padding: 3pt !important; /* Reduced padding */
+    border: 0.5pt solid #ccc !important; /* Thinner border */
     background: #f9f9f9 !important;
     display: block !important;
     page-break-inside: avoid !important;
   }
 
   .payment-reports-print-summary h3 {
-    font-size: 11pt !important;
+    font-size: 9pt !important; /* Reduced font size */
     font-weight: bold !important;
-    margin-bottom: 4pt !important;
+    margin-bottom: 2pt !important;
     color: black !important;
     display: block !important;
   }
 
   .payment-reports-print-summary p {
-    font-size: 9pt !important;
-    margin: 2pt 0 !important;
+    font-size: 7pt !important; /* Reduced font size */
+    margin: 1pt 0 !important;
     color: black !important;
     display: block !important;
   }
@@ -116,23 +116,23 @@
   .payment-reports-print-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    margin-top: 8pt !important;
-    margin-bottom: 20pt !important;
-    font-size: 7pt !important;
+    margin: 5pt 0 !important; /* Reduced margin */
+    font-size: 6pt !important; /* Reduced font size */
     color: black !important;
     display: table !important;
     visibility: visible !important;
     table-layout: fixed !important;
     max-width: none !important;
-    page-break-inside оборот: avoid !important; /* Prevent extra page breaks within table rows */
+    page-break-inside: avoid !important;
     break-inside: avoid !important;
+    overflow: hidden !important;
   }
 
   .payment-reports-print-table thead {
     display: table-header-group !important;
   }
 
-  .payment-report-print-table tbody {
+  .payment-reports-print-table tbody {
     display: table-row-group !important;
   }
 
@@ -145,9 +145,9 @@
 
   .payment-reports-print-table th {
     background: #e8e8e8 !important;
-    border: 1pt solid #333 !important;
-    padding: 2pt 1pt !important;
-    font-size: 7pt !important;
+    border: 0.5pt solid #333 !important; /* Thinner border */
+    padding: 1pt !important; /* Reduced padding */
+    font-size: 6pt !important;
     font-weight: bold !important;
     text-align: left !important;
     color: black !important;
@@ -159,8 +159,8 @@
 
   .payment-reports-print-table td {
     border: 0.5pt solid #666 !important;
-    padding: 1pt 0.5pt !important;
-    font-size: 6pt !important;
+    padding: 0.5pt !important; /* Reduced padding */
+    font-size: 5pt !important; /* Reduced font size */
     color: black !important;
     vertical-align: top !important;
     display: table-cell !important;
@@ -248,15 +248,15 @@
 
   /* Create a proper footer element */
   .payment-reports-print-footer {
-    position: fixed !important;
+    position: absolute !important; /* Changed to absolute to avoid page extension */
     bottom: 0.5cm !important;
     left: 0 !important;
     right: 0 !important;
     text-align: center !important;
-    font-size: 7pt !important;
+    font-size: 6pt !important; /* Reduced font size */
     color: #666 !important;
-    padding: 4pt !important;
-    border-top: 1pt solid #ddd !important;
+    padding: 2pt !important; /* Reduced padding */
+    border-top: 0.5pt solid #ddd !important; /* Thinner border */
     background: white !important;
     display: block !important;
     page-break-inside: avoid !important;
@@ -315,7 +315,7 @@
   .payment-reports-print-content * {
     max-width: none !important;
     min-width: auto !important;
-    overflow: visible !important;
+    overflow: hidden !important; /* Prevent overflow causing extra pages */
   }
 
   /* Prevent page breaks in critical sections */
@@ -328,7 +328,7 @@
   /* Control page breaks around table */
   .payment-reports-print-table {
     page-break-before: auto !important;
-    page-break-after: avoid !important; /* Prevent page break after table */
+    page-break-after: avoid !important;
     break-before: auto !important;
     break-after: avoid !important;
   }
