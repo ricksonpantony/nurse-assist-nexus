@@ -442,7 +442,7 @@ export const PaymentReports = () => {
           <p>Total Second Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</p>
           <p>Total Other Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</p>
           <p>Total Final Payments: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</p>
-          <p>Total Paid Amount: ${((selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment + item.second_payment + item.other_payments + item.final_payment, 0)).toLocaleString()}</p>
+          <p><strong>Total Paid Amount: ${((selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment + item.second_payment + item.other_payments + item.final_payment, 0)).toLocaleString()}</strong></p>
           <p>Total Balance Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</p>
         </div>
 
@@ -487,15 +487,23 @@ export const PaymentReports = () => {
           </tbody>
         </table>
 
-        <div className="payment-reports-print-totals">
-          <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
-          <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
-          <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
-          <div>Second: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</div>
-          <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
-          <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
-          <div><strong>Total Paid: ${((selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment + item.second_payment + item.other_payments + item.final_payment, 0)).toLocaleString()}</strong></div>
-          <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
+        <div className="payment-reports-print-totals" style={{ marginTop: '20pt', padding: '10pt', borderTop: '2pt solid black', fontSize: '8pt', fontWeight: 'bold' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10pt', marginBottom: '8pt' }}>
+            <div>Total Students: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
+            <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
+            <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
+            <div>Second: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</div>
+            <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
+            <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10pt', marginBottom: '8pt' }}>
+            <div className="text-blue-600 text-lg">
+              <strong>Total Paid: ${totalPaidAmount.toLocaleString()}</strong>
+            </div>
+            <div className={`text-lg ${totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <strong>Balance: ${totalBalanceFee.toLocaleString()}</strong>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -719,7 +727,7 @@ export const PaymentReports = () => {
       </Card>
 
       {/* Payment Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="text-center">
@@ -770,6 +778,15 @@ export const PaymentReports = () => {
             <div className="text-center">
               <p className="text-orange-100 text-sm">Final</p>
               <p className="text-xl font-bold">${totalFinalPayments.toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <p className="text-cyan-100 text-sm">Total Paid</p>
+              <p className="text-xl font-bold">${totalPaidAmount.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
@@ -897,20 +914,20 @@ export const PaymentReports = () => {
             {/* Enhanced Totals Row */}
             {filteredBreakdown.length > 0 && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg border-t-2 border-gray-200">
-                <div className="grid grid-cols-4 gap-4 text-sm font-bold mb-2">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 text-sm font-bold mb-2">
                   <div>Total Students: {totalStudents}</div>
                   <div>Course Fees: ${totalCourseFees.toLocaleString()}</div>
                   <div>Advance: ${totalAdvancePayments.toLocaleString()}</div>
                   <div>Second: ${totalSecondPayments.toLocaleString()}</div>
-                </div>
-                <div className="grid grid-cols-4 gap-4 text-sm font-bold mb-2">
                   <div>Other: ${totalOtherPayments.toLocaleString()}</div>
                   <div>Final: ${totalFinalPayments.toLocaleString()}</div>
-                  <div className="text-blue-600">
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-bold">
+                  <div className="text-blue-600 text-lg">
                     <strong>Total Paid: ${totalPaidAmount.toLocaleString()}</strong>
                   </div>
-                  <div className={totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}>
-                    Balance: ${totalBalanceFee.toLocaleString()}
+                  <div className={`text-lg ${totalBalanceFee > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <strong>Balance: ${totalBalanceFee.toLocaleString()}</strong>
                   </div>
                 </div>
               </div>
