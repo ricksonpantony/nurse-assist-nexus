@@ -19,11 +19,11 @@
     top: 0 !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important; /* Reduced padding to minimize space */
+    padding: 0 !important;
     background: white !important;
     color: black !important;
     font-family: Arial, sans-serif !important;
-    overflow: hidden !important; /* Prevent overflow causing extra pages */
+    overflow: hidden !important;
     height: auto !important;
     page-break-after: avoid !important;
     page-break-before: avoid !important;
@@ -34,7 +34,7 @@
   /* Force landscape orientation - Critical for proper layout */
   @page {
     size: A4 landscape !important;
-    margin: 0.5cm !important; /* Reduced margin to fit more content */
+    margin: 0.5cm !important;
     orientation: landscape !important;
   }
 
@@ -59,15 +59,15 @@
   /* Print header styling */
   .payment-reports-print-header {
     text-align: center !important;
-    margin-bottom: 5pt !important; /* Reduced margin */
-    padding-bottom: 3pt !important; /* Reduced padding */
-    border-bottom: 1pt solid black !important; /* Thinner border */
+    margin-bottom: 5pt !important;
+    padding-bottom: 3pt !important;
+    border-bottom: 1pt solid black !important;
     display: block !important;
     page-break-inside: avoid !important;
   }
 
   .payment-reports-print-title {
-    font-size: 12pt !important; /* Reduced font size */
+    font-size: 12pt !important;
     font-weight: bold !important;
     margin-bottom: 2pt !important;
     color: black !important;
@@ -75,30 +75,30 @@
   }
 
   .payment-reports-print-subtitle {
-    font-size: 9pt !important; /* Reduced font size */
+    font-size: 9pt !important;
     color: #444 !important;
     margin-bottom: 2pt !important;
     display: block !important;
   }
 
   .payment-reports-print-date {
-    font-size: 7pt !important; /* Reduced font size */
+    font-size: 7pt !important;
     color: #666 !important;
     display: block !important;
   }
 
   /* Summary section */
   .payment-reports-print-summary {
-    margin-bottom: 5pt !important; /* Reduced margin */
-    padding: 3pt !important; /* Reduced padding */
-    border: 0.5pt solid #ccc !important; /* Thinner border */
+    margin-bottom: 5pt !important;
+    padding: 3pt !important;
+    border: 0.5pt solid #ccc !important;
     background: #f9f9f9 !important;
     display: block !important;
     page-break-inside: avoid !important;
   }
 
   .payment-reports-print-summary h3 {
-    font-size: 9pt !important; /* Reduced font size */
+    font-size: 9pt !important;
     font-weight: bold !important;
     margin-bottom: 2pt !important;
     color: black !important;
@@ -106,7 +106,7 @@
   }
 
   .payment-reports-print-summary p {
-    font-size: 7pt !important; /* Reduced font size */
+    font-size: 7pt !important;
     margin: 1pt 0 !important;
     color: black !important;
     display: block !important;
@@ -116,15 +116,15 @@
   .payment-reports-print-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    margin: 5pt 0 !important; /* Reduced margin */
-    font-size: 6pt !important; /* Reduced font size */
+    margin: 5pt 0 !important;
+    font-size: 6pt !important;
     color: black !important;
     display: table !important;
     visibility: visible !important;
     table-layout: fixed !important;
     max-width: none !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    page-break-inside: auto !important; /* Allow table to break if too long */
+    break-inside: auto !important;
     overflow: hidden !important;
   }
 
@@ -145,8 +145,8 @@
 
   .payment-reports-print-table th {
     background: #e8e8e8 !important;
-    border: 0.5pt solid #333 !important; /* Thinner border */
-    padding: 1pt !important; /* Reduced padding */
+    border: 0.5pt solid #333 !important;
+    padding: 1pt !important;
     font-size: 6pt !important;
     font-weight: bold !important;
     text-align: left !important;
@@ -159,8 +159,8 @@
 
   .payment-reports-print-table td {
     border: 0.5pt solid #666 !important;
-    padding: 0.5pt !important; /* Reduced padding */
-    font-size: 5pt !important; /* Reduced font size */
+    padding: 0.5pt !important;
+    font-size: 5pt !important;
     color: black !important;
     vertical-align: top !important;
     display: table-cell !important;
@@ -187,79 +187,105 @@
 
   .payment-reports-print-table th:nth-child(4),
   .payment-reports-print-table td:nth-child(4) {
-    width: 10% !important;
+    width: 8% !important;
   }
 
   .payment-reports-print-table th:nth-child(5),
   .payment-reports-print-table td:nth-child(5) {
-    width: 8% !important;
+    width: 6% !important;
   }
 
   .payment-reports-print-table th:nth-child(6),
   .payment-reports-print-table td:nth-child(6) {
-    width: 8% !important;
+    width: 6% !important;
   }
 
   .payment-reports-print-table th:nth-child(7),
   .payment-reports-print-table td:nth-child(7) {
-    width: 8% !important;
+    width: 5% !important;
   }
 
   .payment-reports-print-table th:nth-child(8),
   .payment-reports-print-table td:nth-child(8) {
-    width: 10% !important;
+    width: 6% !important;
   }
 
   .payment-reports-print-table th:nth-child(9),
   .payment-reports-print-table td:nth-child(9) {
-    width: 20% !important;
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(10),
+  .payment-reports-print-table td:nth-child(10) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(11),
+  .payment-reports-print-table td:nth-child(11) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(12),
+  .payment-reports-print-table td:nth-child(12) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(13),
+  .payment-reports-print-table td:nth-child(13) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(14),
+  .payment-reports-print-table td:nth-child(14) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(15),
+  .payment-reports-print-table td:nth-child(15) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(16),
+  .payment-reports-print-table td:nth-child(16) {
+    width: 6% !important;
   }
 
   .payment-reports-print-table tr:nth-child(even) td {
     background: #f8f8f8 !important;
   }
 
-  /* Badge styling for print */
-  .payment-reports-print-badge {
-    display: inline-block !important;
-    padding: 0.5pt 1pt !important;
-    border: 0.5pt solid #666 !important;
-    border-radius: 1pt !important;
-    font-size: 5pt !important;
-    font-weight: bold !important;
-    background: white !important;
-    color: black !important;
+  /* Totals section */
+  .payment-reports-print-totals {
+    margin-top: 5pt !important;
+    font-size: 7pt !important;
+    color: #333 !important;
+    display: block !important;
+    page-break-inside: avoid !important;
   }
 
-  /* Override any conflicting styles */
-  .payment-reports-print-content .bg-gradient-to-br,
-  .payment-reports-print-content .bg-gradient-to-r,
-  .payment-reports-print-content .shadow-lg,
-  .payment-reports-print-content .backdrop-blur-sm {
-    background: white !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+  .payment-details-print-totals div {
+    margin-bottom: 1pt !important;
   }
 
-  /* Remove the ::after pseudo-element to prevent extra pages */
+  /* Remove the ::after pseudo-element */
   .payment-reports-print-content::after {
     display: none !important;
   }
 
   /* Create a proper footer element */
   .payment-reports-print-footer {
-    position: absolute !important; /* Changed to absolute to avoid page extension */
-    bottom: 0.5cm !important;
-    left: 0 !important;
-    right: 0 !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 5pt !important;
+    right: 5pt !important;
     text-align: center !important;
-    font-size: 6pt !important; /* Reduced font size */
+    font-size: 6pt !important;
     color: #666 !important;
-    padding: 2pt !important; /* Reduced padding */
-    border-top: 0.5pt solid #ddd !important; /* Thinner border */
+    padding: 2pt !important;
+    border-top: 0.5pt solid #ddd !important;
     background: white !important;
     display: block !important;
-    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
   }
 
   /* Force display for all print elements */
@@ -269,7 +295,6 @@
   .payment-reports-print-content tr,
   .payment-reports-print-content th,
   .payment-reports-print-content td {
-    display: table !important;
   }
 
   .payment-reports-print-content thead {
@@ -298,29 +323,29 @@
   }
 
   /* Allow certain columns to wrap */
-  .payment-reports-print-table td:nth-child(3),
-  .payment-reports-print-table td:nth-child(9) {
+  .payment-reports-print-table td:nth-child(3) {
     white-space: normal !important;
     word-break: break-word !important;
   }
 
-  /* Force landscape orientation override */
+  /* Force landscape orientation overrides */
   * {
     -webkit-transform: none !important;
     transform: none !important;
   }
 
-  /* Remove any max-width constraints and prevent overflow */
+  /* Remove any max-width constraints */
   .payment-reports-print-content,
   .payment-reports-print-content * {
     max-width: none !important;
-    min-width: auto !important;
-    overflow: hidden !important; /* Prevent overflow causing extra pages */
+    min-width: none !important;
+    overflow: hidden !important;
   }
 
   /* Prevent page breaks in critical sections */
   .payment-reports-print-header,
-  .payment-reports-print-summary {
+  .payment-reports-print-summary,
+  .payment-reports-print-totals {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -328,12 +353,12 @@
   /* Control page breaks around table */
   .payment-reports-print-table {
     page-break-before: auto !important;
-    page-break-after: avoid !important;
+    page-break-after: auto !important;
     break-before: auto !important;
-    break-after: avoid !important;
+    break-after: auto !important;
   }
 
-  /* Ensure content doesn't exceed page boundaries */
+  /* Ensure content doesn't exceed page bounds */
   .payment-reports-print-content {
     max-height: none !important;
     height: auto !important;
