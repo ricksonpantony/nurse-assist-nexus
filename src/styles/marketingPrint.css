@@ -26,7 +26,7 @@
     font-family: Arial, sans-serif !important;
     overflow: visible !important;
     height: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important;
   }
 
   /* Force landscape orientation */
@@ -62,6 +62,7 @@
     border-bottom: 2pt solid black !important;
     display: block !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .marketing-print-title {
@@ -85,10 +86,15 @@
     display: block !important;
   }
 
-  /* Hide summary section when printing */
+  /* Summary section styling */
   .marketing-print-summary {
-    display: none !important;
-    visibility: hidden !important;
+    margin-bottom: 10pt !important;
+    padding: 6pt !important;
+    border: 1pt solid #ccc !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   /* Table styling for print - Optimized for landscape */
@@ -96,7 +102,7 @@
     width: 100% !important;
     border-collapse: collapse !important;
     margin-top: 8pt !important;
-    margin-bottom: 20pt !important;
+    margin-bottom: 15pt !important;
     font-size: 7pt !important;
     color: black !important;
     display: table !important;
@@ -104,6 +110,7 @@
     table-layout: fixed !important;
     max-width: none !important;
     page-break-inside: auto !important;
+    break-inside: auto !important;
     overflow: visible !important;
   }
 
@@ -220,20 +227,10 @@
     backdrop-filter: none !important;
   }
 
-  /* Create a proper footer element */
+  /* Remove fixed footer that causes blank pages */
   .marketing-print-footer {
-    position: fixed !important;
-    bottom: 0.5cm !important;
-    left: 0 !important;
-    right: 0 !important;
-    text-align: center !important;
-    font-size: 7pt !important;
-    color: #666 !important;
-    padding: 4pt !important;
-    border-top: 1pt solid #ddd !important;
-    background: white !important;
-    display: block !important;
-    page-break-inside: avoid !important;
+    display: none !important;
+    visibility: hidden !important;
   }
 
   /* Force display for all print elements */
@@ -278,12 +275,6 @@
     word-break: break-word !important;
   }
 
-  /* Force landscape orientation override */
-  * {
-    -webkit-transform: none !important;
-    transform: none !important;
-  }
-
   /* Remove any max-width constraints and prevent overflow */
   .marketing-print-content,
   .marketing-print-content * {
@@ -293,7 +284,8 @@
   }
 
   /* Prevent page breaks in critical sections */
-  .marketing-print-header {
+  .marketing-print-header,
+  .marketing-print-summary {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -301,9 +293,9 @@
   /* Control page breaks around table */
   .marketing-print-table {
     page-break-before: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important;
     break-before: auto !important;
-    break-after: auto !important;
+    break-after: avoid !important;
   }
 
   /* Ensure content doesn't exceed page boundaries */
@@ -311,6 +303,7 @@
     max-height: none !important;
     height: auto !important;
     box-sizing: border-box !important;
+    page-break-after: avoid !important;
   }
 
   /* Hide any empty elements that might cause blank pages */
@@ -318,14 +311,16 @@
     display: none !important;
   }
 
-  /* Prevent overflow and extra pages */
-  .marketing-print-content {
-    overflow: hidden !important;
-    page-break-after: avoid !important;
+  /* Prevent orphaned content from creating new pages */
+  .marketing-print-content * {
+    orphans: 3 !important;
+    widows: 3 !important;
   }
 
-  /* Ensure table doesn't create extra pages */
-  .marketing-print-table tbody tr:last-child {
+  /* Ensure the last element doesn't create extra pages */
+  .marketing-print-content > *:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
     page-break-after: avoid !important;
   }
 }

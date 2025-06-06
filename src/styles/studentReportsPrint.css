@@ -26,7 +26,7 @@
     font-family: Arial, sans-serif !important;
     overflow: visible !important;
     height: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important;
   }
 
   /* Force landscape orientation - Critical for proper layout */
@@ -62,6 +62,7 @@
     border-bottom: 2pt solid black !important;
     display: block !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .student-reports-print-title {
@@ -93,6 +94,7 @@
     background: #f9f9f9 !important;
     display: block !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .student-reports-print-summary h3 {
@@ -115,7 +117,7 @@
     width: 100% !important;
     border-collapse: collapse !important;
     margin-top: 8pt !important;
-    margin-bottom: 20pt !important;
+    margin-bottom: 15pt !important;
     font-size: 7pt !important;
     color: black !important;
     display: table !important;
@@ -123,6 +125,7 @@
     table-layout: fixed !important;
     max-width: none !important;
     page-break-inside: auto !important;
+    break-inside: auto !important;
     overflow: visible !important;
   }
 
@@ -244,25 +247,10 @@
     backdrop-filter: none !important;
   }
 
-  /* Remove the ::after pseudo-element and create a proper footer */
-  .student-reports-print-content::after {
-    display: none !important;
-  }
-
-  /* Create a proper footer element */
+  /* Remove fixed footer that causes blank pages */
   .student-reports-print-footer {
-    position: fixed !important;
-    bottom: 0.5cm !important;
-    left: 0 !important;
-    right: 0 !important;
-    text-align: center !important;
-    font-size: 7pt !important;
-    color: #666 !important;
-    padding: 4pt !important;
-    border-top: 1pt solid #ddd !important;
-    background: white !important;
-    display: block !important;
-    page-break-inside: avoid !important;
+    display: none !important;
+    visibility: hidden !important;
   }
 
   /* Force display for all print elements */
@@ -308,12 +296,6 @@
     word-break: break-word !important;
   }
 
-  /* Force landscape orientation override */
-  * {
-    -webkit-transform: none !important;
-    transform: none !important;
-  }
-
   /* Remove any max-width constraints and prevent overflow */
   .student-reports-print-content,
   .student-reports-print-content * {
@@ -332,9 +314,9 @@
   /* Control page breaks around table */
   .student-reports-print-table {
     page-break-before: auto !important;
-    page-break-after: auto !important;
+    page-break-after: avoid !important;
     break-before: auto !important;
-    break-after: auto !important;
+    break-after: avoid !important;
   }
 
   /* Ensure content doesn't exceed page boundaries */
@@ -342,10 +324,24 @@
     max-height: none !important;
     height: auto !important;
     box-sizing: border-box !important;
+    page-break-after: avoid !important;
   }
 
   /* Hide any empty elements that might cause blank pages */
   .student-reports-print-content > *:empty {
     display: none !important;
+  }
+
+  /* Prevent orphaned content from creating new pages */
+  .student-reports-print-content * {
+    orphans: 3 !important;
+    widows: 3 !important;
+  }
+
+  /* Ensure the last element doesn't create extra pages */
+  .student-reports-print-content > *:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    page-break-after: avoid !important;
   }
 }
