@@ -156,25 +156,37 @@ export const PaymentReports = () => {
   const filteredBreakdown = useMemo(() => {
     let filtered = [...paymentBreakdown];
 
-    // Filter by date range (using advance payment date as reference)
-    if (filters.dateFrom) {
-      filtered = filtered.filter(item => 
-        item.advance_date && new Date(item.advance_date) >= new Date(filters.dateFrom)
-      );
-    }
-    if (filters.dateTo) {
-      filtered = filtered.filter(item => 
-        item.advance_date && new Date(item.advance_date) <= new Date(filters.dateTo)
-      );
+    // Filter by date range - check ALL payment dates for the student
+    if (filters.dateFrom || filters.dateTo) {
+      filtered = filtered.filter(item => {
+        const studentPayments = payments.filter(p => p.student_id === item.student_id);
+        
+        return studentPayments.some(payment => {
+          const paymentDate = new Date(payment.payment_date);
+          let matchesDateRange = true;
+          
+          if (filters.dateFrom) {
+            matchesDateRange = matchesDateRange && paymentDate >= new Date(filters.dateFrom);
+          }
+          if (filters.dateTo) {
+            matchesDateRange = matchesDateRange && paymentDate <= new Date(filters.dateTo);
+          }
+          
+          return matchesDateRange;
+        });
+      });
     }
 
-    // Filter by specific month/year
+    // Filter by specific month/year - check ALL payment dates for the student
     if (filters.month && filters.month !== 'all' && filters.year) {
       filtered = filtered.filter(item => {
-        if (!item.advance_date) return false;
-        const paymentDate = new Date(item.advance_date);
-        return paymentDate.getMonth() === parseInt(filters.month) - 1 && 
-               paymentDate.getFullYear() === parseInt(filters.year);
+        const studentPayments = payments.filter(p => p.student_id === item.student_id);
+        
+        return studentPayments.some(payment => {
+          const paymentDate = new Date(payment.payment_date);
+          return paymentDate.getMonth() === parseInt(filters.month) - 1 && 
+                 paymentDate.getFullYear() === parseInt(filters.year);
+        });
       });
     }
 
