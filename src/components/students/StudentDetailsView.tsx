@@ -194,7 +194,7 @@ export const StudentDetailsView = ({
   return (
     <>
       {/* Professional Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           * {
             -webkit-print-color-adjust: exact !important;
