@@ -237,7 +237,12 @@ export const StudentReports = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    // window.print();
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
   const clearFilters = () => {

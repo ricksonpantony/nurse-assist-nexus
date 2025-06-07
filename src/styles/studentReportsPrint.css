@@ -43,14 +43,14 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: 100% !important;
+    // height: 100% !important;
     overflow: visible !important;
   }
 
   /* Force all elements to respect landscape layout */
   html {
     width: 100% !important;
-    height: 100% !important;
+    // height: 100% !important;
     overflow: visible !important;
   }
 
