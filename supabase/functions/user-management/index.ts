@@ -33,7 +33,7 @@ serve(async (req) => {
 
     console.log('Authenticated user:', user.id)
 
-    // Security fix: Check if user has admin/owner role using service role
+    // Security fix: Check if user has admin role using service role
     const { data: userProfile, error: profileError } = await supabaseClient
       .from('user_profiles')
       .select('role')
@@ -42,7 +42,7 @@ serve(async (req) => {
 
     console.log('Current user profile:', userProfile, 'Error:', profileError)
 
-    if (profileError || !userProfile || !['admin', 'owner'].includes(userProfile.role)) {
+    if (profileError || !userProfile || userProfile.role !== 'admin') {
       return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 403
@@ -53,27 +53,48 @@ serve(async (req) => {
     const body = method !== 'GET' ? await req.json() : null
 
     if (method === 'POST' && req.url.includes('/create-user')) {
-      const { email, password, full_name, role = 'user' } = body
+      const { email, password, full_name } = body
+
+      console.log('Creating user with email:', email)
+
+      if (!email || !password) {
+        return new Response(JSON.stringify({ error: 'Email and password are required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        })
+      }
 
       // Create user with admin API
       const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
         email,
         password,
-        user_metadata: { full_name }
+        email_confirm: true, // Auto-confirm email to avoid confirmation step
+        user_metadata: { full_name: full_name || email }
       })
 
       if (createError) {
+        console.log('User creation error:', createError)
         return new Response(JSON.stringify({ error: createError.message }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400
         })
       }
 
-      // Update user profile with specified role (default to 'user' for security)
-      await supabaseClient
+      console.log('User created successfully:', newUser.user.id)
+
+      // Update user profile with admin role (only admin role allowed)
+      const { error: profileUpdateError } = await supabaseClient
         .from('user_profiles')
-        .update({ full_name, role: role || 'user' })
+        .update({ 
+          full_name: full_name || email, 
+          role: 'admin' // Force admin role for new users
+        })
         .eq('id', newUser.user.id)
+
+      if (profileUpdateError) {
+        console.log('Profile update error:', profileUpdateError)
+        // Don't fail the creation if profile update fails
+      }
 
       return new Response(JSON.stringify({ success: true, user: newUser.user }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

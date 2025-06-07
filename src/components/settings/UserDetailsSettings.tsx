@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -12,16 +11,6 @@ interface UserDetailsSettingsProps {
   userProfile: any;
   onUpdate: () => void;
 }
-
-const roleOptions = [
-  { value: 'owner', label: 'Owner' },
-  { value: 'director', label: 'Director' },
-  { value: 'ceo', label: 'CEO' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'staff', label: 'Staff' },
-  { value: 'accounts', label: 'Accounts' },
-  { value: 'user', label: 'User' }
-];
 
 export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettingsProps) => {
   const { user } = useAuth();
@@ -32,8 +21,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
     last_name: '',
     email: '',
     phone: '',
-    address: '',
-    role: 'user'
+    address: ''
   });
 
   useEffect(() => {
@@ -43,8 +31,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
         last_name: userProfile.last_name || '',
         email: user.email || '',
         phone: userProfile.phone || '',
-        address: userProfile.address || '',
-        role: userProfile.role || 'user'
+        address: userProfile.address || ''
       });
     }
   }, [userProfile, user]);
@@ -72,19 +59,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Check if user is trying to change their own role to admin/owner
-      if (userProfile.role !== 'admin' && userProfile.role !== 'owner' && 
-          (formData.role === 'admin' || formData.role === 'owner')) {
-        toast({
-          title: "Error",
-          description: "You cannot elevate your own role to admin or owner. Contact an administrator.",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Update user profile
+      // Update user profile (role is fixed as admin, no changes allowed)
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({
@@ -93,7 +68,6 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
           last_name: formData.last_name,
           phone: formData.phone,
           address: formData.address,
-          role: formData.role,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -199,24 +173,13 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       </div>
 
       <div>
-        <Label htmlFor="role">Role</Label>
-        <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-          <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            {roleOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {(userProfile.role !== 'admin' && userProfile.role !== 'owner') && (
-          <p className="text-xs text-amber-600 mt-1">
-            Note: You cannot elevate your role to admin or owner. Contact an administrator for role changes.
+        <Label>Role</Label>
+        <div className="mt-1 p-3 bg-gray-50 rounded-md border">
+          <span className="font-medium text-gray-700">Administrator</span>
+          <p className="text-xs text-gray-500 mt-1">
+            Your role is fixed as Administrator and cannot be changed.
           </p>
-        )}
+        </div>
       </div>
 
       <Button

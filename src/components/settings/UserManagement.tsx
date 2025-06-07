@@ -3,23 +3,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SingleDeleteConfirmationModal } from "@/components/ui/single-delete-confirmation-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash } from "lucide-react";
-
-const roleOptions = [
-  { value: 'owner', label: 'Owner' },
-  { value: 'director', label: 'Director' },
-  { value: 'ceo', label: 'CEO' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'staff', label: 'Staff' },
-  { value: 'accounts', label: 'Accounts' },
-  { value: 'user', label: 'User' }
-];
 
 export const UserManagement = () => {
   const { toast } = useToast();
@@ -29,8 +18,7 @@ export const UserManagement = () => {
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
-    full_name: '',
-    role: 'user' // Changed default from 'admin' to 'user' for security
+    full_name: ''
   });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -63,13 +51,13 @@ export const UserManagement = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
+        .eq('role', 'admin') // Only show admin users
         .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      // Security fix: Remove hardcoded filtering and implement proper access control
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -91,8 +79,8 @@ export const UserManagement = () => {
       return;
     }
 
-    // Security check: Only allow admin/owner to create users
-    if (!['admin', 'owner'].includes(currentUserRole)) {
+    // Security check: Only allow admin to create users
+    if (currentUserRole !== 'admin') {
       toast({
         title: "Error",
         description: "You don't have permission to create users.",
@@ -108,8 +96,7 @@ export const UserManagement = () => {
         body: {
           email: newUser.email,
           password: newUser.password,
-          full_name: newUser.full_name,
-          role: newUser.role
+          full_name: newUser.full_name
         }
       });
 
@@ -117,10 +104,10 @@ export const UserManagement = () => {
 
       toast({
         title: "Success",
-        description: "User created successfully!"
+        description: "Admin user created successfully!"
       });
 
-      setNewUser({ email: '', password: '', full_name: '', role: 'user' });
+      setNewUser({ email: '', password: '', full_name: '' });
       setIsCreateDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -135,8 +122,8 @@ export const UserManagement = () => {
   };
 
   const handleDeleteClick = (user: any) => {
-    // Security check: Only allow admin/owner to delete users
-    if (!['admin', 'owner'].includes(currentUserRole)) {
+    // Security check: Only allow admin to delete users
+    if (currentUserRole !== 'admin') {
       toast({
         title: "Error",
         description: "You don't have permission to delete users.",
@@ -171,7 +158,7 @@ export const UserManagement = () => {
 
       toast({
         title: "Success",
-        description: "User deleted successfully!"
+        description: "Admin user deleted successfully!"
       });
 
       fetchUsers();
@@ -186,8 +173,8 @@ export const UserManagement = () => {
     }
   };
 
-  // Only show users if current user is admin or owner
-  const canManageUsers = ['admin', 'owner'].includes(currentUserRole);
+  // Only show users if current user is admin
+  const canManageUsers = currentUserRole === 'admin';
 
   if (!canManageUsers) {
     return (
@@ -204,12 +191,12 @@ export const UserManagement = () => {
         <DialogTrigger asChild>
           <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
             <Plus className="h-4 w-4 mr-2" />
-            Add New User
+            Add New Admin User
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>Create New Admin User</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -220,6 +207,7 @@ export const UserManagement = () => {
                 value={newUser.email}
                 onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 className="mt-1"
+                placeholder="admin@example.com"
               />
             </div>
             <div>
@@ -230,6 +218,8 @@ export const UserManagement = () => {
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 className="mt-1"
+                placeholder="Strong password (min 6 characters)"
+                minLength={6}
               />
             </div>
             <div>
@@ -239,29 +229,20 @@ export const UserManagement = () => {
                 value={newUser.full_name}
                 onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
                 className="mt-1"
+                placeholder="John Doe"
               />
             </div>
-            <div>
-              <Label htmlFor="new_role">Role</Label>
-              <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> All new users will be created with admin role.
+              </p>
             </div>
             <Button
               onClick={handleCreateUser}
               disabled={loading}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600"
             >
-              {loading ? "Creating..." : "Create User"}
+              {loading ? "Creating..." : "Create Admin User"}
             </Button>
           </div>
         </DialogContent>
@@ -275,14 +256,10 @@ export const UserManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="font-medium">{user.full_name || 'No name provided'}</p>
-                  <p className="text-sm text-gray-600">Role: {user.role}</p>
+                  <p className="text-sm text-gray-600">Role: Administrator</p>
                   <p className="text-xs text-gray-500">ID: {user.id}</p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    user.role === 'admin' || user.role === 'owner'
-                      ? 'bg-red-100 text-red-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {user.role}
+                  <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    Admin
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -301,7 +278,7 @@ export const UserManagement = () => {
       </div>
 
       {users.length === 0 && (
-        <p className="text-center text-gray-500 py-8">No users found.</p>
+        <p className="text-center text-gray-500 py-8">No admin users found.</p>
       )}
 
       {/* Delete User Confirmation Modal */}
@@ -312,8 +289,8 @@ export const UserManagement = () => {
           setUserToDelete(null);
         }}
         onConfirm={handleDeleteUser}
-        title="Delete User"
-        description="Are you sure you want to delete this user? This action cannot be undone."
+        title="Delete Admin User"
+        description="Are you sure you want to delete this admin user? This action cannot be undone."
         itemName={userToDelete?.full_name || userToDelete?.id}
       />
     </div>

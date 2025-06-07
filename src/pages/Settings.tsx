@@ -68,8 +68,6 @@ const Settings = () => {
 
   return (
       <div className="min-h-screen">
-        {/* <AppSidebar /> */}
-        {/* <SidebarInset className="flex-1"> */}
           <div className="flex flex-col h-full">
             <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
               <SidebarTrigger className="text-blue-600 hover:bg-blue-100 rounded-lg" />
@@ -106,7 +104,7 @@ const Settings = () => {
                     {userProfile?.role === 'admin' && (
                       <TabsTrigger value="users" className="flex items-center gap-2">
                         <Users className="h-4 w-4" />
-                        User Management
+                        Admin Management
                       </TabsTrigger>
                     )}
                   </TabsList>
@@ -149,7 +147,7 @@ const Settings = () => {
                           <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg">
                             <CardTitle className="flex items-center gap-2">
                               <Users className="h-5 w-5" />
-                              User Management
+                              Admin User Management
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="p-6">
@@ -163,7 +161,6 @@ const Settings = () => {
               </div>
             </main>
           </div>
-        {/* </SidebarInset> */}
       </div>
   );
 };
