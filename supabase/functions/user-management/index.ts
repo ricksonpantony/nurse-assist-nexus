@@ -31,12 +31,16 @@ serve(async (req) => {
       })
     }
 
-    // Security fix: Check if user has admin/owner role
+    console.log('Authenticated user:', user.id)
+
+    // Security fix: Check if user has admin/owner role using service role
     const { data: userProfile, error: profileError } = await supabaseClient
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
       .single()
+
+    console.log('Current user profile:', userProfile, 'Error:', profileError)
 
     if (profileError || !userProfile || !['admin', 'owner'].includes(userProfile.role)) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
@@ -79,12 +83,16 @@ serve(async (req) => {
     if (method === 'DELETE' && req.url.includes('/delete-user')) {
       const { user_id } = body
 
-      // Check if the user to be deleted is an admin
+      console.log('Attempting to delete user:', user_id)
+
+      // Check if the user to be deleted exists and get their role
       const { data: targetUserProfile, error: targetProfileError } = await supabaseClient
         .from('user_profiles')
         .select('role')
         .eq('id', user_id)
         .single()
+
+      console.log('Target user profile:', targetUserProfile, 'Error:', targetProfileError)
 
       if (targetProfileError) {
         return new Response(JSON.stringify({ error: 'User profile not found' }), {
@@ -95,10 +103,12 @@ serve(async (req) => {
 
       // If the user to be deleted is an admin, check if they are the last admin
       if (targetUserProfile.role === 'admin') {
-        const { data: adminCount, error: countError } = await supabaseClient
+        const { count: adminCount, error: countError } = await supabaseClient
           .from('user_profiles')
-          .select('id', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('role', 'admin')
+
+        console.log('Admin count:', adminCount, 'Error:', countError)
 
         if (countError) {
           return new Response(JSON.stringify({ error: 'Failed to check admin count' }), {
@@ -107,7 +117,7 @@ serve(async (req) => {
           })
         }
 
-        if (adminCount && adminCount.length <= 1) {
+        if (adminCount && adminCount <= 1) {
           return new Response(JSON.stringify({ error: 'Cannot delete the last admin user' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400
@@ -115,28 +125,44 @@ serve(async (req) => {
         }
       }
 
-      // First, update or delete audit logs that reference this user
-      // Option 1: Set user_id to null in audit logs (preserve audit trail)
-      await supabaseClient
+      // First, handle audit logs that reference this user
+      // Set user_id to null in audit logs (preserve audit trail)
+      const { error: auditUpdateError } = await supabaseClient
         .from('audit_logs')
         .update({ user_id: null, user_email: 'deleted_user@system.local' })
         .eq('user_id', user_id)
 
+      if (auditUpdateError) {
+        console.log('Audit logs update error:', auditUpdateError)
+        // Don't fail the deletion if audit log update fails, just log it
+      }
+
       // Delete user profile first
-      await supabaseClient
+      const { error: profileDeleteError } = await supabaseClient
         .from('user_profiles')
         .delete()
         .eq('id', user_id)
+
+      if (profileDeleteError) {
+        console.log('Profile delete error:', profileDeleteError)
+        return new Response(JSON.stringify({ error: 'Failed to delete user profile' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        })
+      }
 
       // Then delete the auth user
       const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(user_id)
 
       if (deleteError) {
+        console.log('Auth user delete error:', deleteError)
         return new Response(JSON.stringify({ error: deleteError.message }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400
         })
       }
+
+      console.log('User deleted successfully:', user_id)
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
