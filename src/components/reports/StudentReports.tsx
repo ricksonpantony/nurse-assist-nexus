@@ -282,6 +282,19 @@ export const StudentReports = () => {
 
   return (
     <div className="space-y-6 student-reports-page">
+      <style>{`
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          @page {
+            size: A4 portrait;
+            margin: 0.75in;
+            orientation: portrait
+          }
+      `}</style>
       {/* Print Content - Hidden on screen, visible only when printing */}
       <div className="student-reports-print-content" style={{ display: 'none' }}>
         <div className="student-reports-print-header">
