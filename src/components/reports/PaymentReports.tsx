@@ -742,7 +742,7 @@ export const PaymentReports = () => {
       </Card>)}
 
       {/* Payment Summary Cards - Updated with all payment stages */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
+      { !showPrintView && (<div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4">
             <div className="text-center">
@@ -814,7 +814,7 @@ export const PaymentReports = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div>)}
 
       {/* Selection Actions */}
       {selectedRows.length > 0 && (
@@ -859,7 +859,7 @@ export const PaymentReports = () => {
       </div>
 
       {/* Payment Breakdown Table */}
-      <Card className="shadow-lg no-print">
+      { !showPrintView && (<Card className="shadow-lg no-print">
         <CardHeader>
           <CardTitle>Payment Breakdown Report ({totalStudents} students)</CardTitle>
         </CardHeader>
@@ -960,7 +960,7 @@ export const PaymentReports = () => {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card>)}
     </div>
   );
 };
