@@ -14,7 +14,7 @@ const PaymentReports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+    <div className="bg-gradient-to-br from-green-50 via-white to-blue-50">
       <div className="flex items-center gap-4 mb-6 p-6">
         <SidebarTrigger className="text-green-600 hover:text-green-800" />
         <Button 
