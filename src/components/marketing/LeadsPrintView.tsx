@@ -18,11 +18,6 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
     return referrals.find(r => r.id === referralId);
   };
 
-  // Calculate statistics for selected leads only
-  const activeLeadStatuses = ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'];
-  const activeLeads = leads.filter(lead => activeLeadStatuses.includes(lead.lead_status || 'New')).length;
-  const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
-
   return (
     <div className="selected-leads-print-content hidden print:block">
       {/* Print Header */}
@@ -30,31 +25,6 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
         <div className="selected-leads-print-title">Nurse Assist International (NAI)</div>
         <div className="selected-leads-print-subtitle">Marketing Lead Management Report</div>
         <div className="selected-leads-print-date">Generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-      </div>
-
-      {/* Print Statistics Summary */}
-      <div className="selected-leads-print-summary">
-        <h3 style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '6pt', color: 'black' }}>Selected Leads Summary</h3>
-        <div className="selected-leads-summary-grid">
-          <div className="selected-leads-summary-box">
-            <div className="selected-leads-summary-label">Total Selected</div>
-            <div className="selected-leads-summary-value">{leads.length}</div>
-          </div>
-          <div className="selected-leads-summary-box">
-            <div className="selected-leads-summary-label">Active Leads</div>
-            <div className="selected-leads-summary-value" style={{ color: '#16a34a' }}>{activeLeads}</div>
-          </div>
-          <div className="selected-leads-summary-box">
-            <div className="selected-leads-summary-label">Converted</div>
-            <div className="selected-leads-summary-value" style={{ color: '#9333ea' }}>{convertedLeads}</div>
-          </div>
-          <div className="selected-leads-summary-box">
-            <div className="selected-leads-summary-label">Conversion Rate</div>
-            <div className="selected-leads-summary-value" style={{ color: '#ea580c' }}>
-              {leads.length > 0 ? Math.round((convertedLeads / leads.length) * 100) : 0}%
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Print Leads Table */}
