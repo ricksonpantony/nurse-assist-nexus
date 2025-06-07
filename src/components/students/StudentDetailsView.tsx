@@ -14,7 +14,7 @@ import { useState, useEffect } from "react";
 import { PaymentRecordForm } from "./PaymentRecordForm";
 import { QuickAddReferralModal } from "./QuickAddReferralModal";
 import { EditPaymentModal } from "./EditPaymentModal";
-import "../../../styles/studentAccountPrint.css";
+import "../../styles/studentAccountPrint.css";
 
 interface StudentDetailsViewProps {
   student: any;
