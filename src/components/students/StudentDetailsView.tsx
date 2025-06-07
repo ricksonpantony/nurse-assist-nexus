@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -192,177 +193,398 @@ export const StudentDetailsView = ({
 
   return (
     <>
+      {/* Professional Print Styles */}
+      <style jsx>{`
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Times New Roman', serif !important;
+            font-size: 12pt !important;
+            line-height: 1.4 !important;
+            color: black !important;
+          }
+          
+          .print-content {
+            display: block !important;
+            visibility: visible !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 1in !important;
+            background: white !important;
+            box-shadow: none !important;
+          }
+          
+          .print:hidden {
+            display: none !important;
+          }
+          
+          @page {
+            size: A4 portrait;
+            margin: 0.75in;
+          }
+          
+          /* Professional Header */
+          .print-header {
+            text-align: center;
+            margin-bottom: 24pt;
+            padding-bottom: 12pt;
+            border-bottom: 2pt solid #333;
+          }
+          
+          .print-company-name {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 6pt;
+            letter-spacing: 1pt;
+          }
+          
+          .print-report-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 4pt;
+          }
+          
+          .print-report-subtitle {
+            font-size: 11pt;
+            color: #4a5568;
+            margin-bottom: 6pt;
+          }
+          
+          .print-date-generated {
+            font-size: 9pt;
+            color: #718096;
+            font-style: italic;
+          }
+          
+          /* Section Styling */
+          .print-section {
+            margin-bottom: 18pt;
+            page-break-inside: avoid;
+          }
+          
+          .print-section-title {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8pt;
+            padding-bottom: 3pt;
+            border-bottom: 1pt solid #e2e8f0;
+          }
+          
+          .print-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12pt;
+            margin-bottom: 12pt;
+          }
+          
+          .print-field {
+            margin-bottom: 6pt;
+          }
+          
+          .print-field-label {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 2pt;
+          }
+          
+          .print-field-value {
+            font-size: 11pt;
+            color: #2d3748;
+            border-bottom: 0.5pt dotted #cbd5e0;
+            padding-bottom: 1pt;
+          }
+          
+          /* Payment Summary Box */
+          .print-payment-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12pt;
+            margin: 12pt 0;
+            padding: 12pt;
+            border: 1pt solid #e2e8f0;
+            background-color: #f7fafc;
+          }
+          
+          .print-payment-item {
+            text-align: center;
+          }
+          
+          .print-payment-label {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 3pt;
+          }
+          
+          .print-payment-amount {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #2d3748;
+          }
+          
+          /* Table Styling */
+          .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8pt;
+            font-size: 10pt;
+          }
+          
+          .print-table th {
+            background-color: #edf2f7;
+            border: 1pt solid #a0aec0;
+            padding: 6pt 8pt;
+            text-align: left;
+            font-weight: bold;
+            color: #2d3748;
+          }
+          
+          .print-table td {
+            border: 0.5pt solid #cbd5e0;
+            padding: 6pt 8pt;
+            color: #2d3748;
+          }
+          
+          .print-table tr:nth-child(even) {
+            background-color: #f7fafc;
+          }
+          
+          /* Status Badge */
+          .print-status-badge {
+            display: inline-block;
+            padding: 2pt 6pt;
+            border: 1pt solid #a0aec0;
+            border-radius: 3pt;
+            font-size: 9pt;
+            font-weight: bold;
+            background-color: #f7fafc;
+            color: #2d3748;
+          }
+          
+          /* Footer */
+          .print-footer {
+            position: fixed;
+            bottom: 0.5in;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: #718096;
+            border-top: 0.5pt solid #e2e8f0;
+            padding-top: 6pt;
+            background: white;
+          }
+          
+          /* Notes Section */
+          .print-notes-content {
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #2d3748;
+            background-color: #f7fafc;
+            padding: 8pt;
+            border: 1pt solid #e2e8f0;
+            border-radius: 3pt;
+            white-space: pre-wrap;
+          }
+        }
+      `}</style>
+
       {/* Print Content - Always rendered but only visible during print */}
       <div className="print-content hidden print:block">
-        {/* Print Header */}
+        {/* Professional Header */}
         <div className="print-header">
-          <div className="print-title">Nurse Assist International (NAI)</div>
-          <div className="print-subtitle">Student Account Overview</div>
+          <div className="print-company-name">NURSE ASSIST INTERNATIONAL (NAI)</div>
+          <div className="print-report-title">Student Account Report</div>
+          <div className="print-report-subtitle">Comprehensive Student Information & Payment History</div>
+          <div className="print-date-generated">
+            Generated on {new Date().toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })} at {new Date().toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </div>
         </div>
 
-        {/* Main Content Grid - Organize sections more efficiently */}
-        <div className="print-major-section">
-          {/* Personal and Academic Information - Side by side */}
-          <div className="print-grid-2" style={{ marginBottom: '8pt' }}>
-            {/* Personal Information */}
-            <div className="print-section">
-              <div className="print-section-title">Personal Information</div>
-              <div className="print-grid-2">
-                <div className="print-field">
-                  <div className="print-field-label">Full Name</div>
-                  <div className="print-field-value">{student.full_name}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Student ID</div>
-                  <div className="print-field-value">{student.id}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Email</div>
-                  <div className="print-field-value">{student.email}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Phone</div>
-                  <div className="print-field-value">{student.phone}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Passport ID</div>
-                  <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Country</div>
-                  <div className="print-field-value">{student.country || 'Not specified'}</div>
-                </div>
-              </div>
-              {student.address && (
-                <div className="print-field" style={{ marginTop: '4pt' }}>
-                  <div className="print-field-label">Address</div>
-                  <div className="print-field-value">{student.address}</div>
-                </div>
-              )}
+        {/* Personal Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Personal Information</div>
+          <div className="print-grid">
+            <div className="print-field">
+              <div className="print-field-label">Full Name</div>
+              <div className="print-field-value">{student.full_name}</div>
             </div>
-
-            {/* Academic Information */}
-            <div className="print-section">
-              <div className="print-section-title">Academic Information</div>
-              <div className="print-grid-2">
-                <div className="print-field">
-                  <div className="print-field-label">Course</div>
-                  <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Current Status</div>
-                  <div className="print-field-value">
-                    <span className="print-badge">{student.status}</span>
-                  </div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Join Date</div>
-                  <div className="print-field-value">{formatDate(student.join_date)}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Class Start Date</div>
-                  <div className="print-field-value">{formatDate(student.class_start_date)}</div>
-                </div>
-              </div>
-              {student.batch_id && (
-                <div className="print-field" style={{ marginTop: '4pt' }}>
-                  <div className="print-field-label">Batch ID</div>
-                  <div className="print-field-value">{student.batch_id}</div>
-                </div>
-              )}
+            <div className="print-field">
+              <div className="print-field-label">Student ID</div>
+              <div className="print-field-value">{student.id}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Email Address</div>
+              <div className="print-field-value">{student.email}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Phone Number</div>
+              <div className="print-field-value">{student.phone}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Passport/ID Number</div>
+              <div className="print-field-value">{student.passport_id || 'Not provided'}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Country</div>
+              <div className="print-field-value">{student.country || 'Not specified'}</div>
             </div>
           </div>
-
-          {/* Referral Information - Compact */}
-          <div className="print-section" style={{ marginBottom: '8pt' }}>
-            <div className="print-section-title">Referral Information</div>
-            {selectedReferralId === "direct" || !selectedReferralId ? (
-              <div className="print-field">
-                <div className="print-field-label">Status</div>
-                <div className="print-field-value">Direct (No Referral)</div>
-              </div>
-            ) : selectedReferral ? (
-              <div className="print-grid-4">
-                <div className="print-field">
-                  <div className="print-field-label">Name</div>
-                  <div className="print-field-value">{selectedReferral.full_name}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">ID</div>
-                  <div className="print-field-value">{selectedReferral.referral_id}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Email</div>
-                  <div className="print-field-value">{selectedReferral.email}</div>
-                </div>
-                <div className="print-field">
-                  <div className="print-field-label">Phone</div>
-                  <div className="print-field-value">{selectedReferral.phone}</div>
-                </div>
-              </div>
-            ) : (
-              <div className="print-field">
-                <div className="print-field-label">Status</div>
-                <div className="print-field-value">Referral not found</div>
-              </div>
-            )}
-          </div>
-
-          {/* Payment Information */}
-          <div className="print-section">
-            <div className="print-section-title">Payment Summary</div>
-            <div className="print-payment-summary">
-              <div className="print-payment-box">
-                <div className="print-payment-label">Total Course Fee</div>
-                <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
-              </div>
-              <div className="print-payment-box">
-                <div className="print-payment-label">Total Paid</div>
-                <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
-              </div>
-              <div className="print-payment-box">
-                <div className="print-payment-label">Balance</div>
-                <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
-              </div>
-            </div>
-
-            {/* Payment History Table - Compact */}
-            {student.payments && student.payments.length > 0 && (
-              <div>
-                <div className="print-section-title" style={{ marginTop: '6pt', marginBottom: '4pt' }}>Payment History</div>
-                <table className="print-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Stage</th>
-                      <th>Amount</th>
-                      <th>Payment Mode</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {student.payments.map((payment: any, index: number) => (
-                      <tr key={index}>
-                        <td>{formatDate(payment.payment_date)}</td>
-                        <td>{payment.stage}</td>
-                        <td>${payment.amount.toLocaleString()}</td>
-                        <td>{payment.payment_mode}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Notes Section - Print */}
-          {notes && (
-            <div className="print-section">
-              <div className="print-section-title">Notes</div>
-              <div className="print-field">
-                <div className="print-field-value" style={{ whiteSpace: 'pre-wrap' }}>{notes}</div>
-              </div>
+          {student.address && (
+            <div className="print-field">
+              <div className="print-field-label">Residential Address</div>
+              <div className="print-field-value">{student.address}</div>
             </div>
           )}
+        </div>
+
+        {/* Academic Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Academic Information</div>
+          <div className="print-grid">
+            <div className="print-field">
+              <div className="print-field-label">Enrolled Course</div>
+              <div className="print-field-value">{course ? course.title : 'No course assigned'}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Current Status</div>
+              <div className="print-field-value">
+                <span className="print-status-badge">{student.status}</span>
+              </div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Join Date</div>
+              <div className="print-field-value">{formatDate(student.join_date)}</div>
+            </div>
+            <div className="print-field">
+              <div className="print-field-label">Class Start Date</div>
+              <div className="print-field-value">{formatDate(student.class_start_date)}</div>
+            </div>
+          </div>
+          {student.batch_id && (
+            <div className="print-field">
+              <div className="print-field-label">Batch Identifier</div>
+              <div className="print-field-value">{student.batch_id}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Referral Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Referral Information</div>
+          {selectedReferralId === "direct" || !selectedReferralId ? (
+            <div className="print-field">
+              <div className="print-field-label">Referral Status</div>
+              <div className="print-field-value">Direct Enrollment (No Referral)</div>
+            </div>
+          ) : selectedReferral ? (
+            <div className="print-grid">
+              <div className="print-field">
+                <div className="print-field-label">Referred By</div>
+                <div className="print-field-value">{selectedReferral.full_name}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Referral ID</div>
+                <div className="print-field-value">{selectedReferral.referral_id}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Referrer Email</div>
+                <div className="print-field-value">{selectedReferral.email}</div>
+              </div>
+              <div className="print-field">
+                <div className="print-field-label">Referrer Phone</div>
+                <div className="print-field-value">{selectedReferral.phone}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="print-field">
+              <div className="print-field-label">Referral Status</div>
+              <div className="print-field-value">Referral information not found</div>
+            </div>
+          )}
+        </div>
+
+        {/* Payment Information Section */}
+        <div className="print-section">
+          <div className="print-section-title">Payment Summary</div>
+          <div className="print-payment-summary">
+            <div className="print-payment-item">
+              <div className="print-payment-label">Total Course Fee</div>
+              <div className="print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
+            </div>
+            <div className="print-payment-item">
+              <div className="print-payment-label">Amount Paid</div>
+              <div className="print-payment-amount">${totalPaid.toLocaleString()}</div>
+            </div>
+            <div className="print-payment-item">
+              <div className="print-payment-label">Outstanding Balance</div>
+              <div className="print-payment-amount">${remainingBalance.toLocaleString()}</div>
+            </div>
+          </div>
+
+          {/* Payment History Table */}
+          {student.payments && student.payments.length > 0 && (
+            <div>
+              <div className="print-section-title" style={{ marginTop: '12pt', marginBottom: '6pt' }}>Payment Transaction History</div>
+              <table className="print-table">
+                <thead>
+                  <tr>
+                    <th>Payment Date</th>
+                    <th>Payment Stage</th>
+                    <th>Amount</th>
+                    <th>Payment Method</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {student.payments.map((payment: any, index: number) => (
+                    <tr key={index}>
+                      <td>{formatDate(payment.payment_date)}</td>
+                      <td>{payment.stage}</td>
+                      <td>${payment.amount.toLocaleString()}</td>
+                      <td>{payment.payment_mode}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Notes Section */}
+        {notes && (
+          <div className="print-section">
+            <div className="print-section-title">Additional Notes</div>
+            <div className="print-notes-content">{notes}</div>
+          </div>
+        )}
+
+        {/* Professional Footer */}
+        <div className="print-footer">
+          <div>
+            Confidential Document | Nurse Assist International (NAI) | 
+            Student ID: {student.id} | 
+            Page 1 of 1
+          </div>
         </div>
       </div>
 
