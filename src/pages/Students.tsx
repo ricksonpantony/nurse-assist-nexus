@@ -322,6 +322,7 @@ const Students = () => {
             onDeleteMultiple={handleDeleteMultipleStudents}
             onView={handleViewStudent}
             onUpdatePayment={handleUpdatePayment}
+            onPrintSelected={handlePrintSelected}
             selectedStudents={selectedStudents}
             onStudentSelection={handleStudentSelection}
           />
