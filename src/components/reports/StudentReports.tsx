@@ -286,10 +286,7 @@ export const StudentReports = () => {
       <div className="student-reports-print-content" style={{ display: 'none' }}>
         <div className="student-reports-print-header">
           <div className="student-reports-print-title">
-            Nurse Assist International (NAI)
-          </div>
-          <div className="student-reports-print-subtitle">
-            Selected Student Reports
+            Student Report Overview
           </div>
           <div className="student-reports-print-date">
             Generated on: {new Date().toLocaleDateString()}
