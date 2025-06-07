@@ -371,15 +371,15 @@
   }
 
   /* Print Header */
-  body::before {
-    /* content: "Nurse Assist International (NAI)\AStudent Report Overview"; */
+  /* body::before {
+    content: "Nurse Assist International (NAI)\AStudent Report Overview";
     white-space: pre;
     display: block;
     text-align: center;
     font-weight: bold;
     font-size: 14pt;
     margin-bottom: 20px;
-  }
+  } */
 
   /* Print Footer
   body::after {
