@@ -1,345 +1,208 @@
 
-/* Student Account Print Styles - Portrait Mode Only */
+/* Student Account Print Styles - Portrait Single Page */
 @media print {
-  /* Hide everything by default when printing from student account */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* Show only the print content and its children */
-  .student-account-print-content,
-  .student-account-print-content * {
-    visibility: visible !important;
-    display: block !important;
-  }
-
-  /* Force portrait orientation - Critical for proper layout */
-  @page {
-    size: A4 portrait !important;
-    margin: 0.5cm !important;
-    orientation: portrait !important;
-  }
-
-  /* Override any body styles that might interfere */
-  body {
+  .student-account-print * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    overflow: visible !important;
+  }
+  
+  .student-account-print {
     font-family: Arial, sans-serif !important;
     font-size: 10pt !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Force all elements to respect portrait layout */
-  html {
-    width: 100% !important;
-    height: 100% !important;
-    overflow: visible !important;
-  }
-
-  /* Position print content properly */
-  .student-account-print-content {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
+    line-height: 1.3 !important;
+    color: black !important;
     margin: 0 !important;
-    padding: 10pt !important;
-    background: white !important;
-    color: black !important;
-    font-family: Arial, sans-serif !important;
-    font-size: 9pt !important;
-    line-height: 1.1 !important;
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
-    page-break-after: auto !important;
-    display: block !important;
-  }
-
-  /* Header styling */
-  .student-print-header {
-    text-align: center !important;
-    margin-bottom: 8pt !important;
-    padding-bottom: 4pt !important;
-    border-bottom: 1pt solid black !important;
-    display: block !important;
-    page-break-inside: avoid !important;
-  }
-
-  .student-print-company-name {
-    font-size: 12pt !important;
-    font-weight: bold !important;
-    margin-bottom: 2pt !important;
-    color: black !important;
-    display: block !important;
-  }
-
-  .student-print-report-title {
-    font-size: 10pt !important;
-    font-weight: bold !important;
-    margin-bottom: 2pt !important;
-    color: black !important;
-    display: block !important;
-  }
-
-  .student-print-report-subtitle {
-    font-size: 8pt !important;
-    color: #444 !important;
-    margin-bottom: 2pt !important;
-    display: block !important;
-  }
-
-  .student-print-date-generated {
-    font-size: 7pt !important;
-    color: #666 !important;
-    display: block !important;
-  }
-
-  /* Section styling */
-  .student-print-section {
-    margin-bottom: 6pt !important;
-    display: block !important;
-    page-break-inside: avoid !important;
-  }
-
-  .student-print-section-title {
-    font-size: 9pt !important;
-    font-weight: bold !important;
-    margin-bottom: 3pt !important;
-    padding: 2pt 0 !important;
-    border-bottom: 0.5pt solid #ccc !important;
-    color: black !important;
-    display: block !important;
-  }
-
-  /* Grid layout for fields */
-  .student-print-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 4pt !important;
-    margin-bottom: 4pt !important;
-  }
-
-  /* Field styling */
-  .student-print-field {
-    margin-bottom: 3pt !important;
-    display: block !important;
-  }
-
-  .student-print-field-label {
-    font-size: 7pt !important;
-    font-weight: bold !important;
-    color: #333 !important;
-    margin-bottom: 1pt !important;
-    display: block !important;
-  }
-
-  .student-print-field-value {
-    font-size: 8pt !important;
-    color: black !important;
-    display: block !important;
-    word-wrap: break-word !important;
-  }
-
-  /* Payment summary styling */
-  .student-print-payment-summary {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-    gap: 4pt !important;
-    margin-bottom: 6pt !important;
-    padding: 4pt !important;
-    border: 0.5pt solid #ccc !important;
-    background: #f9f9f9 !important;
-  }
-
-  .student-print-payment-item {
-    text-align: center !important;
-    display: block !important;
-  }
-
-  .student-print-payment-label {
-    font-size: 7pt !important;
-    font-weight: bold !important;
-    color: #333 !important;
-    margin-bottom: 1pt !important;
-    display: block !important;
-  }
-
-  .student-print-payment-amount {
-    font-size: 10pt !important;
-    font-weight: bold !important;
-    color: black !important;
-    display: block !important;
-  }
-
-  /* Table styling */
-  .student-print-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    margin-top: 4pt !important;
-    margin-bottom: 6pt !important;
-    font-size: 7pt !important;
-    color: black !important;
-    display: table !important;
-  }
-
-  .student-print-table thead {
-    display: table-header-group !important;
-  }
-
-  .student-print-table tbody {
-    display: table-row-group !important;
-  }
-
-  .student-print-table tr {
-    display: table-row !important;
-    break-inside: avoid !important;
-  }
-
-  .student-print-table th {
-    background: #e8e8e8 !important;
-    border: 0.5pt solid #333 !important;
-    padding: 2pt !important;
-    font-size: 7pt !important;
-    font-weight: bold !important;
-    text-align: left !important;
-    color: black !important;
-    display: table-cell !important;
-  }
-
-  .student-print-table td {
-    border: 0.5pt solid #666 !important;
-    padding: 2pt !important;
-    font-size: 7pt !important;
-    color: black !important;
-    display: table-cell !important;
-    word-wrap: break-word !important;
-  }
-
-  /* Status badge styling */
-  .student-print-status-badge {
-    display: inline-block !important;
-    padding: 1pt 2pt !important;
-    border: 0.5pt solid #666 !important;
-    border-radius: 1pt !important;
-    font-size: 6pt !important;
-    font-weight: bold !important;
-    background: white !important;
-    color: black !important;
-  }
-
-  /* Notes content styling */
-  .student-print-notes-content {
-    font-size: 8pt !important;
-    color: black !important;
-    padding: 3pt !important;
-    border: 0.5pt solid #ccc !important;
-    background: #f9f9f9 !important;
-    white-space: pre-wrap !important;
-    word-wrap: break-word !important;
-    display: block !important;
-  }
-
-  /* Footer styling */
-  .student-print-footer {
-    position: fixed !important;
-    bottom: 0.3cm !important;
-    left: 0 !important;
-    right: 0 !important;
-    text-align: center !important;
-    font-size: 6pt !important;
-    color: #666 !important;
-    padding: 2pt !important;
-    border-top: 0.5pt solid #ddd !important;
-    background: white !important;
-    display: block !important;
-  }
-
-  /* Force display for all print elements */
-  .student-account-print-content table,
-  .student-account-print-content thead,
-  .student-account-print-content tbody,
-  .student-account-print-content tr,
-  .student-account-print-content th,
-  .student-account-print-content td {
-    display: table !important;
-  }
-
-  .student-account-print-content thead {
-    display: table-header-group !important;
-  }
-
-  .student-account-print-content tbody {
-    display: table-row-group !important;
-  }
-
-  .student-account-print-content tr {
-    display: table-row !important;
-  }
-
-  .student-account-print-content th,
-  .student-account-print-content td {
-    display: table-cell !important;
-  }
-
-  /* Override any conflicting styles */
-  .student-account-print-content .bg-gradient-to-br,
-  .student-account-print-content .bg-gradient-to-r,
-  .student-account-print-content .shadow-lg,
-  .student-account-print-content .backdrop-blur-sm {
+    padding: 0.5in !important;
     background: white !important;
     box-shadow: none !important;
-    backdrop-filter: none !important;
   }
-
-  /* Ensure content doesn't exceed page boundaries */
-  .student-account-print-content {
-    max-height: none !important;
-    height: auto !important;
-    box-sizing: border-box !important;
+  
+  @page {
+    size: A4 portrait;
+    margin: 0.5in;
   }
-
-  /* Hide any empty elements that might cause blank pages */
-  .student-account-print-content > *:empty {
+  
+  /* Header */
+  .student-print-header {
+    text-align: center;
+    margin-bottom: 16pt;
+    padding-bottom: 8pt;
+    border-bottom: 1pt solid #333;
+  }
+  
+  .student-print-company-name {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #1a365d;
+    margin-bottom: 4pt;
+    letter-spacing: 0.5pt;
+  }
+  
+  .student-print-report-title {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 3pt;
+  }
+  
+  .student-print-report-subtitle {
+    font-size: 9pt;
+    color: #4a5568;
+    margin-bottom: 4pt;
+  }
+  
+  .student-print-date-generated {
+    font-size: 8pt;
+    color: #718096;
+    font-style: italic;
+  }
+  
+  /* Sections */
+  .student-print-section {
+    margin-bottom: 12pt;
+    page-break-inside: avoid;
+  }
+  
+  .student-print-section-title {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 6pt;
+    padding-bottom: 2pt;
+    border-bottom: 0.5pt solid #e2e8f0;
+  }
+  
+  .student-print-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8pt;
+    margin-bottom: 8pt;
+  }
+  
+  .student-print-field {
+    margin-bottom: 4pt;
+  }
+  
+  .student-print-field-label {
+    font-size: 8pt;
+    font-weight: bold;
+    color: #4a5568;
+    margin-bottom: 1pt;
+  }
+  
+  .student-print-field-value {
+    font-size: 9pt;
+    color: #2d3748;
+    border-bottom: 0.5pt dotted #cbd5e0;
+    padding-bottom: 1pt;
+  }
+  
+  /* Payment Summary */
+  .student-print-payment-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8pt;
+    margin: 8pt 0;
+    padding: 8pt;
+    border: 1pt solid #e2e8f0;
+    background-color: #f7fafc;
+  }
+  
+  .student-print-payment-item {
+    text-align: center;
+  }
+  
+  .student-print-payment-label {
+    font-size: 8pt;
+    font-weight: bold;
+    color: #4a5568;
+    margin-bottom: 2pt;
+  }
+  
+  .student-print-payment-amount {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #2d3748;
+  }
+  
+  /* Table */
+  .student-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6pt;
+    font-size: 8pt;
+  }
+  
+  .student-print-table th {
+    background-color: #edf2f7;
+    border: 1pt solid #a0aec0;
+    padding: 4pt 6pt;
+    text-align: left;
+    font-weight: bold;
+    color: #2d3748;
+  }
+  
+  .student-print-table td {
+    border: 0.5pt solid #cbd5e0;
+    padding: 4pt 6pt;
+    color: #2d3748;
+  }
+  
+  .student-print-table tr:nth-child(even) {
+    background-color: #f7fafc;
+  }
+  
+  /* Status Badge */
+  .student-print-status-badge {
+    display: inline-block;
+    padding: 1pt 4pt;
+    border: 1pt solid #a0aec0;
+    border-radius: 2pt;
+    font-size: 8pt;
+    font-weight: bold;
+    background-color: #f7fafc;
+    color: #2d3748;
+  }
+  
+  /* Footer */
+  .student-print-footer {
+    position: fixed;
+    bottom: 0.25in;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 7pt;
+    color: #718096;
+    border-top: 0.5pt solid #e2e8f0;
+    padding-top: 4pt;
+    background: white;
+  }
+  
+  /* Notes */
+  .student-print-notes-content {
+    font-size: 8pt;
+    line-height: 1.4;
+    color: #2d3748;
+    background-color: #f7fafc;
+    padding: 6pt;
+    border: 1pt solid #e2e8f0;
+    border-radius: 2pt;
+    white-space: pre-wrap;
+  }
+  
+  /* Hide non-print elements */
+  .print\\:hidden {
     display: none !important;
   }
-
-  /* Force portrait orientation override */
-  * {
-    -webkit-transform: none !important;
-    transform: none !important;
-  }
-
-  /* Remove any max-width constraints and prevent overflow */
-  .student-account-print-content,
-  .student-account-print-content * {
+  
+  /* Show only print content */
+  .student-account-print-content {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
     max-width: none !important;
-    min-width: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Prevent page breaks in critical sections */
-  .student-print-header,
-  .student-print-payment-summary {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  /* Compact spacing for single page fit */
-  .student-print-section {
-    margin-bottom: 4pt !important;
-  }
-
-  .student-print-field {
-    margin-bottom: 2pt !important;
-  }
-
-  .student-print-grid {
-    gap: 2pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }
