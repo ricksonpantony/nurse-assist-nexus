@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, X, SortAsc, SortDesc } from "lucide-react";
+import { Search, X, SortAsc, SortDesc, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface StudentsFilterProps {
@@ -86,6 +86,16 @@ export const StudentsFilter = ({
                 className="pl-10"
               />
             </div>
+            {selectedStudentsCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={onPrintSelected}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+              >
+                <Printer className="h-4 w-4" />
+                Print Selected ({selectedStudentsCount})
+              </Button>
+            )}
             {hasActiveFilters && (
               <Button
                 variant="outline"

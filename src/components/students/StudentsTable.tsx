@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight, User, Printer } from "lucide-react";
+import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight, User } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
@@ -83,14 +82,6 @@ export const StudentsTable = ({
     onStudentSelection([]);
   };
 
-  const handlePrintSelected = () => {
-    if (selectedStudents.length === 0) {
-      alert('Please select students to print');
-      return;
-    }
-    window.print();
-  };
-
   const getCourse = (courseId: string | null) => {
     return courses.find(c => c.id === courseId);
   };
@@ -133,54 +124,41 @@ export const StudentsTable = ({
     <div className="space-y-4">
       {/* Pagination Controls Top */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Show:</span>
-            <Select value={itemsPerPage === -1 ? "all" : itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-                <SelectItem value="200">200</SelectItem>
-                <SelectItem value="500">500</SelectItem>
-                <SelectItem value="1000">1000</SelectItem>
-                <SelectItem value="all">All</SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-sm text-gray-600">
-              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} students
-            </span>
-          </div>
-          
-          {/* Print Selected Button - Right after pagination info */}
-          {selectedStudents.length > 0 && (
-            <Button
-              onClick={handlePrintSelected}
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 gap-2 px-4 py-2 text-sm font-medium rounded-lg"
-            >
-              <Printer className="h-4 w-4" />
-              Print Selected ({selectedStudents.length})
-            </Button>
-          )}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <Select value={itemsPerPage === -1 ? "all" : itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="200">200</SelectItem>
+              <SelectItem value="500">500</SelectItem>
+              <SelectItem value="1000">1000</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-gray-600">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} students
+          </span>
         </div>
         
         <div className="flex items-center gap-4">
           {selectedStudents.length > 0 && (
-            <div className="text-sm text-blue-600 font-medium">
-              {selectedStudents.length} of {totalItems} students selected
-            </div>
-          )}
-          {selectedStudents.length > 0 && (
-            <Button
-              variant="destructive"
-              onClick={handleMultiDelete}
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Selected ({selectedStudents.length})
-            </Button>
+            <>
+              <div className="text-sm text-blue-600 font-medium">
+                {selectedStudents.length} of {totalItems} students selected
+              </div>
+              <Button
+                variant="destructive"
+                onClick={handleMultiDelete}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Selected ({selectedStudents.length})
+              </Button>
+            </>
           )}
         </div>
       </div>
