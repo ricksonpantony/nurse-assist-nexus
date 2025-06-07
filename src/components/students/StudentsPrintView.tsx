@@ -45,10 +45,6 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
             display: block !important; 
           }
           
-          .page-break { 
-            page-break-before: always; 
-          }
-          
           .table-print {
             width: 100%;
             border-collapse: collapse;
