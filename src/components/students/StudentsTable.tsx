@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { Edit, Trash2, CreditCard, ChevronLeft, ChevronRight, User, Printer } from "lucide-react";
 import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
@@ -19,6 +19,7 @@ interface StudentsTableProps {
   onDeleteMultiple: (studentIds: string[]) => void;
   onView: (student: Student) => void;
   onUpdatePayment: (student: Student) => void;
+  onPrintSelected: () => void;
   selectedStudents: string[];
   onStudentSelection: (studentIds: string[]) => void;
 }
@@ -31,6 +32,7 @@ export const StudentsTable = ({
   onDeleteMultiple,
   onView,
   onUpdatePayment,
+  onPrintSelected,
   selectedStudents,
   onStudentSelection,
 }: StudentsTableProps) => {
@@ -142,6 +144,15 @@ export const StudentsTable = ({
           <span className="text-sm text-gray-600">
             Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} students
           </span>
+          {selectedStudents.length > 0 && (
+            <Button
+              onClick={onPrintSelected}
+              className="ml-4 bg-green-600 hover:bg-green-700 text-white gap-2"
+            >
+              <Printer className="h-4 w-4" />
+              Print Selected ({selectedStudents.length})
+            </Button>
+          )}
         </div>
         
         <div className="flex items-center gap-4">
