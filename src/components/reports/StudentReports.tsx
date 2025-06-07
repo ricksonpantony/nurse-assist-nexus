@@ -22,6 +22,8 @@ export const StudentReports = () => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [showPrintView, setShowPrintView] = useState(false);
+
   
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -190,7 +192,12 @@ export const StudentReports = () => {
       alert('Please select students to print');
       return;
     }
-    window.print();
+    // window.print();
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
   // Get unique countries from students for the filter dropdown
@@ -626,7 +633,7 @@ export const StudentReports = () => {
       </div>
 
       {/* Report Table */}
-      <Card className="shadow-lg no-print">
+      { !showPrintView && (<Card className="shadow-lg no-print">
         <CardHeader>
           <CardTitle>Student Report ({totalStudents} students)</CardTitle>
         </CardHeader>
@@ -689,7 +696,7 @@ export const StudentReports = () => {
             </Table>
           </div>
         </CardContent>
-      </Card>
+      </Card>)}
 
       {/* Pagination Bottom */}
       {itemsPerPage !== -1 && totalPages > 1 && (
