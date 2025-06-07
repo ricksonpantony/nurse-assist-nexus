@@ -216,7 +216,7 @@ export const StudentDetailsView = ({
             width: 100% !important;
             max-width: none !important;
             margin: 0 !important;
-            padding: 1in !important;
+            /* padding: 1in !important; */
             background: white !important;
             box-shadow: none !important;
           }
