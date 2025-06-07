@@ -64,7 +64,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50/30">
       {/* Header Section */}
       <div className="mb-8 p-6 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 rounded-xl shadow-xl">
         <div className="flex items-center justify-between">
