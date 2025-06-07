@@ -29,7 +29,7 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1">
           <div className="p-6">
