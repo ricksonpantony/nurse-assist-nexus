@@ -194,188 +194,190 @@ export const StudentDetailsView = ({
   return (
     <>
       {/* Print Content - Student Account Print */}
-      <div className="student-account-print-content hidden print:block student-account-print">
-        {/* Header */}
-        <div className="student-print-header">
-          <div className="student-print-company-name">NURSE ASSIST INTERNATIONAL (NAI)</div>
-          <div className="student-print-report-title">Student Account Report</div>
-          <div className="student-print-report-subtitle">Comprehensive Student Information & Payment History</div>
-          <div className="student-print-date-generated">
-            Generated on {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })} at {new Date().toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </div>
-        </div>
-
-        {/* Personal Information Section */}
-        <div className="student-print-section">
-          <div className="student-print-section-title">Personal Information</div>
-          <div className="student-print-grid">
-            <div className="student-print-field">
-              <div className="student-print-field-label">Full Name</div>
-              <div className="student-print-field-value">{student.full_name}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Student ID</div>
-              <div className="student-print-field-value">{student.id}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Email Address</div>
-              <div className="student-print-field-value">{student.email}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Phone Number</div>
-              <div className="student-print-field-value">{student.phone}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Passport/ID Number</div>
-              <div className="student-print-field-value">{student.passport_id || 'Not provided'}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Country</div>
-              <div className="student-print-field-value">{student.country || 'Not specified'}</div>
+      <div className="student-account-print-content print:block hidden">
+        <div className="student-account-print">
+          {/* Header */}
+          <div className="student-print-header">
+            <div className="student-print-company-name">NURSE ASSIST INTERNATIONAL (NAI)</div>
+            <div className="student-print-report-title">Student Account Report</div>
+            <div className="student-print-report-subtitle">Comprehensive Student Information & Payment History</div>
+            <div className="student-print-date-generated">
+              Generated on {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })} at {new Date().toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
             </div>
           </div>
-          {student.address && (
-            <div className="student-print-field">
-              <div className="student-print-field-label">Residential Address</div>
-              <div className="student-print-field-value">{student.address}</div>
-            </div>
-          )}
-        </div>
 
-        {/* Academic Information Section */}
-        <div className="student-print-section">
-          <div className="student-print-section-title">Academic Information</div>
-          <div className="student-print-grid">
-            <div className="student-print-field">
-              <div className="student-print-field-label">Enrolled Course</div>
-              <div className="student-print-field-value">{course ? course.title : 'No course assigned'}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Current Status</div>
-              <div className="student-print-field-value">
-                <span className="student-print-status-badge">{student.status}</span>
-              </div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Join Date</div>
-              <div className="student-print-field-value">{formatDate(student.join_date)}</div>
-            </div>
-            <div className="student-print-field">
-              <div className="student-print-field-label">Class Start Date</div>
-              <div className="student-print-field-value">{formatDate(student.class_start_date)}</div>
-            </div>
-          </div>
-          {student.batch_id && (
-            <div className="student-print-field">
-              <div className="student-print-field-label">Batch Identifier</div>
-              <div className="student-print-field-value">{student.batch_id}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Referral Information Section */}
-        <div className="student-print-section">
-          <div className="student-print-section-title">Referral Information</div>
-          {selectedReferralId === "direct" || !selectedReferralId ? (
-            <div className="student-print-field">
-              <div className="student-print-field-label">Referral Status</div>
-              <div className="student-print-field-value">Direct Enrollment (No Referral)</div>
-            </div>
-          ) : selectedReferral ? (
+          {/* Personal Information Section */}
+          <div className="student-print-section">
+            <div className="student-print-section-title">Personal Information</div>
             <div className="student-print-grid">
               <div className="student-print-field">
-                <div className="student-print-field-label">Referred By</div>
-                <div className="student-print-field-value">{selectedReferral.full_name}</div>
+                <div className="student-print-field-label">Full Name</div>
+                <div className="student-print-field-value">{student.full_name}</div>
               </div>
               <div className="student-print-field">
-                <div className="student-print-field-label">Referral ID</div>
-                <div className="student-print-field-value">{selectedReferral.referral_id}</div>
+                <div className="student-print-field-label">Student ID</div>
+                <div className="student-print-field-value">{student.id}</div>
               </div>
               <div className="student-print-field">
-                <div className="student-print-field-label">Referrer Email</div>
-                <div className="student-print-field-value">{selectedReferral.email}</div>
+                <div className="student-print-field-label">Email Address</div>
+                <div className="student-print-field-value">{student.email}</div>
               </div>
               <div className="student-print-field">
-                <div className="student-print-field-label">Referrer Phone</div>
-                <div className="student-print-field-value">{selectedReferral.phone}</div>
+                <div className="student-print-field-label">Phone Number</div>
+                <div className="student-print-field-value">{student.phone}</div>
+              </div>
+              <div className="student-print-field">
+                <div className="student-print-field-label">Passport/ID Number</div>
+                <div className="student-print-field-value">{student.passport_id || 'Not provided'}</div>
+              </div>
+              <div className="student-print-field">
+                <div className="student-print-field-label">Country</div>
+                <div className="student-print-field-value">{student.country || 'Not specified'}</div>
               </div>
             </div>
-          ) : (
-            <div className="student-print-field">
-              <div className="student-print-field-label">Referral Status</div>
-              <div className="student-print-field-value">Referral information not found</div>
-            </div>
-          )}
-        </div>
-
-        {/* Payment Information Section */}
-        <div className="student-print-section">
-          <div className="student-print-section-title">Payment Summary</div>
-          <div className="student-print-payment-summary">
-            <div className="student-print-payment-item">
-              <div className="student-print-payment-label">Total Course Fee</div>
-              <div className="student-print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
-            </div>
-            <div className="student-print-payment-item">
-              <div className="student-print-payment-label">Amount Paid</div>
-              <div className="student-print-payment-amount">${totalPaid.toLocaleString()}</div>
-            </div>
-            <div className="student-print-payment-item">
-              <div className="student-print-payment-label">Outstanding Balance</div>
-              <div className="student-print-payment-amount">${remainingBalance.toLocaleString()}</div>
-            </div>
+            {student.address && (
+              <div className="student-print-field">
+                <div className="student-print-field-label">Residential Address</div>
+                <div className="student-print-field-value">{student.address}</div>
+              </div>
+            )}
           </div>
 
-          {/* Payment History Table */}
-          {student.payments && student.payments.length > 0 && (
-            <div>
-              <div className="student-print-section-title" style={{ marginTop: '8pt', marginBottom: '4pt' }}>Payment Transaction History</div>
-              <table className="student-print-table">
-                <thead>
-                  <tr>
-                    <th>Payment Date</th>
-                    <th>Payment Stage</th>
-                    <th>Amount</th>
-                    <th>Payment Method</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {student.payments.map((payment: any, index: number) => (
-                    <tr key={index}>
-                      <td>{formatDate(payment.payment_date)}</td>
-                      <td>{payment.stage}</td>
-                      <td>${payment.amount.toLocaleString()}</td>
-                      <td>{payment.payment_mode}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Notes Section */}
-        {notes && (
+          {/* Academic Information Section */}
           <div className="student-print-section">
-            <div className="student-print-section-title">Additional Notes</div>
-            <div className="student-print-notes-content">{notes}</div>
+            <div className="student-print-section-title">Academic Information</div>
+            <div className="student-print-grid">
+              <div className="student-print-field">
+                <div className="student-print-field-label">Enrolled Course</div>
+                <div className="student-print-field-value">{course ? course.title : 'No course assigned'}</div>
+              </div>
+              <div className="student-print-field">
+                <div className="student-print-field-label">Current Status</div>
+                <div className="student-print-field-value">
+                  <span className="student-print-status-badge">{student.status}</span>
+                </div>
+              </div>
+              <div className="student-print-field">
+                <div className="student-print-field-label">Join Date</div>
+                <div className="student-print-field-value">{formatDate(student.join_date)}</div>
+              </div>
+              <div className="student-print-field">
+                <div className="student-print-field-label">Class Start Date</div>
+                <div className="student-print-field-value">{formatDate(student.class_start_date)}</div>
+              </div>
+            </div>
+            {student.batch_id && (
+              <div className="student-print-field">
+                <div className="student-print-field-label">Batch Identifier</div>
+                <div className="student-print-field-value">{student.batch_id}</div>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Footer */}
-        <div className="student-print-footer">
-          <div>
-            Confidential Document | Nurse Assist International (NAI) | 
-            Student ID: {student.id} | 
-            Page 1 of 1
+          {/* Referral Information Section */}
+          <div className="student-print-section">
+            <div className="student-print-section-title">Referral Information</div>
+            {selectedReferralId === "direct" || !selectedReferralId ? (
+              <div className="student-print-field">
+                <div className="student-print-field-label">Referral Status</div>
+                <div className="student-print-field-value">Direct Enrollment (No Referral)</div>
+              </div>
+            ) : selectedReferral ? (
+              <div className="student-print-grid">
+                <div className="student-print-field">
+                  <div className="student-print-field-label">Referred By</div>
+                  <div className="student-print-field-value">{selectedReferral.full_name}</div>
+                </div>
+                <div className="student-print-field">
+                  <div className="student-print-field-label">Referral ID</div>
+                  <div className="student-print-field-value">{selectedReferral.referral_id}</div>
+                </div>
+                <div className="student-print-field">
+                  <div className="student-print-field-label">Referrer Email</div>
+                  <div className="student-print-field-value">{selectedReferral.email}</div>
+                </div>
+                <div className="student-print-field">
+                  <div className="student-print-field-label">Referrer Phone</div>
+                  <div className="student-print-field-value">{selectedReferral.phone}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="student-print-field">
+                <div className="student-print-field-label">Referral Status</div>
+                <div className="student-print-field-value">Referral information not found</div>
+              </div>
+            )}
+          </div>
+
+          {/* Payment Information Section */}
+          <div className="student-print-section">
+            <div className="student-print-section-title">Payment Summary</div>
+            <div className="student-print-payment-summary">
+              <div className="student-print-payment-item">
+                <div className="student-print-payment-label">Total Course Fee</div>
+                <div className="student-print-payment-amount">${student.total_course_fee.toLocaleString()}</div>
+              </div>
+              <div className="student-print-payment-item">
+                <div className="student-print-payment-label">Amount Paid</div>
+                <div className="student-print-payment-amount">${totalPaid.toLocaleString()}</div>
+              </div>
+              <div className="student-print-payment-item">
+                <div className="student-print-payment-label">Outstanding Balance</div>
+                <div className="student-print-payment-amount">${remainingBalance.toLocaleString()}</div>
+              </div>
+            </div>
+
+            {/* Payment History Table */}
+            {student.payments && student.payments.length > 0 && (
+              <div>
+                <div className="student-print-section-title" style={{ marginTop: '6pt', marginBottom: '3pt' }}>Payment Transaction History</div>
+                <table className="student-print-table">
+                  <thead>
+                    <tr>
+                      <th>Payment Date</th>
+                      <th>Payment Stage</th>
+                      <th>Amount</th>
+                      <th>Payment Method</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {student.payments.map((payment: any, index: number) => (
+                      <tr key={index}>
+                        <td>{formatDate(payment.payment_date)}</td>
+                        <td>{payment.stage}</td>
+                        <td>${payment.amount.toLocaleString()}</td>
+                        <td>{payment.payment_mode}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Notes Section */}
+          {notes && (
+            <div className="student-print-section">
+              <div className="student-print-section-title">Additional Notes</div>
+              <div className="student-print-notes-content">{notes}</div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="student-print-footer">
+            <div>
+              Confidential Document | Nurse Assist International (NAI) | 
+              Student ID: {student.id} | 
+              Page 1 of 1
+            </div>
           </div>
         </div>
       </div>
