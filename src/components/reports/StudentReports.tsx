@@ -196,7 +196,7 @@ export const StudentReports = () => {
     setShowPrintView(true);
     setTimeout(() => {
       window.print();
-      setShowPrintView(false);
+      // setShowPrintView(false);
     }, 100);
   };
 
@@ -295,7 +295,7 @@ export const StudentReports = () => {
   return (
     <div className="space-y-6 student-reports-page">
       {/* Print Content - Hidden on screen, visible only when printing */}
-      <div className="student-reports-print-content" style={{ display: 'none' }}>
+      {showPrintView && (<div className="student-reports-print-content" style={{ display: 'none' }}>
         <div className="student-reports-print-header">
           <div className="student-reports-print-title">
             Student Report Overview
@@ -352,7 +352,7 @@ export const StudentReports = () => {
         <div className="student-reports-print-footer">
           📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney
         </div>
-      </div>
+      </div>)}
 
       {/* Filters Card */}
       <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 no-print">
