@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,37 @@ export const DeleteCourseDialog = ({
   studentCount,
   onConfirm,
 }: DeleteCourseDialogProps) => {
+  const [countdown, setCountdown] = useState(3);
+  const [canConfirm, setCanConfirm] = useState(false);
+
+  useEffect(() => {
+    if (open && canDelete) {
+      setCountdown(3);
+      setCanConfirm(false);
+      
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            setCanConfirm(true);
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else if (open && !canDelete) {
+      setCanConfirm(false);
+    }
+  }, [open, canDelete]);
+
+  const handleConfirm = () => {
+    if (canConfirm && canDelete) {
+      onConfirm();
+    }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -39,6 +71,7 @@ export const DeleteCourseDialog = ({
           </AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete the course "{courseName}"?
+            {canDelete && " This action cannot be undone."}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -52,14 +85,26 @@ export const DeleteCourseDialog = ({
           </Alert>
         )}
 
+        {canDelete && (
+          <div className="bg-gray-50 p-3 rounded-lg my-4">
+            <p className="font-medium text-gray-900 mb-1">Course to be deleted:</p>
+            <p className="text-sm text-gray-600">• {courseName}</p>
+          </div>
+        )}
+
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           {canDelete && (
             <AlertDialogAction
-              onClick={onConfirm}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              onClick={handleConfirm}
+              disabled={!canConfirm}
+              className={`${
+                canConfirm 
+                  ? 'bg-red-600 hover:bg-red-700 focus:ring-red-600' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
-              Delete Course
+              {canConfirm ? 'Delete Course' : `Please wait... ${countdown}s`}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

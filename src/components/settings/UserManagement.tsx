@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { SingleDeleteConfirmationModal } from "@/components/ui/single-delete-confirmation-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash } from "lucide-react";
 
@@ -33,6 +33,8 @@ export const UserManagement = () => {
     role: 'admin' // Default to admin role
   });
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
 
   useEffect(() => {
     checkCurrentUserRole();
@@ -137,10 +139,17 @@ export const UserManagement = () => {
     setLoading(false);
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteClick = (user: any) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
     try {
       const { error } = await supabase.functions.invoke('user-management/delete-user', {
-        body: { user_id: userId }
+        body: { user_id: userToDelete.id }
       });
 
       if (error) throw error;
@@ -151,6 +160,7 @@ export const UserManagement = () => {
       });
 
       fetchUsers();
+      setUserToDelete(null);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -256,30 +266,13 @@ export const UserManagement = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete User</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this user? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => handleDeleteClick(user)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -290,6 +283,19 @@ export const UserManagement = () => {
       {displayUsers.length === 0 && (
         <p className="text-center text-gray-500 py-8">No users found.</p>
       )}
+
+      {/* Delete User Confirmation Modal */}
+      <SingleDeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={handleDeleteUser}
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
+        itemName={userToDelete?.full_name || userToDelete?.id}
+      />
     </div>
   );
 };

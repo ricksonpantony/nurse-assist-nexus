@@ -10,6 +10,7 @@ import { Student } from "@/hooks/useStudents";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { SingleDeleteConfirmationModal } from "@/components/ui/single-delete-confirmation-modal";
 
 interface StudentsTableProps {
   students: Student[];
@@ -39,6 +40,8 @@ export const StudentsTable = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSingleDeleteModal, setShowSingleDeleteModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
 
   // Calculate pagination
   const totalItems = students.length;
@@ -82,6 +85,18 @@ export const StudentsTable = ({
     onDeleteMultiple(selectedStudents);
     setShowDeleteModal(false);
     onStudentSelection([]);
+  };
+
+  const handleSingleDelete = (student: Student) => {
+    setStudentToDelete(student);
+    setShowSingleDeleteModal(true);
+  };
+
+  const handleConfirmSingleDelete = () => {
+    if (studentToDelete) {
+      onDelete(studentToDelete.id);
+      setStudentToDelete(null);
+    }
   };
 
   const getCourse = (courseId: string | null) => {
@@ -309,7 +324,7 @@ export const StudentsTable = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDelete(student.id)}
+                        onClick={() => handleSingleDelete(student)}
                         className="text-red-600 hover:text-red-800 hover:bg-red-100"
                         title="Delete Student"
                       >
@@ -359,13 +374,23 @@ export const StudentsTable = ({
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Multi Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleConfirmMultiDelete}
         count={selectedStudents.length}
         studentNames={selectedStudentNames}
+      />
+
+      {/* Single Delete Confirmation Modal */}
+      <SingleDeleteConfirmationModal
+        isOpen={showSingleDeleteModal}
+        onClose={() => setShowSingleDeleteModal(false)}
+        onConfirm={handleConfirmSingleDelete}
+        title="Delete Student"
+        description={`Are you sure you want to delete this student account? This action cannot be undone.`}
+        itemName={studentToDelete?.full_name}
       />
     </div>
   );
