@@ -848,7 +848,7 @@ export const PaymentReports = () => {
       </div>
 
       {/* Payment Breakdown Table */}
-      <Card className="shadow-lg">
+      <Card className="shadow-lg no-print">
         <CardHeader>
           <CardTitle>Payment Breakdown Report ({totalStudents} students)</CardTitle>
         </CardHeader>
