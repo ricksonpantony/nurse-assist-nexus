@@ -1,3 +1,4 @@
+```jsx
 import { useState, useEffect, useMemo } from 'react';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
@@ -442,6 +443,8 @@ export const PaymentReports = () => {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </div>
         </div>
@@ -967,3 +970,396 @@ export const PaymentReports = () => {
     </div>
   );
 };
+```
+
+#### Updated `paymentReportsPrint.css`
+Replace the existing content of `paymentReportsPrint.css` with the following to enforce stricter control over page breaks and layout:
+
+```css
+/* Payment Reports Print Styles - Landscape mode */
+@media print {
+  /* Hide everything by default when printing from payment reports */
+  .payment-reports-page * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the print content and its children */
+  .payment-reports-print-content,
+  .payment-reports-print-content * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  /* Position print content properly */
+  .payment-reports-print-content {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+    overflow: hidden !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Force landscape orientation - Critical for proper layout */
+  @page {
+    size: A4 landscape !important;
+    margin: 0.25cm !important; /* Reduced margin to fit more content */
+    padding: 0 !important;
+    orphans: 2 !important;
+    widows: 2 !important;
+    orientation: landscape !important;
+  }
+
+  /* Override any body styles that might interfere */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Force all elements to respect landscape layout */
+  html {
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Print header styling */
+  .payment-reports-print-header {
+    text-align: center !important;
+    margin-bottom: 5pt !important;
+    padding-bottom: 3pt !important;
+    border-bottom: 1pt solid black !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .payment-reports-print-title {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    margin-bottom: 2pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-subtitle {
+    font-size: 9pt !important;
+    color: #444 !important;
+    margin-bottom: 2pt !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-date {
+    font-size: 7pt !important;
+    color: #666 !important;
+    display: block !important;
+  }
+
+  /* Summary section */
+  .payment-reports-print-summary {
+    margin-bottom: 5pt !important;
+    padding: 3pt !important;
+    border: 0.5pt solid #ccc !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .payment-reports-print-summary h3 {
+    font-size: 9pt !important;
+    font-weight: bold !important;
+    margin-bottom: 2pt !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .payment-reports-print-summary p {
+    font-size: 7pt !important;
+    margin: 1pt 0 !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  /* Table styling for print - Optimized for landscape */
+  .payment-reports-print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 5pt 0 !important;
+    font-size: 6pt !important;
+    color: black !important;
+    display: table !important;
+    visibility: visible !important;
+    table-layout: fixed !important;
+    max-width: none !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    overflow: hidden !important;
+  }
+
+  .payment-reports-print-table thead {
+    display: table-header-group !important;
+  }
+
+  .payment-reports-print-table tbody {
+    display: table-row-group !important;
+  }
+
+  .payment-reports-print-table tr {
+    display: table-row !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    height: auto !important;
+  }
+
+  .payment-reports-print-table th {
+    background: #e8e8e8 !important;
+    border: 0.5pt solid #333 !important;
+    padding: 1pt !important;
+    font-size: 6pt !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    color: black !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    vertical-align: top !important;
+    height: auto !important;
+  }
+
+  .payment-reports-print-table td {
+    border: 0.5pt solid #666 !important;
+    padding: 0.5pt !important;
+    font-size: 5pt !important;
+    color: black !important;
+    vertical-align: top !important;
+    display: table-cell !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+    height: auto !important;
+  }
+
+  /* Optimized column widths for landscape payment reports - More compact */
+  .payment-reports-print-table th:nth-child(1),
+  .payment-reports-print-table td:nth-child(1) {
+    width: 3% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(2),
+  .payment-reports-print-table td:nth-child(2) {
+    width: 7% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(3),
+  .payment-reports-print-table td:nth-child(3) {
+    width: 10% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(4),
+  .payment-reports-print-table td:nth-child(4) {
+    width: 8% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(5),
+  .payment-reports-print-table td:nth-child(5) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(6),
+  .payment-reports-print-table td:nth-child(6) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(7),
+  .payment-reports-print-table td:nth-child(7) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(8),
+  .payment-reports-print-table td:nth-child(8) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(9),
+  .payment-reports-print-table td:nth-child(9) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(10),
+  .payment-reports-print-table td:nth-child(10) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(11),
+  .payment-reports-print-table td:nth-child(11) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(12),
+  .payment-reports-print-table td:nth-child(12) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(13),
+  .payment-reports-print-table td:nth-child(13) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(14),
+  .payment-reports-print-table td:nth-child(14) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(15),
+  .payment-reports-print-table td:nth-child(15) {
+    width: 5% !important;
+  }
+
+  .payment-reports-print-table th:nth-child(16),
+  .payment-reports-print-table td:nth-child(16) {
+    width: 6% !important;
+  }
+
+  .payment-reports-print-table tr:nth-child(even) td {
+    background: #f8f8f8 !important;
+  }
+
+  /* Totals section */
+  .payment-reports-print-totals {
+    margin-top: 5pt !important;
+    font-size: 7pt !important;
+    color: #333 !important;
+    display: block !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .payment-details-print-totals div {
+    margin-bottom: 1pt !important;
+  }
+
+  /* Footer styling */
+  .payment-reports-print-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0.25cm !important;
+    right: 0.25cm !important;
+    text-align: center !important;
+    font-size: 6pt !important;
+    color: #666 !important;
+    padding: 2pt !important;
+    border-top: 0.5pt solid #ddd !important;
+    background: white !important;
+    display: block !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Remove any potential whitespace or pseudo-elements */
+  .payment-reports-print-content::after,
+  .payment-reports-print-content::before {
+    display: none !important;
+  }
+
+  /* Ensure no extra pages from overflow */
+  .payment-reports-print-content,
+  .payment-reports-print-content * {
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Prevent page breaks in critical sections */
+  .payment-reports-print-header,
+  .payment-reports-print-summary,
+  .payment-reports-print-totals {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Allow table to break sensibly if needed */
+  .payment-reports-print-table {
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    break-before: auto !important;
+    break-after: auto !important;
+  }
+
+  /* Force display for all table elements */
+  .payment-reports-print-table thead {
+    display: table-header-group !important;
+  }
+
+  .payment-reports-print-table tbody {
+    display: table-row-group !important;
+  }
+
+  .payment-reports-print-table tr {
+    display: table-row !important;
+  }
+
+  .payment-reports-print-table th,
+  .payment-reports-print-table td {
+    display: table-cell !important;
+  }
+
+  /* Handle text overflow */
+  .payment-reports-print-table th,
+  .payment-reports-print-table td {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+  }
+
+  .payment-reports-print-table td:nth-child(3) {
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Reset transforms and constraints */
+  * {
+    -webkit-transform: none !important;
+    transform: none !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  /* Hide empty elements that might cause blank pages */
+  .payment-reports-print-content > *:empty {
+    display: none !important;
+  }
+}
+```
+
+### Key Changes
+1. **CSS Refinements**:
+   - Reduced `@page` margins to `0.25cm` to maximize content fit.
+   - Added `orphans: 2` and `widows: 2` to control line breaks and prevent single lines on new pages.
+   - Ensured the footer uses `position: absolute` with tight margins to avoid extending page height.
+   - Explicitly removed `::after` and `::before` pseudo-elements that might add unwanted space.
+   - Set `min-height: 0` and `max-height: none` to prevent height miscalculations.
+
+2. **Print Content Updates**:
+   - Updated the date format in the header and footer to include time (`DD/MM/YYYY, HH:MM`) for consistency.
+   - Added the `.payment-reports-print-footer` div to ensure it renders correctly at the bottom.
+
+### Troubleshooting Steps
+Since the issue persists, please try the following:
+1. **Check CSS Import**: Ensure `../../styles/paymentReportsPrint.css` is correctly linked and not overridden by other styles. You can add `!important` to key rules if needed.
+2. **Browser Print Settings**: In the print dialog (e.g., Chrome's "Print" settings), disable "Headers and footers" and "Background graphics" to rule out browser additions.
+3. **Inspect Print Preview**: Open the print preview, use the browser's developer tools (F12), and check the layout to see if any elements are causing overflow or extra pages.
+4. **Test with Minimal Content**: Temporarily reduce the table data to a few rows and print to confirm if the issue is content volume-related.
+
+If the problem continues, please provide details on the number of pages in the print preview and any errors or layout issues observed. This will help me pinpoint the exact cause!
