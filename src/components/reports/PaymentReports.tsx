@@ -53,6 +53,7 @@ export const PaymentReports = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [showPrintView, setShowPrintView] = useState(false);
   
   // Enhanced filters state
   const [filters, setFilters] = useState({
@@ -321,7 +322,12 @@ export const PaymentReports = () => {
       alert('Please select payment records to print');
       return;
     }
-    window.print();
+    // window.print();
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
   const handleDeleteSelected = () => {
@@ -376,7 +382,12 @@ export const PaymentReports = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    // window.print();
+    setShowPrintView(true);
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
   const clearFilters = () => {
@@ -429,7 +440,7 @@ export const PaymentReports = () => {
   return (
     <div className="space-y-6 payment-reports-page">
       {/* Print Content - Hidden on screen, visible only when printing */}
-      <div className="payment-reports-print-content" style={{ display: 'none' }}>
+      { showPrintView && (<div className="payment-reports-print-content" style={{ display: 'none' }}>
         <div className="payment-reports-print-header">
           <div className="payment-reports-print-title">
             Nurse Assist International (NAI)
@@ -509,10 +520,10 @@ export const PaymentReports = () => {
           <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
           <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
         </div>
-      </div>
+      </div>)}
 
       {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
+      { !showPrintView && (<Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Filter className="h-5 w-5" />
@@ -728,7 +739,7 @@ export const PaymentReports = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card>)}
 
       {/* Payment Summary Cards - Updated with all payment stages */}
       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
