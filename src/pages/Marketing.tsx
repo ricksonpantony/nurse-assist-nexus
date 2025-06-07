@@ -130,7 +130,7 @@ const Marketing = () => {
   const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 marketing-page">
+    <div className="w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 marketing-page">
       {/* Print Content for Selected Leads Only */}
       {selectedLeadsForPrint.length > 0 && (
         <LeadsPrintView 
