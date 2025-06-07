@@ -30,7 +30,7 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
           .print-content {
             -webkit-print-color-adjust: exact;
             color-adjust: exact;
-            page-break-before: avoid !important; 
+            page-break-after: avoid !important;
           }
           
           body { 
@@ -44,10 +44,6 @@ export const StudentsPrintView = ({ students, courses }: StudentsPrintViewProps)
           
           .print-only { 
             display: block !important; 
-          }
-          
-          .page-break { 
-            page-break-before: always; 
           }
           
           .table-print {
