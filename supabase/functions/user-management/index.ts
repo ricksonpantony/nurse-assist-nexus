@@ -125,18 +125,6 @@ serve(async (req) => {
         }
       }
 
-      // First, handle audit logs that reference this user
-      // Set user_id to null in audit logs (preserve audit trail)
-      const { error: auditUpdateError } = await supabaseClient
-        .from('audit_logs')
-        .update({ user_id: null, user_email: 'deleted_user@system.local' })
-        .eq('user_id', user_id)
-
-      if (auditUpdateError) {
-        console.log('Audit logs update error:', auditUpdateError)
-        // Don't fail the deletion if audit log update fails, just log it
-      }
-
       // Delete user profile first
       const { error: profileDeleteError } = await supabaseClient
         .from('user_profiles')
@@ -151,7 +139,7 @@ serve(async (req) => {
         })
       }
 
-      // Then delete the auth user
+      // Then delete the auth user (this will automatically set audit_logs.user_id to NULL due to CASCADE)
       const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(user_id)
 
       if (deleteError) {
