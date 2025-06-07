@@ -228,6 +228,7 @@ export const StudentDetailsView = ({
           @page {
             size: A4 portrait !important;
             margin: 0.75in;
+            orientation: portrait !important
           }
           
           /* Professional Header */
