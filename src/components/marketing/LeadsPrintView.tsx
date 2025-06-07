@@ -18,54 +18,49 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
     return referrals.find(r => r.id === referralId);
   };
 
+  // Calculate statistics for selected leads only
+  const activeLeadStatuses = ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'];
+  const activeLeads = leads.filter(lead => activeLeadStatuses.includes(lead.lead_status || 'New')).length;
+  const convertedLeads = leads.filter(lead => lead.lead_status === 'Converted to Student').length;
+
   return (
-    <div className="print-content hidden print:block">
-      <style>{`
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 1cm;
-          }
-        }
-      `}</style>
-      
+    <div className="selected-leads-print-content hidden print:block">
       {/* Print Header */}
-      <div className="print-header">
-        <div className="print-title">Nurse Assist International (NAI)</div>
-        <div className="print-subtitle">Selected Leads Report</div>
+      <div className="selected-leads-print-header">
+        <div className="selected-leads-print-title">Nurse Assist International (NAI)</div>
+        <div className="selected-leads-print-subtitle">Marketing Lead Management Report</div>
+        <div className="selected-leads-print-date">Generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
       </div>
 
       {/* Print Statistics Summary */}
-      <div className="print-section print-major-section">
-        <div className="print-section-title">Report Summary</div>
-        <div className="print-grid-4">
-          <div className="print-payment-box">
-            <div className="print-payment-label">Total Selected Leads</div>
-            <div className="print-payment-amount">{leads.length}</div>
+      <div className="selected-leads-print-summary">
+        <h3 style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '6pt', color: 'black' }}>Selected Leads Summary</h3>
+        <div className="selected-leads-summary-grid">
+          <div className="selected-leads-summary-box">
+            <div className="selected-leads-summary-label">Total Selected</div>
+            <div className="selected-leads-summary-value">{leads.length}</div>
           </div>
-          <div className="print-payment-box">
-            <div className="print-payment-label">Active Leads</div>
-            <div className="print-payment-amount">
-              {leads.filter(l => ['New', 'Contacted', 'Interested', 'Follow-up Pending', 'Waiting for Documents / Payment'].includes(l.lead_status || 'New')).length}
+          <div className="selected-leads-summary-box">
+            <div className="selected-leads-summary-label">Active Leads</div>
+            <div className="selected-leads-summary-value" style={{ color: '#16a34a' }}>{activeLeads}</div>
+          </div>
+          <div className="selected-leads-summary-box">
+            <div className="selected-leads-summary-label">Converted</div>
+            <div className="selected-leads-summary-value" style={{ color: '#9333ea' }}>{convertedLeads}</div>
+          </div>
+          <div className="selected-leads-summary-box">
+            <div className="selected-leads-summary-label">Conversion Rate</div>
+            <div className="selected-leads-summary-value" style={{ color: '#ea580c' }}>
+              {leads.length > 0 ? Math.round((convertedLeads / leads.length) * 100) : 0}%
             </div>
-          </div>
-          <div className="print-payment-box">
-            <div className="print-payment-label">Converted Leads</div>
-            <div className="print-payment-amount">
-              {leads.filter(l => l.lead_status === 'Converted to Student').length}
-            </div>
-          </div>
-          <div className="print-payment-box">
-            <div className="print-payment-label">Report Date</div>
-            <div className="print-payment-amount">{format(new Date(), 'dd/MM/yyyy')}</div>
           </div>
         </div>
       </div>
 
       {/* Print Leads Table */}
-      <div className="print-section">
-        <div className="print-section-title">Lead Details</div>
-        <table className="print-table">
+      <div style={{ marginBottom: '10pt' }}>
+        <h3 style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '6pt', color: 'black' }}>Lead Details</h3>
+        <table className="selected-leads-print-table">
           <thead>
             <tr>
               <th>S.No</th>
@@ -95,7 +90,7 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
                   <td>{lead.country || 'Not specified'}</td>
                   <td>{course ? course.title : 'Not specified'}</td>
                   <td>
-                    <span className="print-badge">{lead.lead_status || 'New'}</span>
+                    <span className="selected-leads-print-badge">{lead.lead_status || 'New'}</span>
                   </td>
                   <td>
                     {lead.expected_joining_date ? format(new Date(lead.expected_joining_date), 'dd/MM/yyyy') : 'Not specified'}
@@ -109,120 +104,9 @@ export const LeadsPrintView = ({ leads, courses, referrals }: LeadsPrintViewProp
         </table>
       </div>
 
-      {/* Lead Details Section */}
-      {leads.map((lead, index) => {
-        const course = getCourse(lead.interested_course_id || "");
-        const referral = getReferral(lead.referral_id || "");
-        
-        return (
-          <div key={lead.id} className="print-section print-major-section">
-            <div className="print-section-title">Lead #{index + 1} - {lead.full_name} ({lead.lead_id || lead.id})</div>
-            
-            <div className="print-grid-3">
-              <div className="print-field">
-                <div className="print-field-label">Full Name</div>
-                <div className="print-field-value">{lead.full_name}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Email</div>
-                <div className="print-field-value">{lead.email}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Phone</div>
-                <div className="print-field-value">{lead.phone}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Country</div>
-                <div className="print-field-value">{lead.country || 'Not specified'}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Passport/ID</div>
-                <div className="print-field-value">{lead.passport_id || 'Not provided'}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Lead Status</div>
-                <div className="print-field-value">{lead.lead_status || 'New'}</div>
-              </div>
-            </div>
-
-            {lead.address && (
-              <div className="print-field">
-                <div className="print-field-label">Address</div>
-                <div className="print-field-value">{lead.address}</div>
-              </div>
-            )}
-
-            <div className="print-grid-3">
-              <div className="print-field">
-                <div className="print-field-label">Interested Course</div>
-                <div className="print-field-value">{course ? course.title : 'Not specified'}</div>
-              </div>
-              {course && (
-                <>
-                  <div className="print-field">
-                    <div className="print-field-label">Course Fee</div>
-                    <div className="print-field-value">${course.fee}</div>
-                  </div>
-                  <div className="print-field">
-                    <div className="print-field-label">Course Duration</div>
-                    <div className="print-field-value">{course.period_months} months</div>
-                  </div>
-                </>
-              )}
-              {lead.expected_joining_date && (
-                <div className="print-field">
-                  <div className="print-field-label">Expected Joining Date</div>
-                  <div className="print-field-value">{format(new Date(lead.expected_joining_date), 'dd/MM/yyyy')}</div>
-                </div>
-              )}
-            </div>
-
-            <div className="print-grid-3">
-              <div className="print-field">
-                <div className="print-field-label">Referral Source</div>
-                <div className="print-field-value">{referral ? referral.full_name : 'Direct (No Referral)'}</div>
-              </div>
-              {referral && (
-                <>
-                  <div className="print-field">
-                    <div className="print-field-label">Referral ID</div>
-                    <div className="print-field-value">{referral.referral_id}</div>
-                  </div>
-                  <div className="print-field">
-                    <div className="print-field-label">Referral Contact</div>
-                    <div className="print-field-value">{referral.email}</div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="print-grid-2">
-              <div className="print-field">
-                <div className="print-field-label">Lead Created</div>
-                <div className="print-field-value">{format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm')}</div>
-              </div>
-              <div className="print-field">
-                <div className="print-field-label">Last Updated</div>
-                <div className="print-field-value">{format(new Date(lead.updated_at), 'dd/MM/yyyy HH:mm')}</div>
-              </div>
-            </div>
-
-            {lead.notes && (
-              <div className="print-field">
-                <div className="print-field-label">Notes</div>
-                <div className="print-field-value">{lead.notes}</div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* Print Report Generated Info */}
-      <div className="print-section">
-        <div className="print-field">
-          <div className="print-field-label">Report Generated</div>
-          <div className="print-field-value">{format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-        </div>
+      {/* Print Footer */}
+      <div className="selected-leads-print-footer">
+        <div>📞 +61 470 320 397 | ✉ admin@nurseassistinternational.com | 🏢 Suite 104, Level 1, 25 Grene Street, Parramatta, 2150, Sydney</div>
       </div>
     </div>
   );

@@ -6,15 +6,15 @@
     visibility: hidden !important;
   }
 
-  /* Show only the print content and its children */
-  .marketing-print-content,
-  .marketing-print-content * {
+  /* Show only the selected leads print content and its children */
+  .selected-leads-print-content,
+  .selected-leads-print-content * {
     visibility: visible !important;
     display: block !important;
   }
 
   /* Position print content properly */
-  .marketing-print-content {
+  .selected-leads-print-content {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -55,7 +55,7 @@
   }
 
   /* Print header styling */
-  .marketing-print-header {
+  .selected-leads-print-header {
     text-align: center !important;
     margin-bottom: 10pt !important;
     padding-bottom: 6pt !important;
@@ -64,7 +64,7 @@
     page-break-inside: avoid !important;
   }
 
-  .marketing-print-title {
+  .selected-leads-print-title {
     font-size: 14pt !important;
     font-weight: bold !important;
     margin-bottom: 4pt !important;
@@ -72,27 +72,57 @@
     display: block !important;
   }
 
-  .marketing-print-subtitle {
+  .selected-leads-print-subtitle {
     font-size: 11pt !important;
     color: #444 !important;
     margin-bottom: 4pt !important;
     display: block !important;
   }
 
-  .marketing-print-date {
+  .selected-leads-print-date {
     font-size: 9pt !important;
     color: #666 !important;
     display: block !important;
   }
 
-  /* Hide summary section when printing */
-  .marketing-print-summary {
-    display: none !important;
-    visibility: hidden !important;
+  /* Summary section styling */
+  .selected-leads-print-summary {
+    margin-bottom: 12pt !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .selected-leads-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8pt !important;
+    margin-top: 6pt !important;
+  }
+
+  .selected-leads-summary-box {
+    border: 1pt solid #ccc !important;
+    padding: 4pt !important;
+    text-align: center !important;
+    background: #f9f9f9 !important;
+    display: block !important;
+  }
+
+  .selected-leads-summary-label {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    color: black !important;
+    display: block !important;
+  }
+
+  .selected-leads-summary-value {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+    color: #2563eb !important;
+    display: block !important;
   }
 
   /* Table styling for print - Optimized for landscape */
-  .marketing-print-table {
+  .selected-leads-print-table {
     width: 100% !important;
     border-collapse: collapse !important;
     margin-top: 8pt !important;
@@ -107,22 +137,22 @@
     overflow: visible !important;
   }
 
-  .marketing-print-table thead {
+  .selected-leads-print-table thead {
     display: table-header-group !important;
   }
 
-  .marketing-print-table tbody {
+  .selected-leads-print-table tbody {
     display: table-row-group !important;
   }
 
-  .marketing-print-table tr {
+  .selected-leads-print-table tr {
     display: table-row !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
     height: auto !important;
   }
 
-  .marketing-print-table th {
+  .selected-leads-print-table th {
     background: #e8e8e8 !important;
     border: 1pt solid #333 !important;
     padding: 2pt 1pt !important;
@@ -136,7 +166,7 @@
     height: auto !important;
   }
 
-  .marketing-print-table td {
+  .selected-leads-print-table td {
     border: 0.5pt solid #666 !important;
     padding: 1pt 0.5pt !important;
     font-size: 6pt !important;
@@ -149,57 +179,67 @@
   }
 
   /* Optimized column widths for landscape marketing reports */
-  .marketing-print-table th:nth-child(1),
-  .marketing-print-table td:nth-child(1) {
+  .selected-leads-print-table th:nth-child(1),
+  .selected-leads-print-table td:nth-child(1) {
+    width: 6% !important;
+  }
+
+  .selected-leads-print-table th:nth-child(2),
+  .selected-leads-print-table td:nth-child(2) {
     width: 8% !important;
   }
 
-  .marketing-print-table th:nth-child(2),
-  .marketing-print-table td:nth-child(2) {
+  .selected-leads-print-table th:nth-child(3),
+  .selected-leads-print-table td:nth-child(3) {
     width: 12% !important;
   }
 
-  .marketing-print-table th:nth-child(3),
-  .marketing-print-table td:nth-child(3) {
+  .selected-leads-print-table th:nth-child(4),
+  .selected-leads-print-table td:nth-child(4) {
     width: 12% !important;
   }
 
-  .marketing-print-table th:nth-child(4),
-  .marketing-print-table td:nth-child(4) {
+  .selected-leads-print-table th:nth-child(5),
+  .selected-leads-print-table td:nth-child(5) {
     width: 8% !important;
   }
 
-  .marketing-print-table th:nth-child(5),
-  .marketing-print-table td:nth-child(5) {
+  .selected-leads-print-table th:nth-child(6),
+  .selected-leads-print-table td:nth-child(6) {
     width: 8% !important;
   }
 
-  .marketing-print-table th:nth-child(6),
-  .marketing-print-table td:nth-child(6) {
+  .selected-leads-print-table th:nth-child(7),
+  .selected-leads-print-table td:nth-child(7) {
     width: 15% !important;
   }
 
-  .marketing-print-table th:nth-child(7),
-  .marketing-print-table td:nth-child(7) {
-    width: 12% !important;
-  }
-
-  .marketing-print-table th:nth-child(8),
-  .marketing-print-table td:nth-child(8) {
-    width: 15% !important;
-  }
-
-  .marketing-print-table th:nth-child(9),
-  .marketing-print-table td:nth-child(9) {
+  .selected-leads-print-table th:nth-child(8),
+  .selected-leads-print-table td:nth-child(8) {
     width: 10% !important;
   }
 
-  .marketing-print-table tr:nth-child(even) td {
+  .selected-leads-print-table th:nth-child(9),
+  .selected-leads-print-table td:nth-child(9) {
+    width: 10% !important;
+  }
+
+  .selected-leads-print-table th:nth-child(10),
+  .selected-leads-print-table td:nth-child(10) {
+    width: 8% !important;
+  }
+
+  .selected-leads-print-table th:nth-child(11),
+  .selected-leads-print-table td:nth-child(11) {
+    width: 8% !important;
+  }
+
+  .selected-leads-print-table tr:nth-child(even) td {
     background: #f8f8f8 !important;
   }
 
   /* Badge styling for print */
-  .marketing-print-badge {
+  .selected-leads-print-badge {
     display: inline-block !important;
     padding: 0.5pt 1pt !important;
     border: 0.5pt solid #666 !important;
@@ -211,17 +251,17 @@
   }
 
   /* Override any conflicting styles */
-  .marketing-print-content .bg-gradient-to-br,
-  .marketing-print-content .bg-gradient-to-r,
-  .marketing-print-content .shadow-lg,
-  .marketing-print-content .backdrop-blur-sm {
+  .selected-leads-print-content .bg-gradient-to-br,
+  .selected-leads-print-content .bg-gradient-to-r,
+  .selected-leads-print-content .shadow-lg,
+  .selected-leads-print-content .backdrop-blur-sm {
     background: white !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
   }
 
   /* Create a proper footer element */
-  .marketing-print-footer {
+  .selected-leads-print-footer {
     position: fixed !important;
     bottom: 0.5cm !important;
     left: 0 !important;
@@ -237,43 +277,43 @@
   }
 
   /* Force display for all print elements */
-  .marketing-print-content table,
-  .marketing-print-content thead,
-  .marketing-print-content tbody,
-  .marketing-print-content tr,
-  .marketing-print-content th,
-  .marketing-print-content td {
+  .selected-leads-print-content table,
+  .selected-leads-print-content thead,
+  .selected-leads-print-content tbody,
+  .selected-leads-print-content tr,
+  .selected-leads-print-content th,
+  .selected-leads-print-content td {
     display: table !important;
   }
 
-  .marketing-print-content thead {
+  .selected-leads-print-content thead {
     display: table-header-group !important;
   }
 
-  .marketing-print-content tbody {
+  .selected-leads-print-content tbody {
     display: table-row-group !important;
   }
 
-  .marketing-print-content tr {
+  .selected-leads-print-content tr {
     display: table-row !important;
   }
 
-  .marketing-print-content th,
-  .marketing-print-content td {
+  .selected-leads-print-content th,
+  .selected-leads-print-content td {
     display: table-cell !important;
   }
 
   /* Text overflow handling */
-  .marketing-print-table th,
-  .marketing-print-table td {
+  .selected-leads-print-table th,
+  .selected-leads-print-table td {
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
     overflow: hidden !important;
   }
 
   /* Allow certain columns to wrap */
-  .marketing-print-table td:nth-child(2),
-  .marketing-print-table td:nth-child(6) {
+  .selected-leads-print-table td:nth-child(3),
+  .selected-leads-print-table td:nth-child(7) {
     white-space: normal !important;
     word-break: break-word !important;
   }
@@ -285,21 +325,21 @@
   }
 
   /* Remove any max-width constraints and prevent overflow */
-  .marketing-print-content,
-  .marketing-print-content * {
+  .selected-leads-print-content,
+  .selected-leads-print-content * {
     max-width: none !important;
     min-width: auto !important;
     overflow: visible !important;
   }
 
   /* Prevent page breaks in critical sections */
-  .marketing-print-header {
+  .selected-leads-print-header {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
   /* Control page breaks around table */
-  .marketing-print-table {
+  .selected-leads-print-table {
     page-break-before: auto !important;
     page-break-after: auto !important;
     break-before: auto !important;
@@ -307,25 +347,31 @@
   }
 
   /* Ensure content doesn't exceed page boundaries */
-  .marketing-print-content {
+  .selected-leads-print-content {
     max-height: none !important;
     height: auto !important;
     box-sizing: border-box !important;
   }
 
   /* Hide any empty elements that might cause blank pages */
-  .marketing-print-content > *:empty {
+  .selected-leads-print-content > *:empty {
     display: none !important;
   }
 
   /* Prevent overflow and extra pages */
-  .marketing-print-content {
+  .selected-leads-print-content {
     overflow: hidden !important;
     page-break-after: avoid !important;
   }
 
   /* Ensure table doesn't create extra pages */
-  .marketing-print-table tbody tr:last-child {
+  .selected-leads-print-table tbody tr:last-child {
     page-break-after: avoid !important;
+  }
+
+  /* Hide the old marketing print content when printing selected leads */
+  .marketing-print-content {
+    display: none !important;
+    visibility: hidden !important;
   }
 }

@@ -49,7 +49,18 @@ const Marketing = () => {
   };
 
   const handlePrintSelectedLeads = (selectedLeads: Lead[]) => {
+    if (selectedLeads.length === 0) {
+      toast({
+        title: "No leads selected",
+        description: "Please select at least one lead to print.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Marketing page: Printing selected leads:', selectedLeads.length);
     setSelectedLeadsForPrint(selectedLeads);
+    
     // Small delay to ensure the print view is rendered
     setTimeout(() => {
       window.print();
@@ -94,6 +105,7 @@ const Marketing = () => {
   };
 
   const handlePrint = () => {
+    // This will print all leads using the old print view
     window.print();
   };
 
@@ -119,7 +131,7 @@ const Marketing = () => {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 marketing-page">
-      {/* Print Content for Selected Leads */}
+      {/* Print Content for Selected Leads Only */}
       {selectedLeadsForPrint.length > 0 && (
         <LeadsPrintView 
           leads={selectedLeadsForPrint} 
@@ -127,87 +139,6 @@ const Marketing = () => {
           referrals={referrals} 
         />
       )}
-
-      {/* Print Content - Hidden on screen, visible when printing */}
-      <div className="marketing-print-content hidden print:block">
-        {/* Print Header */}
-        <div className="marketing-print-header">
-          <div className="marketing-print-title">Nurse Assist International (NAI)</div>
-          <div className="marketing-print-subtitle">Marketing Lead Management Report</div>
-          <div className="marketing-print-date">Generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
-        </div>
-
-        {/* Print Statistics Summary */}
-        <div className="marketing-print-summary">
-          <h3>Lead Statistics Summary</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8pt', marginTop: '6pt' }}>
-            <div style={{ border: '1pt solid #ccc', padding: '4pt', textAlign: 'center', background: '#f9f9f9' }}>
-              <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Total Leads</div>
-              <div style={{ fontSize: '12pt', fontWeight: 'bold', color: '#2563eb' }}>{totalLeads}</div>
-            </div>
-            <div style={{ border: '1pt solid #ccc', padding: '4pt', textAlign: 'center', background: '#f9f9f9' }}>
-              <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Active Leads</div>
-              <div style={{ fontSize: '12pt', fontWeight: 'bold', color: '#16a34a' }}>{activeLeads}</div>
-            </div>
-            <div style={{ border: '1pt solid #ccc', padding: '4pt', textAlign: 'center', background: '#f9f9f9' }}>
-              <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Converted</div>
-              <div style={{ fontSize: '12pt', fontWeight: 'bold', color: '#9333ea' }}>{convertedLeads}</div>
-            </div>
-            <div style={{ border: '1pt solid #ccc', padding: '4pt', textAlign: 'center', background: '#f9f9f9' }}>
-              <div style={{ fontSize: '8pt', fontWeight: 'bold' }}>Conversion Rate</div>
-              <div style={{ fontSize: '12pt', fontWeight: 'bold', color: '#ea580c' }}>
-                {totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0}%
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Print Leads Table */}
-        <div style={{ marginBottom: '10pt' }}>
-          <h3 style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '6pt', color: 'black' }}>Lead Details</h3>
-          <table className="marketing-print-table">
-            <thead>
-              <tr>
-                <th>Lead ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Country</th>
-                <th>Course Interest</th>
-                <th>Status</th>
-                <th>Referral</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((lead) => {
-                const course = courses.find(c => c.id === lead.interested_course_id);
-                const referral = referrals.find(r => r.id === lead.referral_id);
-                return (
-                  <tr key={lead.id}>
-                    <td>{lead.lead_id || lead.id}</td>
-                    <td>{lead.full_name}</td>
-                    <td>{lead.email}</td>
-                    <td>{lead.phone}</td>
-                    <td>{lead.country || 'Not specified'}</td>
-                    <td>{course ? course.title : 'Not specified'}</td>
-                    <td>
-                      <span className="marketing-print-badge">{lead.lead_status || 'New'}</span>
-                    </td>
-                    <td>{referral ? referral.full_name : 'Direct'}</td>
-                    <td>{format(new Date(lead.created_at), 'dd/MM/yyyy')}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Print Footer */}
-        <div className="marketing-print-footer">
-          <div>📞 +61 470 320 397 | ✉ admin@nurseassistinternational.com | 🏢 Suite 104, Level 1, 25 Grene Street, Parramatta, 2150, Sydney</div>
-        </div>
-      </div>
 
       {/* Regular Screen Content - Hidden when printing */}
       <div className="flex flex-col h-full print:hidden">
@@ -225,7 +156,7 @@ const Marketing = () => {
               onClick={handlePrint}
             >
               <FileText className="h-4 w-4" />
-              Print
+              Print All
             </Button>
             <Button 
               variant="outline"
