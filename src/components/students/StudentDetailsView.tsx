@@ -579,13 +579,13 @@ export const StudentDetailsView = ({
         )}
 
         {/* Professional Footer */}
-        <div className="print-footer">
+        {/* <div className="print-footer">
           <div>
             Confidential Document | Nurse Assist International (NAI) | 
             Student ID: {student.id} | 
             Page 1 of 1
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Regular Screen Content - Hidden during print */}
