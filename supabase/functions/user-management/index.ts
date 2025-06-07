@@ -79,6 +79,56 @@ serve(async (req) => {
     if (method === 'DELETE' && req.url.includes('/delete-user')) {
       const { user_id } = body
 
+      // Check if the user to be deleted is an admin
+      const { data: targetUserProfile, error: targetProfileError } = await supabaseClient
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user_id)
+        .single()
+
+      if (targetProfileError) {
+        return new Response(JSON.stringify({ error: 'User profile not found' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404
+        })
+      }
+
+      // If the user to be deleted is an admin, check if they are the last admin
+      if (targetUserProfile.role === 'admin') {
+        const { data: adminCount, error: countError } = await supabaseClient
+          .from('user_profiles')
+          .select('id', { count: 'exact' })
+          .eq('role', 'admin')
+
+        if (countError) {
+          return new Response(JSON.stringify({ error: 'Failed to check admin count' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500
+          })
+        }
+
+        if (adminCount && adminCount.length <= 1) {
+          return new Response(JSON.stringify({ error: 'Cannot delete the last admin user' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          })
+        }
+      }
+
+      // First, update or delete audit logs that reference this user
+      // Option 1: Set user_id to null in audit logs (preserve audit trail)
+      await supabaseClient
+        .from('audit_logs')
+        .update({ user_id: null, user_email: 'deleted_user@system.local' })
+        .eq('user_id', user_id)
+
+      // Delete user profile first
+      await supabaseClient
+        .from('user_profiles')
+        .delete()
+        .eq('id', user_id)
+
+      // Then delete the auth user
       const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(user_id)
 
       if (deleteError) {

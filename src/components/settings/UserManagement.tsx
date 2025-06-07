@@ -153,11 +153,21 @@ export const UserManagement = () => {
     if (!userToDelete) return;
 
     try {
-      const { error } = await supabase.functions.invoke('user-management/delete-user', {
+      const { data, error } = await supabase.functions.invoke('user-management/delete-user', {
         body: { user_id: userToDelete.id }
       });
 
       if (error) throw error;
+
+      // Check if the response contains an error message
+      if (data?.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive"
+        });
+        return;
+      }
 
       toast({
         title: "Success",
@@ -167,9 +177,10 @@ export const UserManagement = () => {
       fetchUsers();
       setUserToDelete(null);
     } catch (error: any) {
+      console.error('Delete user error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete user. Please try again.",
+        description: error.message || "Failed to delete user. Please try again.",
         variant: "destructive"
       });
     }
