@@ -31,9 +31,9 @@
 
   /* Force landscape orientation */
   @page {
-    size: A4 landscape !important;
+    size: A4 landscape;
     margin: 1cm !important;
-    orientation: landscape !important;
+    orientation: landscape;
   }
 
   /* Override any body styles that might interfere */
