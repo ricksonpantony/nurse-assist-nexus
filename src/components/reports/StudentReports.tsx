@@ -196,7 +196,7 @@ export const StudentReports = () => {
     setShowPrintView(true);
     setTimeout(() => {
       window.print();
-      // setShowPrintView(false);
+      setShowPrintView(false);
     }, 100);
   };
 
@@ -295,7 +295,7 @@ export const StudentReports = () => {
   return (
     <div className="space-y-6 student-reports-page">
       {/* Print Content - Hidden on screen, visible only when printing */}
-      {showPrintView && (<div className="student-reports-print-content" style={{ display: 'none' }}>
+      <div className="student-reports-print-content" style={{ display: 'none' }}>
         <div className="student-reports-print-header">
           <div className="student-reports-print-title">
             Student Report Overview
@@ -352,10 +352,10 @@ export const StudentReports = () => {
         <div className="student-reports-print-footer">
           📞 +61 478 320 397  |  ✉️ admin@nurseassistinternational.com  |  📍 Suite 104, Level 1, 25 Grose Street, Parramatta, 2150, Sydney
         </div>
-      </div>)}
+      </div>
 
       {/* Filters Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 no-print">
+      {!showPrintView && (<Card className="shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 no-print">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <Filter className="h-5 w-5" />
@@ -537,7 +537,7 @@ export const StudentReports = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card>)}
 
       {/* Report Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
