@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -194,7 +193,7 @@ export const StudentDetailsView = ({
   return (
     <>
       {/* Professional Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           * {
             -webkit-print-color-adjust: exact !important;
