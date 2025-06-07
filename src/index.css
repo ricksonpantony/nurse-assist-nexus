@@ -93,7 +93,7 @@
 /* Optimized Print Styles - Global for all print content */
 @media print {
   @page {
-    size: A4 landscape;
+    size: A4;
     margin: 1.5cm 1.5cm 1.5cm 1.5cm;
     /*
     @bottom-center {
@@ -372,7 +372,7 @@
 
   /* Print Header */
   body::before {
-    content: "Nurse Assist International (NAI)\AStudent Report Overview";
+    /* content: "Nurse Assist International (NAI)\AStudent Report Overview"; */
     white-space: pre;
     display: block;
     text-align: center;
