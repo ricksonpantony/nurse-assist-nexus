@@ -40,7 +40,13 @@ export const MobileNavigation = () => {
       {/* Mobile Header */}
       <div className="sticky top-0 z-50 flex h-14 items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 px-4 shadow-lg md:hidden">
         <div className="flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-white" />
+          <div className="h-8 w-10 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+              alt="Nurse Assist International Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
           <span className="text-lg font-bold text-white">NAI</span>
         </div>
         
@@ -57,7 +63,13 @@ export const MobileNavigation = () => {
             <SheetContent side="right" className="w-80 bg-gradient-to-b from-blue-900 to-blue-800 border-l-0">
               <SheetHeader className="border-b border-blue-700/30 pb-4">
                 <SheetTitle className="flex items-center gap-3 text-white">
-                  <Building2 className="h-8 w-8" />
+                  <div className="h-8 w-10 flex items-center justify-center">
+                    <img 
+                      src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+                      alt="Nurse Assist International Logo" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                   <div>
                     <div className="text-lg font-bold">NAI</div>
                     <div className="text-xs text-blue-200">Nurse Assist International</div>
