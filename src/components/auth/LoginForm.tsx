@@ -81,184 +81,211 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-700 to-indigo-800 p-4 relative overflow-hidden">
-      {/* Enhanced animated background with particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Large floating orbs */}
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-indigo-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/3 left-1/3 w-60 h-60 bg-purple-400/10 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
-        
-        {/* Animated particles */}
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Left side - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-500 to-indigo-600 relative overflow-hidden">
+        {/* Background Pattern */}
         <div className="absolute inset-0">
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white/30 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-20 right-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+          <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-white/10 rounded-full blur-lg"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-center items-center text-white p-12 w-full">
+          <div className="max-w-md text-center">
+            <div className="mb-8">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <Building2 className="w-10 h-10 text-white" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold mb-4">
+                Nurse Assist International
+              </h1>
+              <p className="text-xl text-blue-100 mb-2">(NAI)</p>
+              <p className="text-blue-200">Professional Healthcare Education Management</p>
+            </div>
+            
+            <div className="space-y-4 text-left">
+              <h2 className="text-2xl font-semibold">
+                Streamline your healthcare education management
+              </h2>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <span>Student enrollment tracking</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <span>Course management system</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <span>Payment processing</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  <span>Comprehensive reporting</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Overlay for better contrast */}
-      <div className="absolute inset-0 bg-black/5"></div>
-
-      <div className="w-full max-w-sm md:max-w-md lg:max-w-lg relative z-10 px-2">
-        {/* Company Branding - Responsive sizing */}
-        <div className="text-center space-y-3 md:space-y-4 mb-6 md:mb-8">
-          <div className="flex justify-center">
-            <div className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-xl md:rounded-2xl bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm shadow-xl animate-scale-in border border-white/20">
-              <Building2 className="h-8 w-8 md:h-10 md:w-10 text-white" />
+      {/* Right side - Login Form */}
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md space-y-6">
+          {/* Mobile Logo and Title */}
+          <div className="lg:hidden text-center space-y-4 mb-8">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Building2 className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Nurse Assist International
+              </h1>
+              <p className="text-sm text-gray-600">(NAI)</p>
             </div>
           </div>
-          <div className="space-y-1 md:space-y-2">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent animate-fade-in">
-              Nurse Assist International
-            </h1>
-            <p className="text-sm md:text-lg text-blue-100 font-semibold animate-fade-in animation-delay-200">(NAI)</p>
-            <p className="text-xs md:text-sm text-blue-200/80 animate-fade-in animation-delay-400 px-4">Professional Healthcare Education Management</p>
-          </div>
-        </div>
 
-        <Card className="shadow-2xl border-0 bg-white/10 backdrop-blur-lg animate-fade-in animation-delay-600 border border-white/20">
-          <CardHeader className="text-center space-y-2 md:space-y-4 pb-4 md:pb-6 px-4 md:px-6">
-            <CardTitle className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              Admin Login
-            </CardTitle>
-            <CardDescription className="text-sm md:text-base text-blue-100">
-              Enter your credentials to access the dashboard
-            </CardDescription>
-          </CardHeader>
+          <Card className="shadow-xl border-0 bg-white">
+            <CardHeader className="text-center space-y-3 pb-6">
+              <CardTitle className="text-2xl lg:text-3xl font-bold text-gray-900">
+                Welcome back
+              </CardTitle>
+              <CardDescription className="text-base text-gray-600">
+                Sign in to your admin account
+              </CardDescription>
+            </CardHeader>
 
-          <CardContent className="px-4 md:px-6">
-            <form onSubmit={handleLogin} className="space-y-4 md:space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs md:text-sm font-medium text-blue-100">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-blue-200" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="admin@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-10 md:h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:border-blue-300 focus:ring-blue-300/50 transition-all duration-200 backdrop-blur-sm text-sm md:text-base"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs md:text-sm font-medium text-blue-100">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-3 h-4 w-4 text-blue-200" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-10 md:h-12 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:border-blue-300 focus:ring-blue-300/50 transition-all duration-200 backdrop-blur-sm text-sm md:text-base"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-blue-200 hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Number Verification - Improved mobile layout */}
-              <div className="space-y-2">
-                <Label htmlFor="verification" className="text-xs md:text-sm font-medium text-blue-100">
-                  Security Verification
-                </Label>
-                <div className="flex items-center space-x-2 md:space-x-3 p-3 md:p-4 bg-white/5 rounded-lg border border-white/20">
-                  <div className="text-white text-sm md:text-lg font-semibold flex-shrink-0">
-                    {num1} + {num2} = ?
+            <CardContent className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
                   </div>
-                  <Input
-                    id="verification"
-                    type="number"
-                    placeholder="Answer"
-                    value={userAnswer}
-                    onChange={(e) => handleVerificationChange(e.target.value)}
-                    className="w-16 md:w-20 h-8 md:h-10 bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:border-blue-300 focus:ring-blue-300/50 transition-all duration-200 backdrop-blur-sm text-center text-sm md:text-base"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={generateNewNumbers}
-                    className="text-blue-200 hover:text-white transition-colors flex-shrink-0"
-                    title="Generate new numbers"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </button>
-                  {userAnswer && (
-                    <div className="text-sm flex-shrink-0">
-                      {isVerificationValid ? (
-                        <span className="text-green-300">✓</span>
-                      ) : (
-                        <span className="text-red-300">✗</span>
-                      )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Security Verification */}
+                <div className="space-y-2">
+                  <Label htmlFor="verification" className="text-sm font-medium text-gray-700">
+                    Security Verification
+                  </Label>
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-gray-700 text-lg font-semibold flex-shrink-0">
+                      {num1} + {num2} = ?
+                    </div>
+                    <Input
+                      id="verification"
+                      type="number"
+                      placeholder="Answer"
+                      value={userAnswer}
+                      onChange={(e) => handleVerificationChange(e.target.value)}
+                      className="w-20 h-10 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={generateNewNumbers}
+                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                      title="Generate new numbers"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </button>
+                    {userAnswer && (
+                      <div className="text-sm flex-shrink-0">
+                        {isVerificationValid ? (
+                          <span className="text-green-600">✓</span>
+                        ) : (
+                          <span className="text-red-600">✗</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || !isVerificationValid}
+                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Signing in...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <LogIn className="w-4 h-4" />
+                      <span>Sign In</span>
                     </div>
                   )}
-                </div>
+                </Button>
+              </form>
+
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Secure admin access • All rights granted upon login
+                </p>
               </div>
+            </CardContent>
+          </Card>
 
-              <Button
-                type="submit"
-                disabled={isLoading || !isVerificationValid}
-                className="w-full h-10 md:h-12 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 hover:from-blue-400/90 hover:to-indigo-500/90 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg backdrop-blur-sm border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm md:text-base"
+          {/* Footer */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Developed by{" "}
+              <a 
+                href="https://www.alltechzone.au" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700 hover:underline transition-colors font-semibold"
               >
-                {isLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Signing in...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <LogIn className="w-4 h-4" />
-                    <span>Sign In</span>
-                  </div>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 md:mt-8 text-center">
-              <p className="text-xs md:text-sm text-blue-200">
-                Secure admin access • All rights granted upon login
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-6 md:mt-8 animate-fade-in animation-delay-800">
-          <p className="text-xs md:text-sm text-blue-200">
-            Developed by{" "}
-            <a 
-              href="https://www.alltechzone.au" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-white hover:text-blue-100 hover:underline transition-colors font-semibold"
-            >
-              Alltechzone
-            </a>
-          </p>
+                Alltechzone
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
