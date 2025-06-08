@@ -512,17 +512,6 @@ export const PaymentReports = () => {
             ))}
           </tbody>
         </table>
-
-        {/* <div className="payment-reports-print-totals">
-          <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
-          <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
-          <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
-          <div>Second: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.second_payment, 0).toLocaleString()}</div>
-          <div>Third: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.third_payment, 0).toLocaleString()}</div>
-          <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
-          <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
-          <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
-        </div> */}
       </div>)}
 
       {/* Filters Card */}
