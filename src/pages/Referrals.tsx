@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -86,6 +85,26 @@ const Referrals = () => {
       title: "Export Successful",
       description: "Referrals data has been exported",
     });
+  };
+
+  const handleMultiDelete = async (referralIds: string[]) => {
+    if (window.confirm(`Are you sure you want to delete ${referralIds.length} referral${referralIds.length > 1 ? 's' : ''}? This action cannot be undone.`)) {
+      try {
+        const deletePromises = referralIds.map(id => deleteReferral(id));
+        await Promise.all(deletePromises);
+        
+        toast({
+          title: "Success",
+          description: `${referralIds.length} referral${referralIds.length > 1 ? 's' : ''} deleted successfully`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Some referrals could not be deleted. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   // Calculate stats
@@ -184,6 +203,7 @@ const Referrals = () => {
           onEdit={handleEditReferral}
           onDelete={handleDeleteReferral}
           onViewHistory={handleViewHistory}
+          onMultiDelete={handleMultiDelete}
         />
       </main>
 
