@@ -5,13 +5,15 @@ import {
   Home,
   Users,
   BookOpen,
-  CreditCard,
+  Target,
   BarChart3,
   FileText,
   Settings,
   Menu,
   X,
-  Building2
+  Building2,
+  UserCheck,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -22,8 +24,10 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Students", url: "/students", icon: Users },
   { title: "Courses", url: "/courses", icon: BookOpen },
-  { title: "Payments", url: "/payments", icon: CreditCard },
+  { title: "Marketing", url: "/marketing", icon: Target },
   { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Referrals", url: "/referrals", icon: UserCheck },
+  { title: "Recycle Bin", url: "/recycle-bin", icon: Trash2 },
   { title: "Audit Logs", url: "/audit", icon: FileText },
   { title: "Settings", url: "/settings", icon: Settings },
 ];

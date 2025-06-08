@@ -11,7 +11,7 @@ interface SecurityGuardProps {
 
 export const SecurityGuard = ({ 
   children, 
-  requiredRole = ['admin', 'owner'], 
+  requiredRole = ['admin', 'owner', 'user'], 
   fallback 
 }: SecurityGuardProps) => {
   const { user } = useAuth();
