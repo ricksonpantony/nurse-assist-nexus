@@ -128,7 +128,7 @@ const MarketingLeadPreview = () => {
               <Edit className="h-4 w-4" />
               Edit
             </Button>
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               onClick={handlePrint}
@@ -136,7 +136,7 @@ const MarketingLeadPreview = () => {
             >
               <Printer className="h-4 w-4" />
               Print
-            </Button>
+            </Button> */}
           </div>
         </header>
 
