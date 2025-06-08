@@ -193,6 +193,46 @@ export const useReferrals = () => {
     }
   };
 
+  const deleteMultipleReferrals = async (ids: string[]) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Move all referrals to recycle bin and delete them
+      const deletePromises = ids.map(async (id) => {
+        const referralToDelete = referrals.find(ref => ref.id === id);
+        if (referralToDelete) {
+          await moveToRecycleBin('referrals', id, referralToDelete);
+          
+          const { error } = await supabase
+            .from('referrals')
+            .delete()
+            .eq('id', id);
+          
+          if (error) throw error;
+        }
+      });
+
+      await Promise.all(deletePromises);
+
+      setReferrals(prev => prev.filter(referral => !ids.includes(referral.id)));
+      toast({
+        title: "Success",
+        description: `${ids.length} referral${ids.length > 1 ? 's' : ''} moved to recycle bin`,
+      });
+    } catch (error: any) {
+      console.error('Error deleting multiple referrals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete some referrals. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const fetchReferralPayments = async (referralId: string): Promise<ReferralPayment[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -256,6 +296,7 @@ export const useReferrals = () => {
     addReferral,
     updateReferral,
     deleteReferral,
+    deleteMultipleReferrals,
     fetchReferralPayments,
     addReferralPayment,
     refetch: fetchReferrals
