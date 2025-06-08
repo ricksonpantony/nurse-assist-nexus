@@ -468,22 +468,25 @@ export const PaymentReports = () => {
         <table className="payment-reports-print-table">
           <thead>
             <tr>
-              <th>Sl No.</th>
-              <th>Student ID</th>
-              <th>Student Name</th>
-              <th>Course</th>
-              <th>Course Fee</th>
-              <th>Advance Payment</th>
+              <th rowSpan={2}>Sl No.</th>
+              <th rowSpan={2}>Student ID</th>
+              <th rowSpan={2}>Student Name</th>
+              <th rowSpan={2}>Course</th>
+              <th rowSpan={2}>Course Fee</th>
+              <th colSpan={10} style={{textAlign:'center'}}>Payments</th>
+              <th rowSpan={2}>Balance Fee</th>
+            </tr>
+            <tr>
+            <th>Advance</th>
               <th>Date</th>
-              <th>Second Payment</th>
+              <th>Second</th>
               <th>Date</th>
-              <th>Third Payment</th>
+              <th>Third</th>
               <th>Date</th>
-              <th>Final Payment</th>
+              <th>Final</th>
               <th>Date</th>
-              <th>Other Payments</th>
+              <th>Other</th>
               <th>Date</th>
-              <th>Balance Fee</th>
             </tr>
           </thead>
           <tbody>
@@ -510,7 +513,7 @@ export const PaymentReports = () => {
           </tbody>
         </table>
 
-        <div className="payment-reports-print-totals">
+        {/* <div className="payment-reports-print-totals">
           <div>Total Records: {selectedPaymentData.length > 0 ? selectedPaymentData.length : filteredBreakdown.length}</div>
           <div>Course Fees: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.course_fee, 0).toLocaleString()}</div>
           <div>Advance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.advance_payment, 0).toLocaleString()}</div>
@@ -519,7 +522,7 @@ export const PaymentReports = () => {
           <div>Final: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.final_payment, 0).toLocaleString()}</div>
           <div>Other: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.other_payments, 0).toLocaleString()}</div>
           <div>Balance: ${(selectedPaymentData.length > 0 ? selectedPaymentData : filteredBreakdown).reduce((sum, item) => sum + item.balance_fee, 0).toLocaleString()}</div>
-        </div>
+        </div> */}
       </div>)}
 
       {/* Filters Card */}

@@ -147,12 +147,13 @@
     padding: 2pt 1pt !important;
     font-size: 7pt !important;
     font-weight: bold !important;
-    text-align: left !important;
+    text-align: left;
     color: black !important;
     display: table-cell !important;
-    word-wrap: break-word !important;
-    vertical-align: top !important;
+    /* word-wrap: break-word !important; */
+    /* vertical-align: top !important; */
     height: auto !important;
+    white-space: nowrap;
   }
 
   .payment-reports-print-table td {
@@ -161,14 +162,17 @@
     font-size: 6pt !important;
     color: black !important;
     vertical-align: top !important;
-    display: table-cell !important;
-    word-wrap: break-word !important;
-    overflow: hidden !important;
-    height: auto !important;
+    /* word-break: break-all; */
+    /* display: table-cell !important; */
+    /* word-wrap: break-word !important; */
+    /* overflow: hidden !important; */
+    /* height: auto !important; */
+    /* white-space: nowrap !important; */
+
   }
 
   /* Optimized column widths for landscape payment reports - More compact */
-  .payment-reports-print-table th:nth-child(1),
+   .payment-reports-print-table th:nth-child(1),
   .payment-reports-print-table td:nth-child(1) {
     width: 3% !important;
   }
@@ -180,14 +184,14 @@
 
   .payment-reports-print-table th:nth-child(3),
   .payment-reports-print-table td:nth-child(3) {
-    width: 10% !important;
+    width: 12% !important;
   }
 
-  .payment-reports-print-table th:nth-child(4),
+  /* .payment-reports-print-table th:nth-child(4),
   .payment-reports-print-table td:nth-child(4) {
-    width: 10% !important;
-  }
-
+    width: 12% !important;
+  } */
+/*
   .payment-reports-print-table th:nth-child(5),
   .payment-reports-print-table td:nth-child(5) {
     width: 8% !important;
@@ -201,17 +205,17 @@
   .payment-reports-print-table th:nth-child(7),
   .payment-reports-print-table td:nth-child(7) {
     width: 8% !important;
-  }
+  } */
 
-  .payment-reports-print-table th:nth-child(8),
+  /* .payment-reports-print-table th:nth-child(8),
   .payment-reports-print-table td:nth-child(8) {
     width: 10% !important;
-  }
+  } */
 
-  .payment-reports-print-table th:nth-child(9),
+  /* .payment-reports-print-table th:nth-child(9),
   .payment-reports-print-table td:nth-child(9) {
     width: 20% !important;
-  }
+  } */
 
   .payment-reports-print-table tr:nth-child(even) td {
     background: #f8f8f8 !important;
@@ -290,15 +294,16 @@
   /* Text overflow handling */
   .payment-reports-print-table th,
   .payment-reports-print-table td {
-    white-space: nowrap !important;
-    text-overflow: ellipsis !important;
-    overflow: hidden !important;
+    white-space: wrap !important;
+    word-break: break-word !important;
+
+    /* text-overflow: ellipsis !important; */
+    /* overflow: hidden !important; */
   }
 
   /* Allow certain columns to wrap */
-  .payment-reports-print-table td:nth-child(3),
-  .payment-reports-print-table td:nth-child(9) {
-    white-space: normal !important;
+  .payment-reports-print-table td:nth-child(2) {
+    white-space: wrap !important;
     word-break: break-word !important;
   }
 
