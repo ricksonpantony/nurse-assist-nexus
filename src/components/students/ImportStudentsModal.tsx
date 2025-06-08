@@ -22,7 +22,7 @@ interface ImportStudentsModalProps {
 export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete }: ImportStudentsModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [importResults, setImportResults] = useState<{ success: number; errors: string[]; referralsCreated: number } | null>(null);
+  const [importResults, setImportResults] = useState<{ success: number; errors: string[]; referralsCreated: number; skipped: number } | null>(null);
   const { toast } = useToast();
 
   const statusOptions = [
@@ -55,18 +55,45 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     generateSampleExcel(courses);
     toast({
       title: "Template Downloaded",
-      description: "Student import template with the new header structure has been downloaded",
+      description: "Student import template with sample data has been downloaded. Please delete sample rows before importing.",
     });
   };
 
   const generateStudentId = async () => {
     const year = new Date().getFullYear();
-    const { count } = await supabase
-      .from('students')
-      .select('*', { count: 'exact', head: true });
     
-    const nextNumber = (count || 0) + 1;
-    return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+    try {
+      // Get all existing student IDs that match the current year pattern
+      const { data, error } = await supabase
+        .from('students')
+        .select('id')
+        .like('id', `ATZ-${year}-%`);
+
+      if (error) throw error;
+
+      // Extract the numeric parts and find the highest number
+      let maxNumber = 0;
+      if (data && data.length > 0) {
+        data.forEach(student => {
+          const match = student.id.match(/ATZ-\d{4}-(\d{3})$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNumber) {
+              maxNumber = num;
+            }
+          }
+        });
+      }
+
+      // Generate the next ID
+      const nextNumber = maxNumber + 1;
+      return `ATZ-${year}-${String(nextNumber).padStart(3, '0')}`;
+    } catch (error) {
+      console.error('Error generating student ID:', error);
+      // Fallback to timestamp-based ID if there's an error
+      const timestamp = Date.now().toString().slice(-3);
+      return `ATZ-${year}-${timestamp}`;
+    }
   };
 
   const generateReferralId = async () => {
@@ -123,6 +150,16 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     return newReferral.id;
   };
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('students')
+      .select('id')
+      .eq('email', email)
+      .single();
+    
+    return !error && data !== null;
+  };
+
   const handleImport = async () => {
     if (!file) {
       toast({
@@ -137,6 +174,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     const errors: string[] = [];
     let successCount = 0;
     let referralsCreated = 0;
+    let skippedCount = 0;
 
     try {
       const data = await parseExcelFile(file);
@@ -145,7 +183,15 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
         const row = data[i];
         try {
           // Skip sample data (already filtered in parseExcelFile)
-          if (row.full_name?.includes('(SAMPLE - DO NOT EDIT)')) {
+          if (row.full_name?.includes('(SAMPLE - DELETE THIS ROW)')) {
+            continue;
+          }
+
+          // Check for duplicate email
+          const emailExists = await checkEmailExists(row.email);
+          if (emailExists) {
+            errors.push(`Row ${i + 1}: Email "${row.email}" already exists in the database`);
+            skippedCount++;
             continue;
           }
 
@@ -167,7 +213,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           let referralId = null;
           try {
             referralId = await findOrCreateReferral(row);
-            if (referralId && !row.referred_by_name) {
+            if (referralId && row.referred_by_name) {
               referralsCreated++;
             }
           } catch (error) {
@@ -203,6 +249,11 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             .insert([studentData]);
 
           if (studentError) {
+            if (studentError.message.includes('duplicate key value violates unique constraint "students_email_key"')) {
+              errors.push(`Row ${i + 1}: Email "${row.email}" already exists (duplicate detected during import)`);
+              skippedCount++;
+              continue;
+            }
             errors.push(`Row ${i + 1}: ${studentError.message}`);
             continue;
           }
@@ -275,12 +326,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
         }
       }
 
-      setImportResults({ success: successCount, errors, referralsCreated });
+      setImportResults({ success: successCount, errors, referralsCreated, skipped: skippedCount });
       
       if (successCount > 0) {
         toast({
           title: "Import Completed",
-          description: `Successfully imported ${successCount} students${referralsCreated > 0 ? ` and created ${referralsCreated} referrals` : ''}`,
+          description: `Successfully imported ${successCount} students${referralsCreated > 0 ? `, created ${referralsCreated} referrals` : ''}${skippedCount > 0 ? `, skipped ${skippedCount} duplicates` : ''}`,
         });
         onImportComplete();
       }
@@ -308,7 +359,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Import Students - Updated Template Format
+            Import Students - Enhanced Template
           </DialogTitle>
         </DialogHeader>
 
@@ -318,12 +369,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Download Updated Template
+                Download Enhanced Template
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                Download the updated student import template with the new header structure including notes field.
+                Download the enhanced student import template with improved date format (DD/MM/YYYY) and duplicate prevention.
               </p>
               <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
@@ -336,9 +387,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>New Template Headers:</strong>
-              <div className="mt-2 text-sm">
-                full_name, email, phone, address, country, passport_id, course_title, join_date, class_start_date, status, referred_by_name, referral_payment_amount, total_course_fee, advance_payment_amount, advance_payment_mode, advance_payment_date, second_payment_amount, second_payment_mode, second_payment_date, final_payment_amount, final_payment_mode, final_payment_date, notes
+              <strong>Enhanced Template Features:</strong>
+              <div className="mt-2 text-sm space-y-1">
+                <div>• <strong>Date Format:</strong> Use DD/MM/YYYY format (e.g., 15/01/2024)</div>
+                <div>• <strong>Duplicate Prevention:</strong> System will skip rows with existing email addresses</div>
+                <div>• <strong>Sample Data:</strong> Delete all sample rows before importing your data</div>
+                <div>• <strong>Email Validation:</strong> Each email must be unique in your import file</div>
               </div>
             </AlertDescription>
           </Alert>
@@ -403,7 +457,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
                 <li>• Course fee auto-populated from course selection</li>
                 <li>• Empty payment amounts won't create payment records</li>
                 <li>• Required fields: full_name, email, phone, course_title, join_date</li>
-                <li>• Notes field is optional and will be saved with the student record</li>
+                <li>• Duplicate emails will be skipped and reported</li>
               </ul>
             </AlertDescription>
           </Alert>
@@ -419,6 +473,9 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
                   <p className="text-green-600">✓ Successfully imported: {importResults.success} students</p>
                   {importResults.referralsCreated > 0 && (
                     <p className="text-blue-600">✓ Created new referrals: {importResults.referralsCreated}</p>
+                  )}
+                  {importResults.skipped > 0 && (
+                    <p className="text-yellow-600">⚠ Skipped duplicates: {importResults.skipped}</p>
                   )}
                   
                   {importResults.errors.length > 0 && (

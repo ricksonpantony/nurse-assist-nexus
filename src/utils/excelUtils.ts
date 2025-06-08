@@ -39,77 +39,79 @@ export interface StudentImportData {
 }
 
 export const generateSampleExcel = (courses: Course[] = []) => {
+  // Generate unique sample emails to avoid conflicts
+  const timestamp = Date.now();
   const sampleData: StudentImportData[] = [
     {
-      full_name: "John Doe (SAMPLE - DO NOT EDIT)",
-      email: "john.doe@example.com",
+      full_name: "John Doe (SAMPLE - DELETE THIS ROW)",
+      email: `sample.john.doe.${timestamp}@example.com`,
       phone: "+1234567890",
       address: "123 Main Street, City",
       country: "United States",
       passport_id: "AB123456",
       course_title: courses.length > 0 ? courses[0].title : "Web Development Bootcamp",
-      join_date: "15-01-2024",
-      class_start_date: "01-02-2024",
+      join_date: "15/01/2024",
+      class_start_date: "01/02/2024",
       status: "Attended Online",
       referred_by_name: "Jane Smith",
       referral_payment_amount: 500,
       total_course_fee: courses.length > 0 ? courses[0].fee : 5000,
       advance_payment_amount: 1000,
       advance_payment_mode: "Credit Card",
-      advance_payment_date: "15-01-2024",
+      advance_payment_date: "15/01/2024",
       second_payment_amount: 1500,
       second_payment_mode: "Bank Transfer",
-      second_payment_date: "15-02-2024",
+      second_payment_date: "15/02/2024",
       final_payment_amount: 2500,
       final_payment_mode: "Credit Card",
-      final_payment_date: "15-04-2024",
+      final_payment_date: "15/04/2024",
       notes: "Student prefers online sessions"
     },
     {
-      full_name: "Alice Johnson (SAMPLE - DO NOT EDIT)",
-      email: "alice.johnson@example.com",
+      full_name: "Alice Johnson (SAMPLE - DELETE THIS ROW)",
+      email: `sample.alice.johnson.${timestamp + 1}@example.com`,
       phone: "+1234567892",
       address: "789 Pine Street, City",
       country: "Canada",
       passport_id: "CD789012",
       course_title: courses.length > 1 ? courses[1].title : "Data Science Program",
-      join_date: "20-01-2024",
-      class_start_date: "05-02-2024",
+      join_date: "20/01/2024",
+      class_start_date: "05/02/2024",
       status: "Attend sessions",
       referred_by_name: "", // Direct referral
       referral_payment_amount: 0,
       total_course_fee: courses.length > 1 ? courses[1].fee : 7000,
       advance_payment_amount: 2000,
       advance_payment_mode: "Bank Transfer",
-      advance_payment_date: "20-01-2024",
+      advance_payment_date: "20/01/2024",
       second_payment_amount: 2500,
       second_payment_mode: "Credit Card",
-      second_payment_date: "20-02-2024",
+      second_payment_date: "20/02/2024",
       final_payment_amount: 2500,
       final_payment_mode: "Bank Transfer",
-      final_payment_date: "20-03-2024",
+      final_payment_date: "20/03/2024",
       notes: "Needs flexible schedule"
     },
     {
-      full_name: "Bob Wilson (SAMPLE - DO NOT EDIT)",
-      email: "bob.wilson@example.com",
+      full_name: "Bob Wilson (SAMPLE - DELETE THIS ROW)",
+      email: `sample.bob.wilson.${timestamp + 2}@example.com`,
       phone: "+1234567893",
       address: "321 Elm Street, City",
       country: "Australia",
       passport_id: "EF345678",
       course_title: courses.length > 2 ? courses[2].title : "Cybersecurity Course",
-      join_date: "25-01-2024",
-      class_start_date: "10-02-2024",
+      join_date: "25/01/2024",
+      class_start_date: "10/02/2024",
       status: "Pass",
       referred_by_name: "Mike Brown",
       referral_payment_amount: 300,
       total_course_fee: courses.length > 2 ? courses[2].fee : 4500,
       advance_payment_amount: 1500,
       advance_payment_mode: "Cash",
-      advance_payment_date: "25-01-2024",
+      advance_payment_date: "25/01/2024",
       final_payment_amount: 3000,
       final_payment_mode: "Bank Transfer",
-      final_payment_date: "25-02-2024",
+      final_payment_date: "25/02/2024",
       notes: "Previous IT experience"
     }
   ];
@@ -159,8 +161,8 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   
   // Set column widths for better readability
   const colWidths = [
-    { wch: 25 }, // full_name
-    { wch: 25 }, // email
+    { wch: 30 }, // full_name
+    { wch: 30 }, // email
     { wch: 15 }, // phone
     { wch: 30 }, // address
     { wch: 15 }, // country
@@ -191,44 +193,6 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   ];
   statusSheet['!cols'] = [{ wch: 20 }];
   paymentSheet['!cols'] = [{ wch: 20 }];
-
-  // Lock only the sample rows (rows 2-4, which are indexes 1-3 in zero-based)
-  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-  const numCols = range.e.c + 1;
-  
-  // Lock only sample data rows (rows 2, 3, 4 in Excel which are 1, 2, 3 in zero-based)
-  for (let row = 1; row <= 3; row++) {
-    for (let col = 0; col < numCols; col++) {
-      const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
-      if (!ws[cellRef]) {
-        ws[cellRef] = { v: '', t: 's' };
-      }
-      if (!ws[cellRef].s) {
-        ws[cellRef].s = {};
-      }
-      ws[cellRef].s.protection = { locked: true };
-    }
-  }
-
-  // Set protection for the worksheet
-  ws['!protect'] = {
-    password: '',
-    selectLockedCells: false,
-    selectUnlockedCells: true,
-    formatCells: false,
-    formatColumns: false,
-    formatRows: false,
-    insertColumns: false,
-    insertRows: false,
-    insertHyperlinks: false,
-    deleteColumns: false,
-    deleteRows: false,
-    sort: false,
-    autoFilter: false,
-    pivotTables: false,
-    objects: false,
-    scenarios: false
-  };
 
   XLSX.writeFile(wb, "student_import_template.xlsx");
 };
@@ -297,7 +261,7 @@ export const parseExcelFile = (file: File): Promise<StudentImportData[]> => {
         
         // Filter out sample data by checking for the sample identifier in the name
         const filteredData = jsonData.filter(row => 
-          !row.full_name?.includes('(SAMPLE - DO NOT EDIT)')
+          !row.full_name?.includes('(SAMPLE - DELETE THIS ROW)')
         );
         
         resolve(filteredData);
@@ -316,13 +280,22 @@ export const formatDateForExcel = (dateString: string): string => {
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
+  return `${day}/${month}/${year}`;
 };
 
 export const parseDateFromExcel = (dateString: string): string => {
   if (!dateString) return '';
   
-  // Handle dd-mm-yyyy format
+  // Handle dd/mm/yyyy format (preferred)
+  if (dateString.includes('/')) {
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+  }
+  
+  // Handle dd-mm-yyyy format (fallback)
   if (dateString.includes('-')) {
     const parts = dateString.split('-');
     if (parts.length === 3) {
