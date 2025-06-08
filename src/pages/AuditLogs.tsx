@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +13,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const AuditLogs = () => {
   const { logs, loading, fetchAuditLogs } = useAuditLogs();
   const [filters, setFilters] = useState({
-    table_name: '',
-    action: '',
-    severity: '',
+    table_name: 'all',
+    action: 'all',
+    severity: 'all',
     search: ''
   });
 
@@ -26,9 +25,9 @@ const AuditLogs = () => {
     
     // Apply filters
     fetchAuditLogs({
-      table_name: newFilters.table_name || undefined,
-      action: newFilters.action || undefined,
-      severity: newFilters.severity || undefined,
+      table_name: newFilters.table_name === 'all' ? undefined : newFilters.table_name,
+      action: newFilters.action === 'all' ? undefined : newFilters.action,
+      severity: newFilters.severity === 'all' ? undefined : newFilters.severity,
     });
   };
 
@@ -141,7 +140,7 @@ const AuditLogs = () => {
                         <SelectValue placeholder="All tables" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All tables</SelectItem>
+                        <SelectItem value="all">All tables</SelectItem>
                         <SelectItem value="students">Students</SelectItem>
                         <SelectItem value="payments">Payments</SelectItem>
                         <SelectItem value="courses">Courses</SelectItem>
@@ -160,7 +159,7 @@ const AuditLogs = () => {
                         <SelectValue placeholder="All actions" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All actions</SelectItem>
+                        <SelectItem value="all">All actions</SelectItem>
                         <SelectItem value="INSERT">Insert</SelectItem>
                         <SelectItem value="UPDATE">Update</SelectItem>
                         <SelectItem value="DELETE">Delete</SelectItem>
@@ -175,7 +174,7 @@ const AuditLogs = () => {
                         <SelectValue placeholder="All severities" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All severities</SelectItem>
+                        <SelectItem value="all">All severities</SelectItem>
                         <SelectItem value="low">Low</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
                         <SelectItem value="high">High</SelectItem>
@@ -188,7 +187,7 @@ const AuditLogs = () => {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setFilters({ table_name: '', action: '', severity: '', search: '' });
+                        setFilters({ table_name: 'all', action: 'all', severity: 'all', search: '' });
                         fetchAuditLogs();
                       }}
                       className="w-full"

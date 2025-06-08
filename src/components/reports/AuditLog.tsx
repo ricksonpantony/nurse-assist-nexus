@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,6 @@ export const AuditLog = () => {
     severity: 'all',
   });
 
-  // Fetch audit logs from database
   const fetchAuditLogs = async () => {
     try {
       setLoading(true);
