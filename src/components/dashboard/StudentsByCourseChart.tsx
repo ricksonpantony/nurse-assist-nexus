@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from "recharts";
 import { GraduationCap } from "lucide-react";
 import type { Student } from "@/hooks/useStudents";
 import type { Course } from "@/hooks/useCourses";
@@ -30,9 +30,28 @@ const generateCourseColors = (length: number) => {
     "#06b6d4", // Cyan
     "#8b5a2b", // Brown
     "#db2777", // Pink
+    "#6366f1", // Indigo
+    "#14b8a6", // Teal
   ];
   
   return Array.from({ length }, (_, i) => colors[i % colors.length]);
+};
+
+// Custom label component to show values on bars
+const CustomLabel = (props: any) => {
+  const { x, y, width, height, value } = props;
+  return (
+    <text
+      x={x + width / 2}
+      y={y - 5}
+      fill="#374151"
+      textAnchor="middle"
+      fontSize="12"
+      fontWeight="600"
+    >
+      {value}
+    </text>
+  );
 };
 
 export const StudentsByCourseChart = ({ students, courses, loading }: StudentsByCourseChartProps) => {
@@ -65,7 +84,7 @@ export const StudentsByCourseChart = ({ students, courses, loading }: StudentsBy
         <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-semibold text-gray-800">{data.fullName}</p>
           <p className="text-sm text-gray-600">
-            Students: <span className="font-medium text-blue-600">{data.students}</span>
+            Students Enrolled: <span className="font-medium text-blue-600">{data.students}</span>
           </p>
         </div>
       );
@@ -74,20 +93,25 @@ export const StudentsByCourseChart = ({ students, courses, loading }: StudentsBy
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-      <CardHeader>
-        <CardTitle className="text-slate-800 flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-indigo-50">
-            <GraduationCap className="w-5 h-5 text-indigo-600" />
+    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-slate-800 flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50">
+            <GraduationCap className="w-6 h-6 text-indigo-600" />
           </div>
-          Students Enrolled by Course
+          <div>
+            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Students Enrolled by Course
+            </span>
+            <p className="text-sm text-slate-500 font-normal mt-1">Active enrollment distribution</p>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={courseData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <BarChart data={courseData} margin={{ top: 30, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
               <XAxis 
                 dataKey="name" 
                 fontSize={11} 
@@ -101,15 +125,16 @@ export const StudentsByCourseChart = ({ students, courses, loading }: StudentsBy
               <ChartTooltip content={<CustomTooltip />} />
               <Bar 
                 dataKey="students" 
-                radius={[6, 6, 0, 0]}
+                radius={[8, 8, 0, 0]}
                 className="hover:opacity-80 transition-all duration-200 cursor-pointer"
               >
+                <LabelList content={<CustomLabel />} />
                 {courseData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={colors[index]}
                     stroke={colors[index]}
-                    strokeWidth={2}
+                    strokeWidth={0}
                   />
                 ))}
               </Bar>
@@ -119,7 +144,7 @@ export const StudentsByCourseChart = ({ students, courses, loading }: StudentsBy
         {courseData.length === 0 && (
           <div className="flex items-center justify-center h-[350px] text-slate-500">
             <div className="text-center">
-              <GraduationCap className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+              <GraduationCap className="w-16 h-16 mx-auto mb-4 text-slate-300" />
               <p className="text-lg font-medium">No course enrollment data available</p>
               <p className="text-sm">Students will appear here once they are enrolled in courses</p>
             </div>

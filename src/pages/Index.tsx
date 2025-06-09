@@ -108,13 +108,11 @@ const Index = () => {
         <StatusDistributionChart students={students} loading={loading} />
       </div>
 
-      {/* New Students by Course Chart */}
-      <div className="mb-8">
+      {/* Students by Course and Pass vs Fail Charts Side by Side */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
         <StudentsByCourseChart students={students} courses={courses} loading={loading} />
+        <EnrollmentChart students={students} loading={loading} />
       </div>
-
-      {/* Pass vs Fail Comparison Chart */}
-      <EnrollmentChart students={students} loading={loading} />
     </div>
   );
 };
