@@ -15,6 +15,7 @@ import { EnrollmentChart } from "@/components/dashboard/EnrollmentChart";
 import { CourseDistributionChart } from "@/components/dashboard/CourseDistributionChart";
 import { StatusDistributionChart } from "@/components/dashboard/StatusDistributionChart";
 import { MarketingLeadOverview } from "@/components/dashboard/MarketingLeadOverview";
+import { StudentsByCourseChart } from "@/components/dashboard/StudentsByCourseChart";
 
 const Index = () => {
   const { user } = useAuth();
@@ -107,7 +108,12 @@ const Index = () => {
         <StatusDistributionChart students={students} loading={loading} />
       </div>
 
-      {/* Enrollment Trend */}
+      {/* New Students by Course Chart */}
+      <div className="mb-8">
+        <StudentsByCourseChart students={students} courses={courses} loading={loading} />
+      </div>
+
+      {/* Pass vs Fail Comparison Chart */}
       <EnrollmentChart students={students} loading={loading} />
     </div>
   );
