@@ -12,8 +12,18 @@ const chartConfig = {
   },
 };
 
-export const StudentsByCourseChart = () => {
-  const { students } = useStudents();
+interface StudentsByCourseChartProps {
+  students?: any[];
+  courses?: any[];
+  loading?: boolean;
+}
+
+export const StudentsByCourseChart = ({ students: propStudents, loading: propLoading }: StudentsByCourseChartProps) => {
+  const { students: hookStudents } = useStudents();
+  
+  // Use props if provided, otherwise use hook data
+  const students = propStudents || hookStudents;
+  const loading = propLoading !== undefined ? propLoading : false;
 
   // Generate data for the last 12 months
   const generateLast12MonthsData = () => {
@@ -74,6 +84,19 @@ export const StudentsByCourseChart = () => {
 
   const totalEnrollments = monthlyData.reduce((sum, month) => sum + month.enrollments, 0);
   const averageEnrollments = totalEnrollments / 12;
+
+  if (loading) {
+    return (
+      <Card className="animate-pulse bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <CardHeader>
+          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] bg-gray-200 rounded"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
