@@ -19,7 +19,7 @@ const MarketingManage = () => {
   const navigate = useNavigate();
   const { leads, addLead, updateLead } = useLeads();
   const { courses } = useCourses();
-  const { referrals, addReferralPayment, refetch: refetchReferrals } = useReferrals();
+  const { referrals, refetch: refetchReferrals } = useReferrals();
   const { toast } = useToast();
 
   const isEditing = !!id;
@@ -54,7 +54,6 @@ const MarketingManage = () => {
   }>(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
-  const [referralPaymentAmount, setReferralPaymentAmount] = useState('');
 
   const isConverted = lead?.lead_status === 'Converted to Student';
 
@@ -92,37 +91,6 @@ const MarketingManage = () => {
     await refetchReferrals();
     
     setShowQuickAddReferral(false);
-  };
-
-  const handleAddReferralPayment = async () => {
-    if (!formData.referral_id || formData.referral_id === 'direct' || !referralPaymentAmount) {
-      toast({
-        title: "Error",
-        description: "Please select a referral and enter a payment amount",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const paymentData = {
-        referral_id: formData.referral_id,
-        student_id: lead?.lead_id || 'LEAD-TEMP',
-        amount: parseFloat(referralPaymentAmount),
-        payment_date: new Date().toISOString().split('T')[0],
-        payment_method: 'Bank Transfer',
-        notes: `Payment for lead: ${formData.full_name}`,
-      };
-
-      await addReferralPayment(paymentData);
-      setReferralPaymentAmount('');
-      toast({
-        title: "Success",
-        description: "Referral payment added successfully",
-      });
-    } catch (error) {
-      console.error('Error adding referral payment:', error);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -174,8 +142,6 @@ const MarketingManage = () => {
       setIsLoading(false);
     }
   };
-
-  const selectedReferral = referrals.find(r => r.id === formData.referral_id);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -338,7 +304,7 @@ const MarketingManage = () => {
                     </div>
                   </div>
 
-                  {/* Referral Information Section */}
+                  {/* Simplified Referral Information Section */}
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg text-blue-900">Referral Information</CardTitle>
@@ -379,43 +345,6 @@ const MarketingManage = () => {
                           )}
                         </div>
                       </div>
-
-                      {/* Referral Payment Section */}
-                      {formData.referral_id && formData.referral_id !== 'direct' && selectedReferral && !isConverted && (
-                        <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">Selected Referral</p>
-                              <p className="text-sm text-blue-700">{selectedReferral.full_name} ({selectedReferral.referral_id})</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
-                            <div className="flex gap-2">
-                              <Input
-                                id="referral_payment_amount"
-                                type="number"
-                                step="0.01"
-                                value={referralPaymentAmount}
-                                onChange={(e) => setReferralPaymentAmount(e.target.value)}
-                                placeholder="Enter payment amount"
-                                className="flex-1"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleAddReferralPayment}
-                                disabled={!referralPaymentAmount}
-                                className="gap-1 shrink-0"
-                              >
-                                <Plus className="h-4 w-4" />
-                                Add Payment
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
 
