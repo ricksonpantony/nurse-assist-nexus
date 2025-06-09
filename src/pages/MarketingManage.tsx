@@ -19,7 +19,7 @@ const MarketingManage = () => {
   const navigate = useNavigate();
   const { leads, addLead, updateLead } = useLeads();
   const { courses } = useCourses();
-  const { referrals, addReferralPayment } = useReferrals();
+  const { referrals, addReferralPayment, refetch: refetchReferrals } = useReferrals();
   const { toast } = useToast();
 
   const isEditing = !!id;
@@ -83,11 +83,14 @@ const MarketingManage = () => {
     }));
   };
 
-  const handleQuickAddReferralSuccess = (newReferral: any) => {
+  const handleQuickAddReferralSuccess = async (newReferral: any) => {
     setFormData(prev => ({
       ...prev,
       referral_id: newReferral.id
     }));
+    
+    await refetchReferrals();
+    
     setShowQuickAddReferral(false);
   };
 
