@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
   const { toast } = useToast();
 
   const statusOptions = [
+    'Enrolled',
     'Attended Online',
     'Attend sessions', 
     'Attended F2F',
@@ -235,7 +235,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             course_id: courseId,
             join_date: parseDateFromExcel(row.join_date),
             class_start_date: row.class_start_date ? parseDateFromExcel(row.class_start_date) : null,
-            status: statusOptions.includes(row.status) ? row.status : 'Attend sessions',
+            status: statusOptions.includes(row.status) ? row.status : 'Enrolled',
             total_course_fee: row.total_course_fee || courseFee,
             advance_payment: row.advance_payment_amount || 0,
             installments: 1,
@@ -458,6 +458,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
                 <li>• Empty payment amounts won't create payment records</li>
                 <li>• Required fields: full_name, email, phone, course_title, join_date</li>
                 <li>• Duplicate emails will be skipped and reported</li>
+                <li>• Status defaults to "Enrolled" if not specified or invalid</li>
               </ul>
             </AlertDescription>
           </Alert>

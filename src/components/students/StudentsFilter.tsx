@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -51,6 +50,7 @@ export const StudentsFilter = ({
   selectedStudentsCount
 }: StudentsFilterProps) => {
   const statusOptions = [
+    'Enrolled',
     'Attended Online',
     'Attend sessions', 
     'Attended F2F',

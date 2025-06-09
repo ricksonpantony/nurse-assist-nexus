@@ -21,7 +21,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     referral_id: '',
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: '',
-    status: 'Attended Online',
+    status: 'Enrolled',
     total_course_fee: 0,
     advance_payment: 0,
     advance_payment_method: '',
@@ -296,7 +296,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
               <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
               <Select 
                 name="status" 
-                value={formData.status || 'Attended Online'} 
+                value={formData.status || 'Enrolled'} 
                 onValueChange={(value) => handleSelectChange(value, 'status')}
                 required
               >
@@ -304,6 +304,7 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                  <SelectItem value="Enrolled">Enrolled</SelectItem>
                   <SelectItem value="Attended Online">Attended Online</SelectItem>
                   <SelectItem value="Attend sessions">Attend sessions</SelectItem>
                   <SelectItem value="Attended F2F">Attended F2F</SelectItem>

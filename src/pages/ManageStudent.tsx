@@ -37,7 +37,7 @@ const ManageStudent = () => {
     referral_id: '',
     join_date: new Date().toISOString().split('T')[0],
     class_start_date: '',
-    status: 'Attended Online' as Student['status'],
+    status: 'Enrolled' as Student['status'],
     total_course_fee: 0,
     advance_payment: 0,
     advance_payment_method: '',
@@ -146,13 +146,10 @@ const ManageStudent = () => {
         total_course_fee: Number(formData.total_course_fee) || 0,
         advance_payment: Number(formData.advance_payment) || 0,
         referral_payment_amount: Number(formData.referral_payment_amount) || 0,
-        installments: 1, // Always set to 1 since we removed installment options
-        // Convert empty strings to null for UUID fields
         course_id: formData.course_id === 'none' || formData.course_id === '' ? null : formData.course_id,
-        referral_id: formData.referral_id === 'direct' || formData.referral_id === '' ? null : formData.referral_id,
+        referral_id: formData.referral_id === '' ? null : formData.referral_id,
         class_start_date: formData.class_start_date === '' ? null : formData.class_start_date,
         join_date: formData.join_date || new Date().toISOString().split('T')[0],
-        status: formData.status as Student['status'],
         advance_payment_method: formData.advance_payment_method || null,
         notes: formData.notes || null,
       };
@@ -160,24 +157,15 @@ const ManageStudent = () => {
       console.log('Processed form data before save:', processedData);
       
       if (isEditing) {
-        await updateStudent(id, processedData);
+        await updateStudent(id!, processedData);
       } else {
         await addStudent(processedData);
       }
       
-      toast({
-        title: "Success",
-        description: isEditing ? "Student updated successfully" : "Student added successfully",
-      });
-
       navigate('/students');
     } catch (error) {
       console.error('Error saving student:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${isEditing ? 'update' : 'add'} student: ${error.message || 'Unknown error'}`,
-        variant: "destructive",
-      });
+      // Error is already handled in the hooks
     } finally {
       setIsLoading(false);
     }
@@ -186,12 +174,12 @@ const ManageStudent = () => {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
       <div className="flex flex-col h-full">
+        {/* Header */}
         <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
             onClick={() => navigate('/students')}
-            className="gap-2"
+            className="flex items-center gap-2 text-blue-700 hover:text-blue-800"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Students
@@ -201,27 +189,35 @@ const ManageStudent = () => {
               {isEditing ? 'Edit Student' : 'Add New Student'}
             </h1>
             <p className="text-sm text-blue-600">
-              {isEditing ? `Editing student: ${currentStudent?.full_name}` : 'Create a new student record'}
+              {isEditing ? 'Update student information and course details' : 'Enter student information and course assignment'}
             </p>
           </div>
+          <Button 
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+          >
+            <Save className="h-4 w-4" />
+            {isLoading ? 'Saving...' : isEditing ? 'Update Student' : 'Save Student'}
+          </Button>
         </header>
 
+        {/* Main Content */}
         <main className="flex-1 p-6">
-          <Card className="max-w-4xl mx-auto">
+          <Card className="max-w-4xl mx-auto bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl text-blue-900">
-                {isEditing ? 'Student Information' : 'New Student Details'}
-              </CardTitle>
+              <CardTitle className="text-blue-800">Student Information</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Personal Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="full_name"
                       name="full_name"
-                      value={formData.full_name || ''}
+                      value={formData.full_name}
                       onChange={handleChange}
                       required
                       placeholder="Enter full name"
@@ -233,7 +229,7 @@ const ManageStudent = () => {
                       id="email"
                       name="email"
                       type="email"
-                      value={formData.email || ''}
+                      value={formData.email}
                       onChange={handleChange}
                       required
                       placeholder="Enter email address"
@@ -244,7 +240,7 @@ const ManageStudent = () => {
                     <Input
                       id="phone"
                       name="phone"
-                      value={formData.phone || ''}
+                      value={formData.phone}
                       onChange={handleChange}
                       required
                       placeholder="Enter phone number"
@@ -255,7 +251,7 @@ const ManageStudent = () => {
                     <Input
                       id="passport_id"
                       name="passport_id"
-                      value={formData.passport_id || ''}
+                      value={formData.passport_id}
                       onChange={handleChange}
                       placeholder="Enter passport ID"
                     />
@@ -264,7 +260,7 @@ const ManageStudent = () => {
                     <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
                     <Select 
                       name="country" 
-                      value={formData.country || 'India'} 
+                      value={formData.country} 
                       onValueChange={(value) => handleSelectChange(value, 'country')}
                     >
                       <SelectTrigger>
@@ -284,13 +280,14 @@ const ManageStudent = () => {
                     <Input
                       id="address"
                       name="address"
-                      value={formData.address || ''}
+                      value={formData.address}
                       onChange={handleChange}
                       placeholder="Enter address"
                     />
                   </div>
                 </div>
 
+                {/* Course Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="course_id">Course</Label>
@@ -317,7 +314,7 @@ const ManageStudent = () => {
                     <Input
                       id="batch_id"
                       name="batch_id"
-                      value={formData.batch_id || ''}
+                      value={formData.batch_id}
                       onChange={handleChange}
                       placeholder="Enter batch ID"
                     />
@@ -328,7 +325,7 @@ const ManageStudent = () => {
                       id="join_date"
                       name="join_date"
                       type="date"
-                      value={formData.join_date || new Date().toISOString().split('T')[0]}
+                      value={formData.join_date}
                       onChange={handleChange}
                       required
                     />
@@ -339,77 +336,19 @@ const ManageStudent = () => {
                       id="class_start_date"
                       name="class_start_date"
                       type="date"
-                      value={formData.class_start_date || ''}
+                      value={formData.class_start_date}
                       onChange={handleChange}
                     />
                   </div>
                 </div>
 
-                {/* Referral Information Section */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg text-blue-900">Referral Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="referral_id">Referred By</Label>
-                        <div className="flex gap-2">
-                          <Select 
-                            name="referral_id" 
-                            value={formData.referral_id || 'direct'} 
-                            onValueChange={(value) => handleSelectChange(value, 'referral_id')}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select referral source" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                              <SelectItem value="direct">Direct (No Referral)</SelectItem>
-                              {referrals.map((referral) => (
-                                <SelectItem key={referral.id} value={referral.id}>
-                                  {referral.full_name} ({referral.referral_id})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowQuickAddReferral(true)}
-                            className="gap-1 shrink-0"
-                          >
-                            <Plus className="h-4 w-4" />
-                            Add New
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {formData.referral_id && formData.referral_id !== 'direct' && (
-                        <div className="space-y-2">
-                          <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
-                          <Input
-                            id="referral_payment_amount"
-                            name="referral_payment_amount"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formData.referral_payment_amount || 0}
-                            onChange={handleChange}
-                            placeholder="Enter referral payment amount"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
+                {/* Status and Fee Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
                     <Select 
                       name="status" 
-                      value={formData.status || 'Attended Online'} 
+                      value={formData.status} 
                       onValueChange={(value) => handleSelectChange(value, 'status')}
                       required
                     >
@@ -417,6 +356,7 @@ const ManageStudent = () => {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                        <SelectItem value="Enrolled">Enrolled</SelectItem>
                         <SelectItem value="Attended Online">Attended Online</SelectItem>
                         <SelectItem value="Attend sessions">Attend sessions</SelectItem>
                         <SelectItem value="Attended F2F">Attended F2F</SelectItem>
@@ -435,7 +375,7 @@ const ManageStudent = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.total_course_fee || 0}
+                      value={formData.total_course_fee}
                       onChange={handleChange}
                       required
                       placeholder="Enter total course fee"
@@ -449,7 +389,7 @@ const ManageStudent = () => {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.advance_payment || 0}
+                      value={formData.advance_payment}
                       onChange={handleChange}
                       placeholder="Enter advance payment"
                     />
@@ -459,7 +399,7 @@ const ManageStudent = () => {
                       <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
                       <Select 
                         name="advance_payment_method" 
-                        value={formData.advance_payment_method || ''} 
+                        value={formData.advance_payment_method} 
                         onValueChange={(value) => handleSelectChange(value, 'advance_payment_method')}
                       >
                         <SelectTrigger>
@@ -477,31 +417,66 @@ const ManageStudent = () => {
                   )}
                 </div>
 
+                {/* Referral Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="referral_id">Referral</Label>
+                    <div className="flex gap-2">
+                      <Select 
+                        name="referral_id" 
+                        value={formData.referral_id || ''} 
+                        onValueChange={(value) => handleSelectChange(value, 'referral_id')}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select referral (optional)" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="">No Referral (Direct)</SelectItem>
+                          {referrals.map((referral) => (
+                            <SelectItem key={referral.id} value={referral.id}>
+                              {referral.full_name} ({referral.referral_id})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowQuickAddReferral(true)}
+                        className="shrink-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  {formData.referral_id && (
+                    <div className="space-y-2">
+                      <Label htmlFor="referral_payment_amount">Referral Payment Amount</Label>
+                      <Input
+                        id="referral_payment_amount"
+                        name="referral_payment_amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.referral_payment_amount}
+                        onChange={handleChange}
+                        placeholder="Enter referral payment amount"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
                   <Textarea
                     id="notes"
                     name="notes"
-                    value={formData.notes || ''}
+                    value={formData.notes}
                     onChange={handleChange}
                     rows={3}
                     placeholder="Enter any additional notes about the student"
                   />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => navigate('/students')} 
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isLoading} className="gap-2">
-                    <Save className="h-4 w-4" />
-                    {isLoading ? 'Saving...' : isEditing ? 'Update Student' : 'Add Student'}
-                  </Button>
                 </div>
               </form>
             </CardContent>
@@ -512,6 +487,7 @@ const ManageStudent = () => {
       {/* Quick Add Referral Modal */}
       {showQuickAddReferral && (
         <QuickAddReferralModal
+          isOpen={showQuickAddReferral}
           onClose={() => setShowQuickAddReferral(false)}
           onSuccess={handleQuickAddReferralSuccess}
         />
