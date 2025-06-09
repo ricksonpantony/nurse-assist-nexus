@@ -2,12 +2,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 import type { Student } from "@/hooks/useStudents";
 
 interface StatusDistributionChartProps {
   students: Student[];
   loading: boolean;
+}
+
+interface Course {
+  id: string;
+  title: string;
 }
 
 const chartConfig = {
@@ -18,14 +25,30 @@ const chartConfig = {
 };
 
 export const StatusDistributionChart = ({ students, loading }: StatusDistributionChartProps) => {
+  // Get unique courses from students
+  const uniqueCourses = Array.from(
+    new Map(
+      students
+        .filter(s => s.course_id)
+        .map(s => [s.course_id, { id: s.course_id!, title: s.course_id! }])
+    ).values()
+  );
+
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
+
+  // Filter students based on selected course
+  const filteredStudents = selectedCourseId === "all" 
+    ? students 
+    : students.filter(s => s.course_id === selectedCourseId);
+
   const statusData = [
-    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
-    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
-    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
-    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
-    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
-    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
-    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
+    { name: 'Attended Online', value: filteredStudents.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
+    { name: 'Attend sessions', value: filteredStudents.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
+    { name: 'Attended F2F', value: filteredStudents.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
+    { name: 'Exam cycle', value: filteredStudents.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
+    { name: 'Awaiting results', value: filteredStudents.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
+    { name: 'Pass', value: filteredStudents.filter(s => s.status === 'Pass').length, color: '#22c55e' },
+    { name: 'Fail', value: filteredStudents.filter(s => s.status === 'Fail').length, color: '#ef4444' },
   ].filter(item => item.value > 0);
 
   const total = statusData.reduce((sum, item) => sum + item.value, 0);
@@ -112,17 +135,41 @@ export const StatusDistributionChart = ({ students, loading }: StatusDistributio
   return (
     <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-slate-800 flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50">
-            <TrendingUp className="w-6 h-6 text-emerald-600" />
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-slate-800 flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50">
+              <TrendingUp className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                Student Status Distribution
+              </span>
+              <p className="text-sm text-slate-500 font-normal mt-1">
+                {selectedCourseId === "all" 
+                  ? `All courses • ${total} total students`
+                  : `Course ${selectedCourseId} • ${total} students`
+                }
+              </p>
+            </div>
+          </CardTitle>
+          
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-600" />
+            <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Courses</SelectItem>
+                {uniqueCourses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-              Student Status Distribution
-            </span>
-            <p className="text-sm text-slate-500 font-normal mt-1">Current status breakdown • {total} total students</p>
-          </div>
-        </CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px]">
@@ -158,7 +205,12 @@ export const StatusDistributionChart = ({ students, loading }: StatusDistributio
             <div className="text-center">
               <TrendingUp className="w-16 h-16 mx-auto mb-4 text-slate-300" />
               <p className="text-lg font-medium">No student status data available</p>
-              <p className="text-sm">Status distribution will appear here once students are added</p>
+              <p className="text-sm">
+                {selectedCourseId === "all" 
+                  ? "Status distribution will appear here once students are added"
+                  : `No students found for course ${selectedCourseId}`
+                }
+              </p>
             </div>
           </div>
         )}
