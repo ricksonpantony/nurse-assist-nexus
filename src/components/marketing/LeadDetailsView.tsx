@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { X, User, Phone, Mail, MapPin, BookOpen, Calendar, FileText, UserCheck, Printer } from "lucide-react";
+import { X, User, Phone, Mail, MapPin, BookOpen, Calendar, FileText, UserCheck } from "lucide-react";
 import { Lead } from "@/hooks/useLeads";
 import { Course } from "@/hooks/useCourses";
 import { format } from "date-fns";
@@ -19,30 +19,15 @@ export const LeadDetailsView = ({ lead, courses, referrals, onClose }: LeadDetai
   const course = courses.find(c => c.id === lead.interested_course_id);
   const referral = referrals.find(r => r.id === lead.referral_id);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl text-blue-900">Lead Details</DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrint}
-                className="gap-2 print:hidden"
-              >
-                <Printer className="h-4 w-4" />
-                Print
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </DialogHeader>
 
