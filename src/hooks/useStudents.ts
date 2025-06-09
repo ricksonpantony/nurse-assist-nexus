@@ -16,7 +16,7 @@ export interface Student {
   referral_id: string | null;
   join_date: string;
   class_start_date: string | null;
-  status: 'Enrolled' | 'Attended Online' | 'Attend sessions' | 'Attended F2F' | 'Exam cycle' | 'Awaiting results' | 'Pass' | 'Fail';
+  status: 'Attended Online' | 'Attend sessions' | 'Attended F2F' | 'Exam cycle' | 'Awaiting results' | 'Pass' | 'Fail';
   total_course_fee: number;
   advance_payment: number;
   advance_payment_method: string | null;
@@ -37,7 +37,7 @@ export interface Payment {
 }
 
 const isValidStatus = (status: string): status is Student['status'] => {
-  return ['Enrolled', 'Attended Online', 'Attend sessions', 'Attended F2F', 'Exam cycle', 'Awaiting results', 'Pass', 'Fail'].includes(status);
+  return ['Attended Online', 'Attend sessions', 'Attended F2F', 'Exam cycle', 'Awaiting results', 'Pass', 'Fail'].includes(status);
 };
 
 export const useStudents = () => {
@@ -59,7 +59,7 @@ export const useStudents = () => {
       // Transform the data to ensure proper typing
       const transformedData: Student[] = (data || []).map(item => ({
         ...item,
-        status: isValidStatus(item.status) ? item.status : 'Enrolled',
+        status: isValidStatus(item.status) ? item.status : 'Pass',
         advance_payment_method: item.advance_payment_method || null,
         notes: item.notes || null
       }));
@@ -227,7 +227,7 @@ export const useStudents = () => {
       // Transform the returned data
       const transformedData: Student = {
         ...data,
-        status: isValidStatus(data.status) ? data.status : 'Enrolled',
+        status: isValidStatus(data.status) ? data.status : 'Pass',
         advance_payment_method: data.advance_payment_method || null,
         notes: data.notes || null
       };
@@ -306,7 +306,7 @@ export const useStudents = () => {
       // Transform the returned data
       const transformedData: Student = {
         ...data,
-        status: isValidStatus(data.status) ? data.status : 'Enrolled',
+        status: isValidStatus(data.status) ? data.status : 'Pass',
         advance_payment_method: data.advance_payment_method || null,
         notes: data.notes || null
       };

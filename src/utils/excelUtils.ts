@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 import { Student } from '@/hooks/useStudents';
 import { Course } from '@/hooks/useCourses';
@@ -51,7 +52,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       course_title: courses.length > 0 ? courses[0].title : "Web Development Bootcamp",
       join_date: "15/01/2024",
       class_start_date: "01/02/2024",
-      status: "Enrolled",
+      status: "Attended Online",
       referred_by_name: "Jane Smith",
       referral_payment_amount: 500,
       total_course_fee: courses.length > 0 ? courses[0].fee : 5000,
@@ -129,9 +130,8 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   
   const courseSheet = XLSX.utils.json_to_sheet(courseInfo);
   
-  // Status options sheet - UPDATED to include "Enrolled"
+  // Status options sheet
   const statusOptions = [
-    { Status_Options: 'Enrolled' },
     { Status_Options: 'Attended Online' },
     { Status_Options: 'Attend sessions' },
     { Status_Options: 'Attended F2F' },

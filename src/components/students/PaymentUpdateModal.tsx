@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -241,7 +242,6 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="unselected">Select new status</SelectItem>
-                    <SelectItem value="Enrolled">Enrolled</SelectItem>
                     <SelectItem value="Attended Online">Attended Online</SelectItem>
                     <SelectItem value="Attend sessions">Attend sessions</SelectItem>
                     <SelectItem value="Attended F2F">Attended F2F</SelectItem>
