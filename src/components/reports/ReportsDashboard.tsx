@@ -45,13 +45,14 @@ export const ReportsDashboard = () => {
     { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
   ];
 
-  // Monthly enrollment data
+  // Monthly enrollment data based on actual student join dates
   const monthlyData = [];
   const currentYear = new Date().getFullYear();
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   months.forEach((month, index) => {
     const monthStudents = students.filter(student => {
+      if (!student.join_date) return false;
       const joinDate = new Date(student.join_date);
       return joinDate.getFullYear() === currentYear && joinDate.getMonth() === index;
     }).length;
@@ -61,6 +62,22 @@ export const ReportsDashboard = () => {
       students: monthStudents,
     });
   });
+
+  // Custom tooltip for enrollment chart
+  const EnrollmentTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-800">{label} {currentYear}</p>
+          <p className="text-sm text-gray-600 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            Enrollments: <span className="font-medium text-blue-600">{payload[0].value}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -115,20 +132,43 @@ export const ReportsDashboard = () => {
       {/* Monthly Enrollment Chart */}
       <Card className="col-span-full lg:col-span-2 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-gray-800">Monthly Enrollment Trends</CardTitle>
+          <CardTitle className="text-gray-800">Monthly Enrollment Trends ({currentYear})</CardTitle>
+          <p className="text-sm text-gray-600">Based on student join dates</p>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="students" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                <XAxis 
+                  dataKey="month" 
+                  fontSize={12} 
+                  stroke="#64748b"
+                  tick={{ fill: '#64748b' }}
+                />
+                <YAxis 
+                  fontSize={12} 
+                  stroke="#64748b"
+                  tick={{ fill: '#64748b' }}
+                />
+                <ChartTooltip content={<EnrollmentTooltip />} />
+                <Bar 
+                  dataKey="students" 
+                  fill="#3b82f6" 
+                  radius={[4, 4, 0, 0]}
+                  className="hover:opacity-80 transition-all duration-200"
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
+          {students.length === 0 && (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              <div className="text-center">
+                <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No enrollment data available</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
