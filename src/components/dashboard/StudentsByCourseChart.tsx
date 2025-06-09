@@ -1,152 +1,160 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from "recharts";
-import { GraduationCap } from "lucide-react";
-import type { Student } from "@/hooks/useStudents";
-import type { Course } from "@/hooks/useCourses";
-
-interface StudentsByCourseChartProps {
-  students: Student[];
-  courses: Course[];
-  loading: boolean;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useStudents } from '@/hooks/useStudents';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
+import { TrendingUp, Calendar } from 'lucide-react';
 
 const chartConfig = {
-  students: {
-    label: "Students",
+  enrollments: {
+    label: "Enrollments",
     color: "hsl(var(--chart-1))",
   },
 };
 
-// Generate attractive colors for each course
-const generateCourseColors = (length: number) => {
-  const colors = [
-    "#8b5cf6", // Purple
-    "#3b82f6", // Blue
-    "#10b981", // Emerald
-    "#f59e0b", // Amber
-    "#ef4444", // Red
-    "#06b6d4", // Cyan
-    "#8b5a2b", // Brown
-    "#db2777", // Pink
-    "#6366f1", // Indigo
-    "#14b8a6", // Teal
-  ];
-  
-  return Array.from({ length }, (_, i) => colors[i % colors.length]);
-};
+export const StudentsByCourseChart = () => {
+  const { students } = useStudents();
 
-// Custom label component to show values on bars
-const CustomLabel = (props: any) => {
-  const { x, y, width, height, value } = props;
-  return (
-    <text
-      x={x + width / 2}
-      y={y - 5}
-      fill="#374151"
-      textAnchor="middle"
-      fontSize="12"
-      fontWeight="600"
-    >
-      {value}
-    </text>
-  );
-};
+  // Generate data for the last 12 months
+  const generateLast12MonthsData = () => {
+    const data = [];
+    const now = new Date();
+    
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const year = date.getFullYear();
+      
+      const enrollments = students.filter(student => {
+        if (!student.join_date) return false;
+        const joinDate = new Date(student.join_date);
+        return joinDate.getFullYear() === year && joinDate.getMonth() === date.getMonth();
+      }).length;
+      
+      data.push({
+        month: monthName,
+        enrollments,
+        fullDate: `${monthName} ${year}`,
+      });
+    }
+    
+    return data;
+  };
 
-export const StudentsByCourseChart = ({ students, courses, loading }: StudentsByCourseChartProps) => {
-  const courseData = courses.map((course) => ({
-    name: course.title.length > 20 ? `${course.title.substring(0, 20)}...` : course.title,
-    fullName: course.title,
-    students: students.filter(student => student.course_id === course.id).length,
-    courseId: course.id,
-  })).filter(item => item.students > 0);
+  const monthlyData = generateLast12MonthsData();
+  const maxEnrollments = Math.max(...monthlyData.map(d => d.enrollments));
 
-  const colors = generateCourseColors(courseData.length);
+  // Generate gradient colors based on enrollment values
+  const getBarColor = (value: number, index: number) => {
+    const intensity = maxEnrollments > 0 ? value / maxEnrollments : 0;
+    const hue = 220 + (index * 15) % 120; // Dynamic hue rotation
+    return `hsl(${hue}, ${70 + intensity * 30}%, ${50 + intensity * 20}%)`;
+  };
 
-  if (loading) {
-    return (
-      <Card className="animate-pulse bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-        <CardHeader>
-          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[350px] bg-gray-200 rounded"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{data.fullName}</p>
-          <p className="text-sm text-gray-600">
-            Students Enrolled: <span className="font-medium text-blue-600">{data.students}</span>
-          </p>
+        <div className="bg-gradient-to-br from-white to-blue-50 p-4 border border-blue-200 rounded-xl shadow-xl backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar className="h-4 w-4 text-blue-600" />
+            <p className="font-semibold text-gray-800">{data.fullDate}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
+            <span className="text-sm text-gray-600">Enrollments:</span>
+            <span className="font-bold text-blue-600 text-lg">{payload[0].value}</span>
+          </div>
         </div>
       );
     }
     return null;
   };
 
+  const totalEnrollments = monthlyData.reduce((sum, month) => sum + month.enrollments, 0);
+  const averageEnrollments = totalEnrollments / 12;
+
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-slate-800 flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50">
-            <GraduationCap className="w-6 h-6 text-indigo-600" />
+    <Card className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full -translate-y-16 translate-x-16" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-200/20 to-cyan-200/20 rounded-full translate-y-12 -translate-x-12" />
+      
+      <CardHeader className="relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg">
+              <TrendingUp className="h-6 w-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Monthly Enrollment Trends
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Last 12 months enrollment data</p>
+            </div>
           </div>
-          <div>
-            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Students Enrolled by Course
-            </span>
-            <p className="text-sm text-slate-500 font-normal mt-1">Active enrollment distribution</p>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-blue-600">{totalEnrollments}</div>
+            <div className="text-xs text-gray-500">Total Enrollments</div>
+            <div className="text-sm text-gray-600 mt-1">Avg: {averageEnrollments.toFixed(1)}/month</div>
           </div>
-        </CardTitle>
+        </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[350px]">
+      
+      <CardContent className="relative z-10">
+        <ChartContainer config={chartConfig} className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={courseData} margin={{ top: 30, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
-              <XAxis 
-                dataKey="name" 
-                fontSize={11} 
-                stroke="#64748b" 
-                angle={-45}
-                textAnchor="end"
-                height={80}
-                interval={0}
+            <BarChart 
+              data={monthlyData} 
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="url(#gridGradient)" 
+                opacity={0.3}
               />
-              <YAxis fontSize={12} stroke="#64748b" />
+              <defs>
+                <linearGradient id="gridGradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
+                </linearGradient>
+              </defs>
+              <XAxis 
+                dataKey="month" 
+                fontSize={12} 
+                stroke="#64748b"
+                tick={{ fill: '#64748b', fontSize: 11 }}
+                axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+              />
+              <YAxis 
+                fontSize={12} 
+                stroke="#64748b"
+                tick={{ fill: '#64748b', fontSize: 11 }}
+                axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }}
+              />
               <ChartTooltip content={<CustomTooltip />} />
               <Bar 
-                dataKey="students" 
-                radius={[8, 8, 0, 0]}
-                className="hover:opacity-80 transition-all duration-200 cursor-pointer"
+                dataKey="enrollments" 
+                radius={[6, 6, 0, 0]}
+                className="drop-shadow-md hover:drop-shadow-lg transition-all duration-300"
               >
-                <LabelList content={<CustomLabel />} />
-                {courseData.map((entry, index) => (
+                {monthlyData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={colors[index]}
-                    stroke={colors[index]}
-                    strokeWidth={0}
+                    fill={getBarColor(entry.enrollments, index)}
                   />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
-        {courseData.length === 0 && (
-          <div className="flex items-center justify-center h-[350px] text-slate-500">
+        
+        {students.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg">
             <div className="text-center">
-              <GraduationCap className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-              <p className="text-lg font-medium">No course enrollment data available</p>
-              <p className="text-sm">Students will appear here once they are enrolled in courses</p>
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-sm text-gray-500">No enrollment data available</p>
             </div>
           </div>
         )}
