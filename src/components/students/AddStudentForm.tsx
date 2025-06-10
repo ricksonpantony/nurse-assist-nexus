@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
+import { useReferrals } from "@/hooks/useReferrals";
+import { QuickAddReferralModal } from "@/components/students/QuickAddReferralModal";
+import { Plus } from "lucide-react";
 import { countries } from '@/utils/countries';
 
 export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }) => {
+  const { referrals, refetch: refetchReferrals } = useReferrals();
+  const [showQuickAddReferral, setShowQuickAddReferral] = useState(false);
+
   const initialState = student ? { ...student } : {
     full_name: '',
     email: '',
@@ -100,6 +107,24 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
     }));
   };
 
+  const handleQuickAddReferralSuccess = async (newReferral: any) => {
+    // Refresh the referrals list
+    await refetchReferrals();
+    
+    // Set the newly created referral as selected
+    setFormData(prev => ({
+      ...prev,
+      referral_id: newReferral.id
+    }));
+    
+    setShowQuickAddReferral(false);
+    
+    toast({
+      title: "Success",
+      description: "Referral added successfully and selected",
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted with data:', formData);
@@ -155,237 +180,281 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{student ? 'Edit Student' : 'Add New Student'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
-              <Input
-                id="full_name"
-                name="full_name"
-                value={formData.full_name || ''}
-                onChange={handleChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={handleChange}
-                required
-                placeholder="Enter email address"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone || ''}
-                onChange={handleChange}
-                required
-                placeholder="Enter phone number"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="passport_id">Passport ID</Label>
-              <Input
-                id="passport_id"
-                name="passport_id"
-                value={formData.passport_id || ''}
-                onChange={handleChange}
-                placeholder="Enter passport ID"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
-              <Select 
-                name="country" 
-                value={formData.country || 'India'} 
-                onValueChange={(value) => handleSelectChange(value, 'country')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg z-50">
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                name="address"
-                value={formData.address || ''}
-                onChange={handleChange}
-                placeholder="Enter address"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="course_id">Course</Label>
-              <Select 
-                name="course_id" 
-                value={formData.course_id || 'none'} 
-                onValueChange={(value) => handleSelectChange(value, 'course_id')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="none">None</SelectItem>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.title} - ${course.fee}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="batch_id">Batch</Label>
-              <Input
-                id="batch_id"
-                name="batch_id"
-                value={formData.batch_id || ''}
-                onChange={handleChange}
-                placeholder="Enter batch ID"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="join_date">Join Date <span className="text-red-500">*</span></Label>
-              <Input
-                id="join_date"
-                name="join_date"
-                type="date"
-                value={formData.join_date || new Date().toISOString().split('T')[0]}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class_start_date">Class Start Date</Label>
-              <Input
-                id="class_start_date"
-                name="class_start_date"
-                type="date"
-                value={formData.class_start_date || ''}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
-              <Select 
-                name="status" 
-                value={formData.status || 'Attended Online'} 
-                onValueChange={(value) => handleSelectChange(value, 'status')}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="Attended Online">Attended Online</SelectItem>
-                  <SelectItem value="Attend sessions">Attend sessions</SelectItem>
-                  <SelectItem value="Attended F2F">Attended F2F</SelectItem>
-                  <SelectItem value="Exam cycle">Exam cycle</SelectItem>
-                  <SelectItem value="Awaiting results">Awaiting results</SelectItem>
-                  <SelectItem value="Pass">Pass</SelectItem>
-                  <SelectItem value="Fail">Fail</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="total_course_fee">Total Course Fee <span className="text-red-500">*</span></Label>
-              <Input
-                id="total_course_fee"
-                name="total_course_fee"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.total_course_fee || 0}
-                onChange={handleChange}
-                required
-                placeholder="Enter total course fee"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="advance_payment">Advance Payment</Label>
-              <Input
-                id="advance_payment"
-                name="advance_payment"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.advance_payment || 0}
-                onChange={handleChange}
-                placeholder="Enter advance payment"
-              />
-            </div>
-            {Number(formData.advance_payment) > 0 && (
+    <>
+      <Dialog open={true} onOpenChange={() => onClose()}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{student ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+                <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  value={formData.full_name || ''}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter full name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter email address"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone || ''}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="passport_id">Passport ID</Label>
+                <Input
+                  id="passport_id"
+                  name="passport_id"
+                  value={formData.passport_id || ''}
+                  onChange={handleChange}
+                  placeholder="Enter passport ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
                 <Select 
-                  name="advance_payment_method" 
-                  value={formData.advance_payment_method || ''} 
-                  onValueChange={(value) => handleSelectChange(value, 'advance_payment_method')}
+                  name="country" 
+                  value={formData.country || 'India'} 
+                  onValueChange={(value) => handleSelectChange(value, 'country')}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select payment method" />
+                    <SelectValue placeholder="Select country" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                    {paymentMethods.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {method}
+                  <SelectContent className="max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg z-50">
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={formData.address || ''}
+                  onChange={handleChange}
+                  placeholder="Enter address"
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              name="notes"
-              value={formData.notes || ''}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Enter any additional notes about the student"
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="course_id">Course</Label>
+                <Select 
+                  name="course_id" 
+                  value={formData.course_id || 'none'} 
+                  onValueChange={(value) => handleSelectChange(value, 'course_id')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                    <SelectItem value="none">None</SelectItem>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.title} - ${course.fee}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="batch_id">Batch</Label>
+                <Input
+                  id="batch_id"
+                  name="batch_id"
+                  value={formData.batch_id || ''}
+                  onChange={handleChange}
+                  placeholder="Enter batch ID"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="join_date">Join Date <span className="text-red-500">*</span></Label>
+                <Input
+                  id="join_date"
+                  name="join_date"
+                  type="date"
+                  value={formData.join_date || new Date().toISOString().split('T')[0]}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="class_start_date">Class Start Date</Label>
+                <Input
+                  id="class_start_date"
+                  name="class_start_date"
+                  type="date"
+                  value={formData.class_start_date || ''}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : student ? 'Update Student' : 'Add Student'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            {/* Referral Section */}
+            <div className="space-y-2">
+              <Label htmlFor="referral_id">Referred By</Label>
+              <div className="flex gap-2">
+                <Select 
+                  name="referral_id" 
+                  value={formData.referral_id || 'direct'} 
+                  onValueChange={(value) => handleSelectChange(value, 'referral_id')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select referral source" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                    <SelectItem value="direct">Direct (No Referral)</SelectItem>
+                    {referrals.map((referral) => (
+                      <SelectItem key={referral.id} value={referral.id}>
+                        {referral.full_name} ({referral.referral_id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowQuickAddReferral(true)}
+                  className="gap-1 shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+                <Select 
+                  name="status" 
+                  value={formData.status || 'Attended Online'} 
+                  onValueChange={(value) => handleSelectChange(value, 'status')}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                    <SelectItem value="Attended Online">Attended Online</SelectItem>
+                    <SelectItem value="Attend sessions">Attend sessions</SelectItem>
+                    <SelectItem value="Attended F2F">Attended F2F</SelectItem>
+                    <SelectItem value="Exam cycle">Exam cycle</SelectItem>
+                    <SelectItem value="Awaiting results">Awaiting results</SelectItem>
+                    <SelectItem value="Pass">Pass</SelectItem>
+                    <SelectItem value="Fail">Fail</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="total_course_fee">Total Course Fee <span className="text-red-500">*</span></Label>
+                <Input
+                  id="total_course_fee"
+                  name="total_course_fee"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.total_course_fee || 0}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter total course fee"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="advance_payment">Advance Payment</Label>
+                <Input
+                  id="advance_payment"
+                  name="advance_payment"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.advance_payment || 0}
+                  onChange={handleChange}
+                  placeholder="Enter advance payment"
+                />
+              </div>
+              {Number(formData.advance_payment) > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="advance_payment_method">Advance Payment Method</Label>
+                  <Select 
+                    name="advance_payment_method" 
+                    value={formData.advance_payment_method || ''} 
+                    onValueChange={(value) => handleSelectChange(value, 'advance_payment_method')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {method}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                value={formData.notes || ''}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Enter any additional notes about the student"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Saving...' : student ? 'Update Student' : 'Add Student'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Add Referral Modal */}
+      {showQuickAddReferral && (
+        <QuickAddReferralModal
+          onClose={() => setShowQuickAddReferral(false)}
+          onSuccess={handleQuickAddReferralSuccess}
+        />
+      )}
+    </>
   );
 };

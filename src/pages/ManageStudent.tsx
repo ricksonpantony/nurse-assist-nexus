@@ -19,7 +19,7 @@ const ManageStudent = () => {
   const { id } = useParams();
   const { courses } = useCourses();
   const { students, addStudent, updateStudent } = useStudents();
-  const { referrals } = useReferrals();
+  const { referrals, refetch: refetchReferrals } = useReferrals();
   const { toast } = useToast();
   
   const isEditing = !!id;
@@ -117,12 +117,22 @@ const ManageStudent = () => {
     }));
   };
 
-  const handleQuickAddReferralSuccess = (newReferral: any) => {
+  const handleQuickAddReferralSuccess = async (newReferral: any) => {
+    // Refresh the referrals list
+    await refetchReferrals();
+    
+    // Set the newly created referral as selected
     setFormData(prev => ({
       ...prev,
       referral_id: newReferral.id
     }));
+    
     setShowQuickAddReferral(false);
+    
+    toast({
+      title: "Success",
+      description: "Referral added successfully and selected",
+    });
   };
 
   const handleSubmit = async (e) => {
