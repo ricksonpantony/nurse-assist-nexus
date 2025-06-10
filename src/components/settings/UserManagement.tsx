@@ -92,15 +92,46 @@ export const UserManagement = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('user-management/create-user', {
+      console.log('Attempting to create user with email:', newUser.email);
+      
+      const { data, error } = await supabase.functions.invoke('user-management', {
         body: {
           email: newUser.email,
           password: newUser.password,
           full_name: newUser.full_name
+        },
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
 
-      if (error) throw error;
+      console.log('Create user response:', data, 'Error:', error);
+
+      if (error) {
+        console.error('Function invoke error:', error);
+        throw error;
+      }
+
+      // Check if the response contains an error message
+      if (data?.error) {
+        console.error('Server error:', data.error);
+        
+        // Handle specific error cases
+        if (data.error.includes('already been registered')) {
+          toast({
+            title: "Error",
+            description: `A user with the email "${newUser.email}" already exists. Please use a different email address.`,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive"
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Success",
@@ -111,11 +142,22 @@ export const UserManagement = () => {
       setIsCreateDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to create user. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Create user error:', error);
+      
+      // Handle different types of errors
+      if (error.message?.includes('already been registered')) {
+        toast({
+          title: "Error",
+          description: `A user with the email "${newUser.email}" already exists. Please use a different email address.`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create user. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
 
     setLoading(false);
@@ -140,8 +182,11 @@ export const UserManagement = () => {
     if (!userToDelete) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('user-management/delete-user', {
-        body: { user_id: userToDelete.id }
+      const { data, error } = await supabase.functions.invoke('user-management', {
+        body: { 
+          action: 'delete',
+          user_id: userToDelete.id 
+        }
       });
 
       if (error) throw error;
@@ -235,6 +280,11 @@ export const UserManagement = () => {
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm text-blue-800">
                 <strong>Note:</strong> All new users will be created with admin role.
+              </p>
+            </div>
+            <div className="bg-yellow-50 p-3 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Important:</strong> Make sure to use a unique email address that hasn't been used before.
               </p>
             </div>
             <Button

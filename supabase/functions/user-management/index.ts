@@ -53,7 +53,8 @@ serve(async (req) => {
     const url = new URL(req.url)
     const body = method !== 'GET' ? await req.json() : null
 
-    if (method === 'POST' && url.pathname.includes('/create-user')) {
+    // Handle create user request (default action when no action specified)
+    if (method === 'POST' && (!body.action || body.action === 'create')) {
       const { email, password, full_name } = body
 
       console.log('Creating user with email:', email)
@@ -101,7 +102,8 @@ serve(async (req) => {
       })
     }
 
-    if (method === 'DELETE' && url.pathname.includes('/delete-user')) {
+    // Handle delete user request
+    if (method === 'POST' && body.action === 'delete') {
       const { user_id } = body
 
       console.log('Attempting to delete user:', user_id)
