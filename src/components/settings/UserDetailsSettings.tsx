@@ -59,10 +59,11 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Update user profile with admin role (all users are admins)
+      // Update user profile with only the fields that exist in the table
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          id: user.id,
           full_name: fullName,
           first_name: formData.first_name,
           last_name: formData.last_name,
@@ -70,10 +71,12 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
           address: formData.address,
           role: 'admin', // Ensure all users have admin role
           updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+        }, {
+          onConflict: 'id'
+        });
 
       if (profileError) {
+        console.error('Profile update error:', profileError);
         throw profileError;
       }
 
@@ -84,6 +87,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
         });
 
         if (authError) {
+          console.error('Auth update error:', authError);
           throw authError;
         }
 
@@ -100,9 +104,10 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
 
       onUpdate();
     } catch (error: any) {
+      console.error('Update profile error:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error.message || "Failed to update profile. Please try again.",
         variant: "destructive"
       });
     }
