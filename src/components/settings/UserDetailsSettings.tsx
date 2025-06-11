@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,62 +61,24 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Prepare the profile data
-      const profileData = {
-        id: user.id,
-        full_name: fullName,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        phone: formData.phone,
-        address: formData.address,
-        role: 'admin',
-        updated_at: new Date().toISOString()
-      };
-
-      console.log('Profile data to update:', profileData);
-
-      // Try to update first, then insert if it doesn't exist
-      const { data: existingProfile, error: selectError } = await supabase
+      // Use upsert with proper conflict resolution
+      const { error: profileError } = await supabase
         .from('user_profiles')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (selectError) {
-        console.error('Error checking existing profile:', selectError);
-        throw selectError;
-      }
-
-      let profileError;
-
-      if (existingProfile) {
-        console.log('Updating existing profile');
-        // Update existing profile
-        const { error } = await supabase
-          .from('user_profiles')
-          .update({
-            full_name: fullName,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone: formData.phone,
-            address: formData.address,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
-        
-        profileError = error;
-      } else {
-        console.log('Creating new profile');
-        // Insert new profile
-        const { error } = await supabase
-          .from('user_profiles')
-          .insert(profileData);
-        
-        profileError = error;
-      }
+        .upsert({
+          id: user.id,
+          full_name: fullName,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          address: formData.address,
+          role: 'admin'
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        });
 
       if (profileError) {
-        console.error('Profile operation error:', profileError);
+        console.error('Profile update error:', profileError);
         throw profileError;
       }
 
