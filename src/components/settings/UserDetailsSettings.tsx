@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,25 +58,49 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Update user profile with only the fields that exist in the table
-      const { error: profileError } = await supabase
+      // Check if profile exists first
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          address: formData.address,
-          role: 'admin', // Ensure all users have admin role
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
+        .select('id')
+        .eq('id', user.id)
+        .single();
 
-      if (profileError) {
-        console.error('Profile update error:', profileError);
-        throw profileError;
+      if (existingProfile) {
+        // Update existing profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .update({
+            full_name: fullName,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            address: formData.address,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          throw profileError;
+        }
+      } else {
+        // Insert new profile
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            full_name: fullName,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            address: formData.address,
+            role: 'admin'
+          });
+
+        if (profileError) {
+          console.error('Profile insert error:', profileError);
+          throw profileError;
+        }
       }
 
       // Update email in auth if changed
