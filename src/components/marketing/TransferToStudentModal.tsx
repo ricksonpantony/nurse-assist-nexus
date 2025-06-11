@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,9 @@ interface TransferToStudentModalProps {
 }
 
 export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: TransferToStudentModalProps) => {
+  // Set initial course fee if course is already selected
+  const initialCourse = courses.find(c => c.id === lead.interested_course_id);
+  
   const [formData, setFormData] = useState({
     full_name: lead.full_name,
     email: lead.email,
@@ -30,7 +34,7 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
     country: lead.country || "",
     course_id: lead.interested_course_id || "",
     status: "Enrolled",
-    total_course_fee: "",
+    total_course_fee: initialCourse ? initialCourse.fee.toString() : "",
     advance_payment: "0",
     advance_payment_method: "",
     batch_id: "",

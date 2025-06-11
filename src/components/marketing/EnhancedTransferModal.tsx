@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,9 @@ interface EnhancedTransferModalProps {
 }
 
 export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTransfer }: EnhancedTransferModalProps) => {
+  // Set initial course fee if course is already selected
+  const initialCourse = courses.find(c => c.id === lead.interested_course_id);
+  
   const [formData, setFormData] = useState({
     // Personal Information
     full_name: lead.full_name,
@@ -38,7 +42,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
     batch_id: "",
     
     // Financial Information
-    total_course_fee: "",
+    total_course_fee: initialCourse ? initialCourse.fee.toString() : "",
     advance_payment: "0",
     advance_payment_method: "",
     
@@ -244,7 +248,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
                 <SelectContent>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
-                      {course.title}
+                      {course.title} - ${course.fee}
                     </SelectItem>
                   ))}
                 </SelectContent>
