@@ -26,6 +26,7 @@ export const UserManagement = () => {
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
   const [userToEdit, setUserToEdit] = useState<any>(null);
   const [newRole, setNewRole] = useState<string>('');
+  const [updateRoleLoading, setUpdateRoleLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -185,13 +186,22 @@ export const UserManagement = () => {
   const handleUpdateRole = async () => {
     if (!userToEdit || !newRole) return;
 
+    setUpdateRoleLoading(true);
+
     try {
+      console.log('Updating user role:', { userId: userToEdit.id, currentRole: userToEdit.role, newRole });
+
       const { error } = await supabase
         .from('user_profiles')
         .update({ role: newRole })
         .eq('id', userToEdit.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Role update error:', error);
+        throw error;
+      }
+
+      console.log('Role updated successfully');
 
       toast({
         title: "Success",
@@ -204,12 +214,14 @@ export const UserManagement = () => {
       setNewRole('');
 
     } catch (error: any) {
-      console.error('Update role error:', error);
+      console.error('Complete update role error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update user role. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setUpdateRoleLoading(false);
     }
   };
 
@@ -312,10 +324,10 @@ export const UserManagement = () => {
             <div className="flex gap-2">
               <Button
                 onClick={handleUpdateRole}
-                disabled={!newRole || newRole === userToEdit?.role}
+                disabled={!newRole || newRole === userToEdit?.role || updateRoleLoading}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600"
               >
-                Update Role
+                {updateRoleLoading ? "Updating..." : "Update Role"}
               </Button>
               <Button
                 variant="outline"
@@ -325,6 +337,7 @@ export const UserManagement = () => {
                   setNewRole('');
                 }}
                 className="flex-1"
+                disabled={updateRoleLoading}
               >
                 Cancel
               </Button>
@@ -356,6 +369,7 @@ export const UserManagement = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => handleEditRoleClick(user)}
+                    disabled={updateRoleLoading}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
