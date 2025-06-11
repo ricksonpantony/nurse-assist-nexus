@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,49 +59,24 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Check if profile exists first
-      const { data: existingProfile } = await supabase
+      // Use upsert to handle both insert and update cases
+      const { error: profileError } = await supabase
         .from('user_profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
+        .upsert({
+          id: user.id,
+          full_name: fullName,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone,
+          address: formData.address,
+          role: 'admin'
+        }, {
+          onConflict: 'id'
+        });
 
-      if (existingProfile) {
-        // Update existing profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .update({
-            full_name: fullName,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone: formData.phone,
-            address: formData.address,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
-
-        if (profileError) {
-          console.error('Profile update error:', profileError);
-          throw profileError;
-        }
-      } else {
-        // Insert new profile
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: user.id,
-            full_name: fullName,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone: formData.phone,
-            address: formData.address,
-            role: 'admin'
-          });
-
-        if (profileError) {
-          console.error('Profile insert error:', profileError);
-          throw profileError;
-        }
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw profileError;
       }
 
       // Update email in auth if changed
