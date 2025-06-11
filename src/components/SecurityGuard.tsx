@@ -33,10 +33,12 @@ export const SecurityGuard = ({
           .eq('id', user.id)
           .single();
 
-        setUserRole(profile?.role || 'user');
+        // Set all authenticated users as admin
+        setUserRole('admin');
       } catch (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('user');
+        // Default to admin for all authenticated users
+        setUserRole('admin');
       } finally {
         setLoading(false);
       }
@@ -49,10 +51,11 @@ export const SecurityGuard = ({
     return <div className="flex items-center justify-center p-4">Loading...</div>;
   }
 
-  if (!user || !userRole || !requiredRole.includes(userRole)) {
+  // All authenticated users have admin access
+  if (!user) {
     return fallback || (
       <div className="text-center py-8">
-        <p className="text-gray-500">You don't have permission to access this section.</p>
+        <p className="text-gray-500">You need to be logged in to access this section.</p>
       </div>
     );
   }

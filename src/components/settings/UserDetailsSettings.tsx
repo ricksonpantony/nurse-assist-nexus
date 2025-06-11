@@ -59,7 +59,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Update user profile (role is fixed as admin, no changes allowed)
+      // Update user profile with admin role (all users are admins)
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({
@@ -68,6 +68,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
           last_name: formData.last_name,
           phone: formData.phone,
           address: formData.address,
+          role: 'admin', // Ensure all users have admin role
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -177,7 +178,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
         <div className="mt-1 p-3 bg-gray-50 rounded-md border">
           <span className="font-medium text-gray-700">Administrator</span>
           <p className="text-xs text-gray-500 mt-1">
-            Your role is fixed as Administrator and cannot be changed.
+            All authenticated users have full administrator privileges.
           </p>
         </div>
       </div>

@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .eq('id', session.user.id)
                 .single();
 
-              // Create profile with 'user' role for new users (security fix)
+              // Create profile with 'admin' role for all users
               if (!existingProfile) {
                 const fullName = session.user.user_metadata?.full_name || session.user.email || 'User';
                 
@@ -58,14 +58,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                   .insert({
                     id: session.user.id,
                     full_name: fullName,
-                    role: 'user' // Changed from 'admin' to 'user' for security
+                    role: 'admin' // Changed to 'admin' for all users
                   });
 
                 if (error) {
                   console.error('Error creating user profile:', error.message);
                 }
+              } else if (existingProfile.role !== 'admin') {
+                // Update existing users to admin role
+                const { error } = await supabase
+                  .from('user_profiles')
+                  .update({ role: 'admin' })
+                  .eq('id', session.user.id);
+
+                if (error) {
+                  console.error('Error updating user role to admin:', error.message);
+                }
               }
-              // Remove automatic admin role assignment for existing users
             } catch (error) {
               console.error('Error in user profile handling:', error);
             }
