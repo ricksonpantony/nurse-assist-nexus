@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { X, FileText, Download } from "lucide-react";
+import { X } from "lucide-react";
 import { Referral, ReferralPayment } from "@/hooks/useReferrals";
 import { useStudents } from "@/hooks/useStudents";
 
@@ -29,15 +29,6 @@ export const ReferralHistoryModal = ({ referral, onClose, referralPayments }: Re
     });
   };
 
-  const handlePrintReport = () => {
-    window.print();
-  };
-
-  const handleExportReport = () => {
-    // Implementation for CSV export would go here
-    console.log('Exporting referral report...');
-  };
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -46,19 +37,9 @@ export const ReferralHistoryModal = ({ referral, onClose, referralPayments }: Re
             <DialogTitle className="text-xl font-bold text-blue-900">
               Referral History - {referral.full_name}
             </DialogTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handlePrintReport}>
-                <FileText className="h-4 w-4 mr-2" />
-                Print Report
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleExportReport}>
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </DialogHeader>
 
