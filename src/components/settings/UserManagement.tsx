@@ -14,7 +14,7 @@ export const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentUserRole, setCurrentUserRole] = useState<string>('user');
+  const [currentUserRole, setCurrentUserRole] = useState<string>('admin'); // All users are admin now
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -25,33 +25,14 @@ export const UserManagement = () => {
   const [userToDelete, setUserToDelete] = useState<any>(null);
 
   useEffect(() => {
-    checkCurrentUserRole();
     fetchUsers();
   }, []);
-
-  const checkCurrentUserRole = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-        
-        setCurrentUserRole(profile?.role || 'user');
-      }
-    } catch (error) {
-      console.error('Error checking user role:', error);
-    }
-  };
 
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('role', 'admin') // Only show admin users
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -79,11 +60,10 @@ export const UserManagement = () => {
       return;
     }
 
-    // Security check: Only allow admin to create users
-    if (currentUserRole !== 'admin') {
+    if (newUser.password.length < 6) {
       toast({
         title: "Error",
-        description: "You don't have permission to create users.",
+        description: "Password must be at least 6 characters long.",
         variant: "destructive"
       });
       return;
@@ -92,45 +72,31 @@ export const UserManagement = () => {
     setLoading(true);
 
     try {
-      console.log('Attempting to create user with email:', newUser.email);
+      console.log('Creating user with:', { email: newUser.email, full_name: newUser.full_name });
       
       const { data, error } = await supabase.functions.invoke('user-management', {
         body: {
+          action: 'create',
           email: newUser.email,
           password: newUser.password,
-          full_name: newUser.full_name
-        },
-        headers: {
-          'Content-Type': 'application/json'
+          full_name: newUser.full_name || newUser.email
         }
       });
 
-      console.log('Create user response:', data, 'Error:', error);
+      console.log('Function response:', { data, error });
 
       if (error) {
-        console.error('Function invoke error:', error);
-        throw error;
+        console.error('Function error:', error);
+        throw new Error(error.message || 'Failed to create user');
       }
 
-      // Check if the response contains an error message
       if (data?.error) {
         console.error('Server error:', data.error);
-        
-        // Handle specific error cases
-        if (data.error.includes('already been registered')) {
-          toast({
-            title: "Error",
-            description: `A user with the email "${newUser.email}" already exists. Please use a different email address.`,
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: data.error,
-            variant: "destructive"
-          });
-        }
-        return;
+        throw new Error(data.error);
+      }
+
+      if (!data?.success) {
+        throw new Error('User creation failed - no success response');
       }
 
       toast({
@@ -141,39 +107,29 @@ export const UserManagement = () => {
       setNewUser({ email: '', password: '', full_name: '' });
       setIsCreateDialogOpen(false);
       fetchUsers();
+
     } catch (error: any) {
       console.error('Create user error:', error);
       
-      // Handle different types of errors
-      if (error.message?.includes('already been registered')) {
-        toast({
-          title: "Error",
-          description: `A user with the email "${newUser.email}" already exists. Please use a different email address.`,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create user. Please try again.",
-          variant: "destructive"
-        });
+      let errorMessage = 'Failed to create user. Please try again.';
+      
+      if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        errorMessage = `A user with the email "${newUser.email}" already exists. Please use a different email address.`;
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-    }
 
-    setLoading(false);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteClick = (user: any) => {
-    // Security check: Only allow admin to delete users
-    if (currentUserRole !== 'admin') {
-      toast({
-        title: "Error",
-        description: "You don't have permission to delete users.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setUserToDelete(user);
     setShowDeleteModal(true);
   };
@@ -191,7 +147,6 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
-      // Check if the response contains an error message
       if (data?.error) {
         toast({
           title: "Error",
@@ -218,17 +173,6 @@ export const UserManagement = () => {
     }
   };
 
-  // Only show users if current user is admin
-  const canManageUsers = currentUserRole === 'admin';
-
-  if (!canManageUsers) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">You don't have permission to manage users.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Create User Dialog */}
@@ -253,6 +197,7 @@ export const UserManagement = () => {
                 onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 className="mt-1"
                 placeholder="admin@example.com"
+                disabled={loading}
               />
             </div>
             <div>
@@ -265,6 +210,7 @@ export const UserManagement = () => {
                 className="mt-1"
                 placeholder="Strong password (min 6 characters)"
                 minLength={6}
+                disabled={loading}
               />
             </div>
             <div>
@@ -275,21 +221,17 @@ export const UserManagement = () => {
                 onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
                 className="mt-1"
                 placeholder="John Doe"
+                disabled={loading}
               />
             </div>
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Note:</strong> All new users will be created with admin role.
-              </p>
-            </div>
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Important:</strong> Make sure to use a unique email address that hasn't been used before.
+                <strong>Note:</strong> All new users will be created with admin role and full access.
               </p>
             </div>
             <Button
               onClick={handleCreateUser}
-              disabled={loading}
+              disabled={loading || !newUser.email || !newUser.password}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600"
             >
               {loading ? "Creating..." : "Create Admin User"}
@@ -328,7 +270,7 @@ export const UserManagement = () => {
       </div>
 
       {users.length === 0 && (
-        <p className="text-center text-gray-500 py-8">No admin users found.</p>
+        <p className="text-center text-gray-500 py-8">No users found.</p>
       )}
 
       {/* Delete User Confirmation Modal */}
