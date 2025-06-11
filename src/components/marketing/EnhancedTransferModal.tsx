@@ -70,6 +70,7 @@ export const EnhancedTransferModal = ({ lead, courses, referrals, onClose, onTra
   // Set course fee when course is selected
   const handleCourseChange = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
+    console.log('Course selected:', course);
     setFormData(prev => ({
       ...prev,
       course_id: courseId,
