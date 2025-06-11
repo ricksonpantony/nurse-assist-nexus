@@ -33,28 +33,33 @@ serve(async (req) => {
 
     console.log('Authenticated user:', user.id)
 
-    // Check if user has admin role
-    const { data: userProfile, error: profileError } = await supabaseClient
-      .from('user_profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    console.log('Current user profile:', userProfile, 'Error:', profileError)
-
-    if (profileError || !userProfile || userProfile.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
+    // All authenticated users have admin role, so skip role check for creation
+    const { method } = req
+    const url = new URL(req.url)
+    
+    let body = null
+    try {
+      const requestText = await req.text()
+      if (requestText.trim()) {
+        body = JSON.parse(requestText)
+      }
+    } catch (parseError) {
+      console.log('JSON parse error:', parseError)
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403
+        status: 400
       })
     }
 
-    const { method } = req
-    const url = new URL(req.url)
-    const body = method !== 'GET' ? await req.json() : null
-
     // Handle create user request (default action when no action specified)
-    if (method === 'POST' && (!body.action || body.action === 'create')) {
+    if (method === 'POST' && (!body?.action || body.action === 'create')) {
+      if (!body) {
+        return new Response(JSON.stringify({ error: 'Request body is required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        })
+      }
+
       const { email, password, full_name } = body
 
       console.log('Creating user with email:', email)
@@ -66,7 +71,7 @@ serve(async (req) => {
         })
       }
 
-      // Create user with admin API
+      // Create user with admin API - all users get admin role
       const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
         email,
         password,
@@ -84,17 +89,18 @@ serve(async (req) => {
 
       console.log('User created successfully:', newUser.user.id)
 
-      // Update user profile with admin role
-      const { error: profileUpdateError } = await supabaseClient
+      // Create/update user profile with admin role - ALL USERS GET ADMIN
+      const { error: profileError } = await supabaseClient
         .from('user_profiles')
-        .update({ 
+        .upsert({ 
+          id: newUser.user.id,
           full_name: full_name || email, 
-          role: 'admin'
+          role: 'admin' // ALL users are admin
         })
-        .eq('id', newUser.user.id)
 
-      if (profileUpdateError) {
-        console.log('Profile update error:', profileUpdateError)
+      if (profileError) {
+        console.log('Profile creation error:', profileError)
+        // Don't fail the whole operation if profile creation fails
       }
 
       return new Response(JSON.stringify({ success: true, user: newUser.user }), {
@@ -103,7 +109,7 @@ serve(async (req) => {
     }
 
     // Handle delete user request
-    if (method === 'POST' && body.action === 'delete') {
+    if (method === 'POST' && body?.action === 'delete') {
       const { user_id } = body
 
       console.log('Attempting to delete user:', user_id)
@@ -115,47 +121,7 @@ serve(async (req) => {
         })
       }
 
-      // Check if the user to be deleted exists and get their role
-      const { data: targetUserProfile, error: targetProfileError } = await supabaseClient
-        .from('user_profiles')
-        .select('role')
-        .eq('id', user_id)
-        .single()
-
-      console.log('Target user profile:', targetUserProfile, 'Error:', targetProfileError)
-
-      if (targetProfileError) {
-        return new Response(JSON.stringify({ error: 'User profile not found' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404
-        })
-      }
-
-      // If the user to be deleted is an admin, check if they are the last admin
-      if (targetUserProfile.role === 'admin') {
-        const { count: adminCount, error: countError } = await supabaseClient
-          .from('user_profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('role', 'admin')
-
-        console.log('Admin count:', adminCount, 'Error:', countError)
-
-        if (countError) {
-          return new Response(JSON.stringify({ error: 'Failed to check admin count' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 500
-          })
-        }
-
-        if (adminCount && adminCount <= 1) {
-          return new Response(JSON.stringify({ error: 'Cannot delete the last admin user' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400
-          })
-        }
-      }
-
-      // First delete the auth user (this will automatically set audit_logs.user_id to NULL due to CASCADE)
+      // Delete the auth user first
       const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(user_id)
 
       if (deleteAuthError) {
@@ -166,7 +132,7 @@ serve(async (req) => {
         })
       }
 
-      // Then delete user profile (this should work since the foreign key is already handled)
+      // Delete user profile
       const { error: profileDeleteError } = await supabaseClient
         .from('user_profiles')
         .delete()
@@ -174,7 +140,7 @@ serve(async (req) => {
 
       if (profileDeleteError) {
         console.log('Profile delete error:', profileDeleteError)
-        // Don't fail if profile deletion fails, as the auth user is already deleted
+        // Don't fail if profile deletion fails
       }
 
       console.log('User deleted successfully:', user_id)
@@ -185,6 +151,13 @@ serve(async (req) => {
     }
 
     if (method === 'PUT' && url.pathname.includes('/update-password')) {
+      if (!body) {
+        return new Response(JSON.stringify({ error: 'Request body is required' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        })
+      }
+
       const { user_id, new_password } = body
 
       const { error: updateError } = await supabaseClient.auth.admin.updateUserById(user_id, {

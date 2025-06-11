@@ -38,42 +38,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Handle user profile creation for new sign-ins only
-        if (session?.user && event === 'SIGNED_IN') {
+        // Handle user profile creation/update for all sign-ins
+        if (session?.user) {
           setTimeout(async () => {
             try {
-              // Check if profile already exists to avoid unnecessary updates
-              const { data: existingProfile } = await supabase
+              const fullName = session.user.user_metadata?.full_name || session.user.email || 'User';
+              
+              // Always upsert with admin role - ALL USERS ARE ADMIN
+              const { error } = await supabase
                 .from('user_profiles')
-                .select('id, role')
-                .eq('id', session.user.id)
-                .single();
+                .upsert({
+                  id: session.user.id,
+                  full_name: fullName,
+                  role: 'admin' // ALL authenticated users are admin
+                }, {
+                  onConflict: 'id'
+                });
 
-              // Create profile with 'admin' role for all users
-              if (!existingProfile) {
-                const fullName = session.user.user_metadata?.full_name || session.user.email || 'User';
-                
-                const { error } = await supabase
-                  .from('user_profiles')
-                  .insert({
-                    id: session.user.id,
-                    full_name: fullName,
-                    role: 'admin' // Changed to 'admin' for all users
-                  });
-
-                if (error) {
-                  console.error('Error creating user profile:', error.message);
-                }
-              } else if (existingProfile.role !== 'admin') {
-                // Update existing users to admin role
-                const { error } = await supabase
-                  .from('user_profiles')
-                  .update({ role: 'admin' })
-                  .eq('id', session.user.id);
-
-                if (error) {
-                  console.error('Error updating user role to admin:', error.message);
-                }
+              if (error) {
+                console.error('Error upserting user profile:', error.message);
               }
             } catch (error) {
               console.error('Error in user profile handling:', error);
