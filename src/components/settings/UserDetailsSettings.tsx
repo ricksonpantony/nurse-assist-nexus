@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -56,31 +55,75 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
     setLoading(true);
 
     try {
+      console.log('Starting profile update for user:', user.id);
+      
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Use upsert to handle both insert and update cases
-      const { error: profileError } = await supabase
+      // Prepare the profile data
+      const profileData = {
+        id: user.id,
+        full_name: fullName,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        address: formData.address,
+        role: 'admin',
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Profile data to update:', profileData);
+
+      // Try to update first, then insert if it doesn't exist
+      const { data: existingProfile, error: selectError } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          address: formData.address,
-          role: 'admin'
-        }, {
-          onConflict: 'id'
-        });
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error('Error checking existing profile:', selectError);
+        throw selectError;
+      }
+
+      let profileError;
+
+      if (existingProfile) {
+        console.log('Updating existing profile');
+        // Update existing profile
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({
+            full_name: fullName,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            phone: formData.phone,
+            address: formData.address,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+        
+        profileError = error;
+      } else {
+        console.log('Creating new profile');
+        // Insert new profile
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert(profileData);
+        
+        profileError = error;
+      }
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
+        console.error('Profile operation error:', profileError);
         throw profileError;
       }
 
+      console.log('Profile updated successfully');
+
       // Update email in auth if changed
       if (formData.email !== user.email) {
+        console.log('Updating email in auth');
         const { error: authError } = await supabase.auth.updateUser({
           email: formData.email
         });
@@ -103,7 +146,7 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
 
       onUpdate();
     } catch (error: any) {
-      console.error('Update profile error:', error);
+      console.error('Complete update profile error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile. Please try again.",
