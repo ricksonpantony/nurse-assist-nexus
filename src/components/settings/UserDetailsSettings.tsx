@@ -56,43 +56,34 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
     setLoading(true);
 
     try {
-      console.log('Starting profile update for user:', user.id);
-      
       // Combine first and last name
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
 
-      // Use upsert with proper conflict resolution
+      // Update user profile with admin role (all users are admins)
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: user.id,
+        .update({
           full_name: fullName,
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone,
           address: formData.address,
-          role: 'admin'
-        }, {
-          onConflict: 'id',
-          ignoreDuplicates: false
-        });
+          role: 'admin', // Ensure all users have admin role
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
 
       if (profileError) {
-        console.error('Profile update error:', profileError);
         throw profileError;
       }
 
-      console.log('Profile updated successfully');
-
       // Update email in auth if changed
       if (formData.email !== user.email) {
-        console.log('Updating email in auth');
         const { error: authError } = await supabase.auth.updateUser({
           email: formData.email
         });
 
         if (authError) {
-          console.error('Auth update error:', authError);
           throw authError;
         }
 
@@ -109,10 +100,9 @@ export const UserDetailsSettings = ({ userProfile, onUpdate }: UserDetailsSettin
 
       onUpdate();
     } catch (error: any) {
-      console.error('Complete update profile error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update profile. Please try again.",
+        description: "Failed to update profile. Please try again.",
         variant: "destructive"
       });
     }

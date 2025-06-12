@@ -1,12 +1,12 @@
 
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Building2, Mail, LogIn, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -16,40 +16,67 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Number verification states
+  const [num1, setNum1] = useState(Math.floor(Math.random() * 10) + 1);
+  const [num2, setNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [isVerificationValid, setIsVerificationValid] = useState(false);
+
+  const correctAnswer = num1 + num2;
+
+  const generateNewNumbers = () => {
+    setNum1(Math.floor(Math.random() * 10) + 1);
+    setNum2(Math.floor(Math.random() * 10) + 1);
+    setUserAnswer("");
+    setIsVerificationValid(false);
+  };
+
+  const handleVerificationChange = (value: string) => {
+    setUserAnswer(value);
+    const answer = parseInt(value);
+    setIsVerificationValid(answer === correctAnswer);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    if (!isVerificationValid) {
+      toast.error("Please solve the math problem correctly");
+      return;
+    }
+    
+    setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
       if (error) {
-        toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully logged in.",
-        });
+        if (error.message.includes("Invalid login credentials") || 
+            error.message.includes("invalid_credentials") ||
+            error.message.includes("Email not confirmed")) {
+          toast.error("Username or password is incorrect. Please check your credentials and try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Please check your email and confirm your account before signing in.");
+        } else {
+          toast.error(error.message || "An error occurred during sign in");
+        }
+        return;
+      }
+
+      if (data.user) {
+        toast.success("Welcome back! Login successful");
         onLoginSuccess();
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      console.error("Login error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -139,22 +166,22 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                 Welcome back
               </CardTitle>
               <CardDescription className="text-base text-gray-600">
-                Sign in to your account
+                Sign in to your admin account
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email Address
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      id="login-email"
+                      id="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="admin@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -164,13 +191,13 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                     Password
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      id="login-password"
+                      id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       value={password}
@@ -188,12 +215,50 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                   </div>
                 </div>
 
+                {/* Security Verification */}
+                <div className="space-y-2">
+                  <Label htmlFor="verification" className="text-sm font-medium text-gray-700">
+                    Security Verification
+                  </Label>
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-gray-700 text-lg font-semibold flex-shrink-0">
+                      {num1} + {num2} = ?
+                    </div>
+                    <Input
+                      id="verification"
+                      type="number"
+                      placeholder="Answer"
+                      value={userAnswer}
+                      onChange={(e) => handleVerificationChange(e.target.value)}
+                      className="w-20 h-10 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={generateNewNumbers}
+                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                      title="Generate new numbers"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </button>
+                    {userAnswer && (
+                      <div className="text-sm flex-shrink-0">
+                        {isVerificationValid ? (
+                          <span className="text-green-600">✓</span>
+                        ) : (
+                          <span className="text-red-600">✗</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={isLoading || !isVerificationValid}
                   className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>Signing in...</span>
@@ -206,6 +271,12 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
                   )}
                 </Button>
               </form>
+
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Secure admin access • All rights granted upon login
+                </p>
+              </div>
             </CardContent>
           </Card>
 

@@ -27,21 +27,18 @@ export const SecurityGuard = ({
       }
 
       try {
-        const { data: profile, error } = await supabase
+        const { data: profile } = await supabase
           .from('user_profiles')
           .select('role')
           .eq('id', user.id)
           .single();
 
-        if (error) {
-          console.error('Error fetching user role:', error);
-          setUserRole('user'); // Default to user role if there's an error
-        } else {
-          setUserRole(profile?.role || 'user');
-        }
+        // Set all authenticated users as admin
+        setUserRole('admin');
       } catch (error) {
         console.error('Error fetching user role:', error);
-        setUserRole('user'); // Default to user role
+        // Default to admin for all authenticated users
+        setUserRole('admin');
       } finally {
         setLoading(false);
       }
@@ -54,21 +51,11 @@ export const SecurityGuard = ({
     return <div className="flex items-center justify-center p-4">Loading...</div>;
   }
 
+  // All authenticated users have admin access
   if (!user) {
     return fallback || (
       <div className="text-center py-8">
         <p className="text-gray-500">You need to be logged in to access this section.</p>
-      </div>
-    );
-  }
-
-  // Check if user's role is in the required roles
-  if (userRole && !requiredRole.includes(userRole)) {
-    return fallback || (
-      <div className="text-center py-8">
-        <p className="text-gray-500">You don't have permission to access this section.</p>
-        <p className="text-sm text-gray-400 mt-2">Required role: {requiredRole.join(', ')}</p>
-        <p className="text-sm text-gray-400">Your role: {userRole}</p>
       </div>
     );
   }

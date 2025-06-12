@@ -8,13 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { SingleDeleteConfirmationModal } from "@/components/ui/single-delete-confirmation-modal";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash, Edit } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash } from "lucide-react";
 
 export const UserManagement = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('admin'); // All users are admin now
   const [newUser, setNewUser] = useState({
     email: '',
     password: '',
@@ -23,10 +23,6 @@ export const UserManagement = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
-  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<any>(null);
-  const [newRole, setNewRole] = useState<string>('');
-  const [updateRoleLoading, setUpdateRoleLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -177,54 +173,6 @@ export const UserManagement = () => {
     }
   };
 
-  const handleEditRoleClick = (user: any) => {
-    setUserToEdit(user);
-    setNewRole(user.role);
-    setShowEditRoleModal(true);
-  };
-
-  const handleUpdateRole = async () => {
-    if (!userToEdit || !newRole) return;
-
-    setUpdateRoleLoading(true);
-
-    try {
-      console.log('Updating user role:', { userId: userToEdit.id, currentRole: userToEdit.role, newRole });
-
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ role: newRole })
-        .eq('id', userToEdit.id);
-
-      if (error) {
-        console.error('Role update error:', error);
-        throw error;
-      }
-
-      console.log('Role updated successfully');
-
-      toast({
-        title: "Success",
-        description: `User role updated to ${newRole} successfully!`
-      });
-
-      fetchUsers();
-      setShowEditRoleModal(false);
-      setUserToEdit(null);
-      setNewRole('');
-
-    } catch (error: any) {
-      console.error('Complete update role error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update user role. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setUpdateRoleLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Create User Dialog */}
@@ -292,60 +240,6 @@ export const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Role Dialog */}
-      <Dialog open={showEditRoleModal} onOpenChange={setShowEditRoleModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit User Role</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>User</Label>
-              <p className="text-sm text-gray-600">{userToEdit?.full_name || 'No name provided'}</p>
-              <p className="text-xs text-gray-500">{userToEdit?.id}</p>
-            </div>
-            <div>
-              <Label htmlFor="role_select">Role</Label>
-              <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Warning:</strong> Changing a user's role will immediately affect their access permissions.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleUpdateRole}
-                disabled={!newRole || newRole === userToEdit?.role || updateRoleLoading}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600"
-              >
-                {updateRoleLoading ? "Updating..." : "Update Role"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowEditRoleModal(false);
-                  setUserToEdit(null);
-                  setNewRole('');
-                }}
-                className="flex-1"
-                disabled={updateRoleLoading}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Users List */}
       <div className="grid gap-4">
         {users.map((user) => (
@@ -354,25 +248,13 @@ export const UserManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="font-medium">{user.full_name || 'No name provided'}</p>
-                  <p className="text-sm text-gray-600">Role: {user.role === 'admin' ? 'Administrator' : 'User'}</p>
+                  <p className="text-sm text-gray-600">Role: Administrator</p>
                   <p className="text-xs text-gray-500">ID: {user.id}</p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    user.role === 'admin' 
-                      ? 'bg-red-100 text-red-800' 
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {user.role === 'admin' ? 'Admin' : 'User'}
+                  <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    Admin
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditRoleClick(user)}
-                    disabled={updateRoleLoading}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
                   <Button 
                     variant="destructive" 
                     size="sm"
