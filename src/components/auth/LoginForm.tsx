@@ -3,9 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Mail, Lock, Eye, EyeOff, UserPlus, LogIn } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,8 +15,6 @@ interface LoginFormProps {
 export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -49,68 +46,6 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       toast({
         title: "Error",
         description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 8) {
-      toast({
-        title: "Password Too Short",
-        description: "Password must be at least 8 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "Registration Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Registration Successful!",
-          description: "Your account has been created. You can now log in.",
-        });
-        // Clear form
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-        setFullName("");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred during registration",
         variant: "destructive",
       });
     } finally {
@@ -176,7 +111,7 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
         </div>
       </div>
 
-      {/* Right side - Login/Register Forms */}
+      {/* Right side - Login Form */}
       <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-6">
           {/* Mobile Logo and Title */}
@@ -199,211 +134,79 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
           </div>
 
           <Card className="shadow-xl border-0 bg-white">
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
-              </TabsList>
+            <CardHeader className="text-center space-y-3 pb-6">
+              <CardTitle className="text-2xl lg:text-3xl font-bold text-gray-900">
+                Welcome back
+              </CardTitle>
+              <CardDescription className="text-base text-gray-600">
+                Sign in to your account
+              </CardDescription>
+            </CardHeader>
 
-              <TabsContent value="login">
-                <CardHeader className="text-center space-y-3 pb-6">
-                  <CardTitle className="text-2xl lg:text-3xl font-bold text-gray-900">
-                    Welcome back
-                  </CardTitle>
-                  <CardDescription className="text-base text-gray-600">
-                    Sign in to your account
-                  </CardDescription>
-                </CardHeader>
+            <CardContent className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
 
-                <CardContent className="space-y-6">
-                  <form onSubmit={handleLogin} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">
-                        Email Address
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="login-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">
-                        Password
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="login-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                <div className="space-y-2">
+                  <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      {loading ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Signing in...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <LogIn className="w-4 h-4" />
-                          <span>Sign In</span>
-                        </div>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </TabsContent>
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
 
-              <TabsContent value="register">
-                <CardHeader className="text-center space-y-3 pb-6">
-                  <CardTitle className="text-2xl lg:text-3xl font-bold text-gray-900">
-                    Create Account
-                  </CardTitle>
-                  <CardDescription className="text-base text-gray-600">
-                    Join our platform today
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <form onSubmit={handleSignUp} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="register-name" className="text-sm font-medium text-gray-700">
-                        Full Name
-                      </Label>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="register-name"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Signing in...</span>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email" className="text-sm font-medium text-gray-700">
-                        Email Address
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="register-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <LogIn className="w-4 h-4" />
+                      <span>Sign In</span>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password" className="text-sm font-medium text-gray-700">
-                        Password
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="register-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Create a password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="pl-10 pr-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Must be at least 8 characters long
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
-                        Confirm Password
-                      </Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="confirm-password"
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Creating account...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <UserPlus className="w-4 h-4" />
-                          <span>Create Account</span>
-                        </div>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </TabsContent>
-            </Tabs>
-
-            <CardFooter>
-              <div className="text-center w-full">
-                <p className="text-xs text-gray-500">
-                  New users will have standard access • Contact admin for elevated privileges
-                </p>
-              </div>
-            </CardFooter>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
           </Card>
 
           {/* Footer */}
