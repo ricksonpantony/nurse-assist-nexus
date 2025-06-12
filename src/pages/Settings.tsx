@@ -7,10 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserDetailsSettings } from "@/components/settings/UserDetailsSettings";
 import { PasswordUpdate } from "@/components/settings/PasswordUpdate";
 import { UserManagement } from "@/components/settings/UserManagement";
-import { User, Lock, Users, Settings as SettingsIcon } from "lucide-react";
+import { Lock, Users, Settings as SettingsIcon } from "lucide-react";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -34,22 +33,6 @@ const Settings = () => {
 
     fetchUserProfile();
   }, [user]);
-
-  const handleProfileUpdate = () => {
-    // Refresh user profile after update
-    const fetchUpdatedProfile = async () => {
-      if (user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        setUserProfile(profile);
-      }
-    };
-    fetchUpdatedProfile();
-  };
 
   if (loading) {
     return (
@@ -94,12 +77,8 @@ const Settings = () => {
 
             <main className="flex-1 p-6">
               <div className="max-w-4xl mx-auto">
-                <Tabs defaultValue="profile" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 bg-white/70 backdrop-blur-sm border border-blue-100 shadow-lg">
-                    <TabsTrigger value="profile" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Profile
-                    </TabsTrigger>
+                <Tabs defaultValue="security" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-white/70 backdrop-blur-sm border border-blue-100 shadow-lg">
                     <TabsTrigger value="security" className="flex items-center gap-2">
                       <Lock className="h-4 w-4" />
                       Security
@@ -113,23 +92,6 @@ const Settings = () => {
                   </TabsList>
 
                   <div className="mt-6">
-                    <TabsContent value="profile" className="space-y-6">
-                      <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-                        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-                          <CardTitle className="flex items-center gap-2">
-                            <User className="h-5 w-5" />
-                            Personal Information
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                          <UserDetailsSettings 
-                            userProfile={userProfile} 
-                            onUpdate={handleProfileUpdate}
-                          />
-                        </CardContent>
-                      </Card>
-                    </TabsContent>
-
                     <TabsContent value="security" className="space-y-6">
                       <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
                         <CardHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-t-lg">
