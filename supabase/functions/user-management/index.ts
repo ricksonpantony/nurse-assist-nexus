@@ -121,33 +121,60 @@ serve(async (req) => {
         })
       }
 
-      // Delete the auth user first
-      const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(user_id)
+      // First, clean up related records that reference this user
+      try {
+        // Update audit logs to set user_id to null instead of deleting them
+        console.log('Updating audit logs to remove user reference...')
+        const { error: auditLogError } = await supabaseClient
+          .from('audit_logs')
+          .update({ 
+            user_id: null,
+            user_email: null // Also clear the email for privacy
+          })
+          .eq('user_id', user_id)
 
-      if (deleteAuthError) {
-        console.log('Auth user delete error:', deleteAuthError)
-        return new Response(JSON.stringify({ error: deleteAuthError.message }), {
+        if (auditLogError) {
+          console.log('Audit log update warning:', auditLogError)
+          // Don't fail the operation, just log the warning
+        }
+
+        // Delete user profile first
+        console.log('Deleting user profile...')
+        const { error: profileDeleteError } = await supabaseClient
+          .from('user_profiles')
+          .delete()
+          .eq('id', user_id)
+
+        if (profileDeleteError) {
+          console.log('Profile delete warning:', profileDeleteError)
+          // Don't fail the operation, just log the warning
+        }
+
+        // Now delete the auth user
+        console.log('Deleting auth user...')
+        const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(user_id)
+
+        if (deleteAuthError) {
+          console.log('Auth user delete error:', deleteAuthError)
+          return new Response(JSON.stringify({ error: deleteAuthError.message }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          })
+        }
+
+        console.log('User deleted successfully:', user_id)
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+
+      } catch (cleanupError) {
+        console.log('Error during cleanup:', cleanupError)
+        return new Response(JSON.stringify({ error: 'Failed to clean up user data: ' + cleanupError.message }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
+          status: 500
         })
       }
-
-      // Delete user profile
-      const { error: profileDeleteError } = await supabaseClient
-        .from('user_profiles')
-        .delete()
-        .eq('id', user_id)
-
-      if (profileDeleteError) {
-        console.log('Profile delete error:', profileDeleteError)
-        // Don't fail if profile deletion fails
-      }
-
-      console.log('User deleted successfully:', user_id)
-
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
     }
 
     if (method === 'PUT' && url.pathname.includes('/update-password')) {
