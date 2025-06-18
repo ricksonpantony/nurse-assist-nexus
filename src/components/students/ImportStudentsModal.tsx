@@ -289,12 +289,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           // Generate student ID automatically
           const studentId = await generateStudentId();
 
-          // Prepare student data
+          // Prepare student data - ensure phone is always a string
           const studentData = {
             id: studentId,
             full_name: row.full_name,
             email: row.email,
-            phone: row.phone,
+            phone: typeof row.phone === 'number' ? String(row.phone) : (row.phone || ''),
             address: row.address || null,
             country: row.country || null,
             passport_id: row.passport_id || null,
