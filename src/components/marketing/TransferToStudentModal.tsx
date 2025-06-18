@@ -102,9 +102,6 @@ export const TransferToStudentModal = ({ lead, courses, onClose, onTransfer }: T
             <DialogTitle className="text-2xl text-blue-900 font-bold">
               Transfer Lead to Student Account
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 

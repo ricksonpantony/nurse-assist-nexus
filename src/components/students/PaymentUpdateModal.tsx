@@ -132,9 +132,6 @@ export const PaymentUpdateModal = ({ isOpen, onClose, student, onPaymentAdded }:
             <DialogTitle className="text-lg font-semibold text-blue-800">
               Record Payment - {student.full_name}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
           <p className="text-sm text-gray-600">Student ID: {student.id}</p>
           <p className="text-sm text-blue-600">Current Status: {student.status}</p>

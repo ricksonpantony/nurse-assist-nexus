@@ -25,9 +25,6 @@ export const LeadDetailsView = ({ lead, courses, referrals, onClose }: LeadDetai
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl text-blue-900">Lead Details</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 

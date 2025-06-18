@@ -133,7 +133,7 @@ export const CourseDetailsModal = ({ isOpen, onClose, course }: CourseDetailsMod
                   </CardDescription>
                   <div className="flex items-center gap-4 mt-3">
                     <Badge variant="outline" className="text-blue-700 border-blue-300">
-                      <DollarSign className="h-3 w-3 mr-1" />
+                      {/* <DollarSign className="h-3 w-3 mr-1" /> */}
                       ${course.fee.toLocaleString()}
                     </Badge>
                     <Badge variant="outline" className="text-blue-700 border-blue-300">

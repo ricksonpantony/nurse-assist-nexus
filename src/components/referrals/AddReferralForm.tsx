@@ -57,9 +57,6 @@ export const AddReferralForm = ({ referral, onClose, onSave }: AddReferralFormPr
             <DialogTitle className="text-xl font-bold text-blue-900">
               {referral ? "Edit Referral" : "Add New Referral"}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 

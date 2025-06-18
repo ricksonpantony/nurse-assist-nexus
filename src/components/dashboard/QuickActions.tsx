@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { UserPlus, BookPlus, CreditCard, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -8,7 +7,7 @@ export const QuickActions = () => {
     { 
       label: "Add Student", 
       icon: UserPlus, 
-      href: "/students", 
+      href: "/students/manage", 
       color: "bg-blue-600 hover:bg-blue-700",
       tooltip: "Register a new student"
     },

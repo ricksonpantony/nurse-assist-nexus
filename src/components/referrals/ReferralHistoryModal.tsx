@@ -37,9 +37,6 @@ export const ReferralHistoryModal = ({ referral, onClose, referralPayments }: Re
             <DialogTitle className="text-xl font-bold text-blue-900">
               Referral History - {referral.full_name}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 
