@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { Student } from '@/hooks/useStudents';
 import { Course } from '@/hooks/useCourses';
@@ -316,8 +315,33 @@ export const formatDateForExcel = (dateString: string): string => {
   return `${day}/${month}/${year}`;
 };
 
-export const parseDateFromExcel = (dateString: string): string => {
-  if (!dateString) return '';
+export const parseDateFromExcel = (dateValue: any): string => {
+  if (!dateValue) return '';
+  
+  // Convert to string if it's not already
+  const dateString = String(dateValue);
+  
+  // Handle Excel date numbers (serial dates)
+  if (typeof dateValue === 'number') {
+    try {
+      // Excel date serial number starts from 1900-01-01
+      const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+      const day = excelDate.getDate().toString().padStart(2, '0');
+      const month = (excelDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = excelDate.getFullYear();
+      return `${year}-${month}-${day}`;
+    } catch {
+      // If conversion fails, treat as string
+    }
+  }
+  
+  // Handle Date objects
+  if (dateValue instanceof Date) {
+    const day = dateValue.getDate().toString().padStart(2, '0');
+    const month = (dateValue.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateValue.getFullYear();
+    return `${year}-${month}-${day}`;
+  }
   
   // Handle dd/mm/yyyy format (preferred)
   if (dateString.includes('/')) {
