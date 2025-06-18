@@ -244,6 +244,34 @@ export const useLeads = () => {
     }
   };
 
+  const transferLeadToStudent = async (leadId: string) => {
+    try {
+      const lead = leads.find(l => l.id === leadId);
+      if (!lead) {
+        throw new Error('Lead not found');
+      }
+
+      // Update lead status to 'Converted to Student'
+      await updateLead(leadId, { 
+        lead_status: 'Converted to Student',
+        status: 'converted'
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Lead converted to student successfully',
+      });
+    } catch (error: any) {
+      console.error('Error transferring lead to student:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to transfer lead to student. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
   }, []);
@@ -254,6 +282,7 @@ export const useLeads = () => {
     addLead,
     updateLead,
     deleteLead,
+    transferLeadToStudent,
     refetch: fetchLeads,
   };
 };

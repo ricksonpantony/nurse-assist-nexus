@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +20,13 @@ const Students = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [batchFilter, setBatchFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("full_name");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
   const { courses, loading: coursesLoading } = useCourses();
   const { toast } = useToast();
@@ -29,25 +34,28 @@ const Students = () => {
   const filteredStudents = useMemo(() => {
     let filtered = [...students];
 
-    if (selectedStatus) {
-      filtered = filtered.filter(student => student.status === selectedStatus);
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(student => student.status === statusFilter);
     }
 
-    if (selectedCourse) {
-      filtered = filtered.filter(student => student.course_id === selectedCourse);
+    if (courseFilter !== "all") {
+      filtered = filtered.filter(student => student.course_id === courseFilter);
     }
 
-    if (searchQuery) {
-      const lowerSearchQuery = searchQuery.toLowerCase();
+    if (searchTerm) {
+      const lowerSearchQuery = searchTerm.toLowerCase();
       filtered = filtered.filter(student =>
-        student.first_name.toLowerCase().includes(lowerSearchQuery) ||
-        student.last_name.toLowerCase().includes(lowerSearchQuery) ||
+        student.full_name.toLowerCase().includes(lowerSearchQuery) ||
         student.email.toLowerCase().includes(lowerSearchQuery)
       );
     }
 
     return filtered;
-  }, [students, selectedStatus, selectedCourse, searchQuery]);
+  }, [students, statusFilter, courseFilter, searchTerm]);
+
+  // Get unique countries and batches from students
+  const countries = [...new Set(students.map(s => s.country).filter(Boolean))];
+  const batches = [...new Set(students.map(s => s.batch_id).filter(Boolean))];
 
   const handleAddStudent = async (studentData: any) => {
     try {
@@ -62,9 +70,9 @@ const Students = () => {
     }
   };
 
-  const handleUpdateStudent = async (studentId: string, updatedStudentData: any) => {
+  const handleUpdateStudent = async (student: any) => {
     try {
-      await updateStudent(studentId, updatedStudentData);
+      await updateStudent(student.id, student);
       toast({
         title: "Success",
         description: "Student updated successfully.",
@@ -108,18 +116,6 @@ const Students = () => {
     setStudentToDelete(null);
   };
 
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
-  };
-
-  const handleCourseChange = (courseId: string) => {
-    setSelectedCourse(courseId);
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
   const handleExportStudents = () => {
     if (students.length === 0) {
       toast({
@@ -134,6 +130,22 @@ const Students = () => {
     toast({
       title: "Export Successful",
       description: "Students data has been exported",
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setCourseFilter("all");
+    setCountryFilter("all");
+    setBatchFilter("all");
+  };
+
+  const handlePrintSelected = () => {
+    // Implementation for printing selected students
+    toast({
+      title: "Print Feature",
+      description: "Print functionality will be implemented",
     });
   };
 
@@ -244,53 +256,59 @@ const Students = () => {
 
               {/* Filters */}
               <StudentsFilter
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                courseFilter={courseFilter}
+                onCourseFilterChange={setCourseFilter}
+                countryFilter={countryFilter}
+                onCountryFilterChange={setCountryFilter}
+                batchFilter={batchFilter}
+                onBatchFilterChange={setBatchFilter}
+                sortBy={sortBy}
+                onSortByChange={setSortBy}
+                sortOrder={sortOrder}
+                onSortOrderChange={setSortOrder}
+                onClearFilters={handleClearFilters}
+                onPrintSelected={handlePrintSelected}
                 courses={courses}
-                onStatusChange={handleStatusChange}
-                onCourseChange={handleCourseChange}
-                onSearchChange={handleSearchChange}
+                countries={countries}
+                batches={batches}
+                selectedStudentsCount={0}
               />
 
               {/* Students Table */}
               <StudentsTable
                 students={filteredStudents}
-                onEdit={(studentId: string, updatedStudentData: any) => {
-                  // Find the student by ID
-                  const studentToUpdate = students.find(student => student.id === studentId);
-                  if (studentToUpdate) {
-                    // Update the student
-                    handleUpdateStudent(studentId, updatedStudentData);
-                  } else {
-                    toast({
-                      title: "Error",
-                      description: "Student not found.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
+                onEdit={handleUpdateStudent}
                 onDelete={handleOpenDeleteConfirmation}
               />
             </main>
 
             {/* Import Students Modal */}
-            <ImportStudentsModal
-              open={showImportModal}
-              onClose={() => setShowImportModal(false)}
-            />
+            {showImportModal && (
+              <ImportStudentsModal
+                onClose={() => setShowImportModal(false)}
+              />
+            )}
 
             {/* Add Student Form Modal */}
-            <AddStudentForm
-              open={showAddForm}
-              onClose={() => setShowAddForm(false)}
-              onSubmit={handleAddStudent}
-              courses={courses}
-            />
+            {showAddForm && (
+              <AddStudentForm
+                onClose={() => setShowAddForm(false)}
+                onSave={handleAddStudent}
+                courses={courses}
+              />
+            )}
 
             {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
-              open={showDeleteConfirmation}
-              onClose={handleCloseDeleteConfirmation}
-              onConfirm={handleDeleteStudent}
-            />
+            {showDeleteConfirmation && (
+              <DeleteConfirmationModal
+                onClose={handleCloseDeleteConfirmation}
+                onConfirm={handleDeleteStudent}
+              />
+            )}
           </div>
         </SidebarInset>
       </div>
