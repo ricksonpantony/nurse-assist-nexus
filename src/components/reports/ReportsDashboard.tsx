@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
-import { Users, GraduationCap, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, GraduationCap, CreditCard, TrendingUp } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -34,37 +34,16 @@ export const ReportsDashboard = () => {
   const totalCompletedStudents = passedStudents + failedStudents;
   const passRate = totalCompletedStudents > 0 ? Math.round((passedStudents / totalCompletedStudents) * 100) : 0;
 
-  // Payment status distribution - calculate payments due vs fully paid
-  const studentsWithPaymentStatus = students.map(student => {
-    const totalFee = Number(student.total_course_fee) || 0;
-    const advancePayment = Number(student.advance_payment) || 0;
-    const remainingAmount = totalFee - advancePayment;
-    return {
-      ...student,
-      isFullyPaid: remainingAmount <= 0,
-      remainingAmount: Math.max(remainingAmount, 0)
-    };
-  });
-
-  const fullyPaidStudents = studentsWithPaymentStatus.filter(s => s.isFullyPaid).length;
-  const paymentsDueStudents = studentsWithPaymentStatus.filter(s => !s.isFullyPaid).length;
-  const totalRevenue = studentsWithPaymentStatus.reduce((sum, s) => sum + (Number(s.advance_payment) || 0), 0);
-  const pendingRevenue = studentsWithPaymentStatus.reduce((sum, s) => sum + s.remainingAmount, 0);
-
-  const paymentStatusData = [
-    { 
-      name: 'Fully Paid', 
-      value: fullyPaidStudents, 
-      color: '#22c55e',
-      percentage: totalStudents > 0 ? Math.round((fullyPaidStudents / totalStudents) * 100) : 0
-    },
-    { 
-      name: 'Payments Due', 
-      value: paymentsDueStudents, 
-      color: '#f59e0b',
-      percentage: totalStudents > 0 ? Math.round((paymentsDueStudents / totalStudents) * 100) : 0
-    },
-  ].filter(item => item.value > 0);
+  // Status distribution - updated to use new status values
+  const statusData = [
+    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
+    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
+    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
+    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
+    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
+    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
+    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
+  ];
 
   // Monthly enrollment data based on actual student join dates
   const monthlyData = [];
@@ -94,41 +73,6 @@ export const ReportsDashboard = () => {
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             Enrollments: <span className="font-medium text-blue-600">{payload[0].value}</span>
           </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Custom tooltip for payment status chart
-  const PaymentTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <div 
-              className="w-4 h-4 rounded-full" 
-              style={{ backgroundColor: data.color }}
-            />
-            <p className="font-semibold text-gray-800">{data.name}</p>
-          </div>
-          <p className="text-sm text-gray-600">
-            Students: <span className="font-medium" style={{ color: data.color }}>{data.value}</span>
-          </p>
-          <p className="text-sm text-gray-600">
-            Percentage: <span className="font-medium" style={{ color: data.color }}>{data.percentage}%</span>
-          </p>
-          {data.name === 'Fully Paid' && (
-            <p className="text-sm text-green-600 mt-1">
-              Revenue Collected: <span className="font-medium">${totalRevenue.toLocaleString()}</span>
-            </p>
-          )}
-          {data.name === 'Payments Due' && (
-            <p className="text-sm text-orange-600 mt-1">
-              Pending Revenue: <span className="font-medium">${pendingRevenue.toLocaleString()}</span>
-            </p>
-          )}
         </div>
       );
     }
@@ -228,69 +172,33 @@ export const ReportsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Status Distribution */}
+      {/* Student Status Distribution */}
       <Card className="col-span-full lg:col-span-2 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-gray-800 flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            Payment Status Distribution
-          </CardTitle>
-          <p className="text-sm text-gray-600">Fully paid vs payments due breakdown</p>
+          <CardTitle className="text-gray-800">Student Status Distribution</CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={paymentStatusData}
+                  data={statusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percentage, value }) => 
-                    value > 0 ? `${name}: ${value} (${percentage}%)` : ''
-                  }
-                  outerRadius={90}
-                  innerRadius={40}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  className="outline-none focus:outline-none"
                 >
-                  {paymentStatusData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color}
-                      stroke={entry.color}
-                      strokeWidth={2}
-                      className="hover:opacity-80 transition-all duration-200 cursor-pointer drop-shadow-sm"
-                    />
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<PaymentTooltip />} />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
-          {paymentStatusData.length === 0 && (
-            <div className="flex items-center justify-center h-[300px] text-gray-500">
-              <div className="text-center">
-                <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No payment data available</p>
-              </div>
-            </div>
-          )}
-          {paymentStatusData.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-2xl font-bold text-green-600">{fullyPaidStudents}</div>
-                <div className="text-sm text-green-700">Fully Paid Students</div>
-                <div className="text-xs text-green-600 mt-1">${totalRevenue.toLocaleString()} collected</div>
-              </div>
-              <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <div className="text-2xl font-bold text-orange-600">{paymentsDueStudents}</div>
-                <div className="text-sm text-orange-700">Payments Due</div>
-                <div className="text-xs text-orange-600 mt-1">${pendingRevenue.toLocaleString()} pending</div>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
