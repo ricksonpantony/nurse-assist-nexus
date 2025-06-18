@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     generateSampleExcel(courses);
     toast({
       title: "Template Downloaded",
-      description: "Student import template with sample data has been downloaded. Please delete sample rows before importing.",
+      description: "Student import template with batch details and sample data has been downloaded. Please delete sample rows before importing.",
     });
   };
 
@@ -223,7 +222,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           // Generate student ID automatically
           const studentId = await generateStudentId();
 
-          // Prepare student data
+          // Prepare student data with batch_id
           const studentData = {
             id: studentId,
             full_name: row.full_name,
@@ -233,6 +232,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             country: row.country || null,
             passport_id: row.passport_id || null,
             course_id: courseId,
+            batch_id: row.batch_id || null,
             join_date: parseDateFromExcel(row.join_date),
             class_start_date: row.class_start_date ? parseDateFromExcel(row.class_start_date) : null,
             status: statusOptions.includes(row.status) ? row.status : 'Attend sessions',
@@ -359,7 +359,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Import Students - Enhanced Template
+            Import Students - Enhanced Template with Batch Details
           </DialogTitle>
         </DialogHeader>
 
@@ -374,7 +374,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-3">
-                Download the enhanced student import template with improved date format (DD/MM/YYYY) and duplicate prevention.
+                Download the enhanced student import template with batch details, improved date format (DD/MM/YYYY) and duplicate prevention.
               </p>
               <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
                 <FileText className="h-4 w-4" />
@@ -390,9 +390,11 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               <strong>Enhanced Template Features:</strong>
               <div className="mt-2 text-sm space-y-1">
                 <div>• <strong>Date Format:</strong> Use DD/MM/YYYY format (e.g., 15/01/2024)</div>
+                <div>• <strong>Batch Details:</strong> Add batch_id column for organizing students into groups</div>
                 <div>• <strong>Duplicate Prevention:</strong> System will skip rows with existing email addresses</div>
                 <div>• <strong>Sample Data:</strong> Delete all sample rows before importing your data</div>
                 <div>• <strong>Email Validation:</strong> Each email must be unique in your import file</div>
+                <div>• <strong>Batch Examples:</strong> Check the "Batch_Examples" sheet for format suggestions</div>
               </div>
             </AlertDescription>
           </Alert>

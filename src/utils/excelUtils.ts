@@ -14,6 +14,7 @@ export interface StudentImportData {
   
   // Course Information
   course_title?: string;
+  batch_id?: string;
   join_date: string;
   class_start_date?: string;
   status: string;
@@ -50,6 +51,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       country: "United States",
       passport_id: "AB123456",
       course_title: courses.length > 0 ? courses[0].title : "Web Development Bootcamp",
+      batch_id: "BATCH-2024-001",
       join_date: "15/01/2024",
       class_start_date: "01/02/2024",
       status: "Attended Online",
@@ -75,6 +77,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       country: "Canada",
       passport_id: "CD789012",
       course_title: courses.length > 1 ? courses[1].title : "Data Science Program",
+      batch_id: "BATCH-2024-002",
       join_date: "20/01/2024",
       class_start_date: "05/02/2024",
       status: "Attend sessions",
@@ -100,6 +103,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       country: "Australia",
       passport_id: "EF345678",
       course_title: courses.length > 2 ? courses[2].title : "Cybersecurity Course",
+      batch_id: "BATCH-2024-003",
       join_date: "25/01/2024",
       class_start_date: "10/02/2024",
       status: "Pass",
@@ -130,6 +134,17 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   
   const courseSheet = XLSX.utils.json_to_sheet(courseInfo);
   
+  // Batch examples sheet
+  const batchExamples = [
+    { Batch_ID_Examples: 'BATCH-2024-001' },
+    { Batch_ID_Examples: 'BATCH-2024-002' },
+    { Batch_ID_Examples: 'BATCH-2024-003' },
+    { Batch_ID_Examples: 'WEB-DEV-JAN-2024' },
+    { Batch_ID_Examples: 'DATA-SCI-FEB-2024' },
+    { Batch_ID_Examples: 'CYBER-SEC-MAR-2024' }
+  ];
+  const batchSheet = XLSX.utils.json_to_sheet(batchExamples);
+  
   // Status options sheet
   const statusOptions = [
     { Status_Options: 'Attended Online' },
@@ -156,6 +171,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Student_Import");
   XLSX.utils.book_append_sheet(wb, courseSheet, "Available_Courses");
+  XLSX.utils.book_append_sheet(wb, batchSheet, "Batch_Examples");
   XLSX.utils.book_append_sheet(wb, statusSheet, "Status_Options");
   XLSX.utils.book_append_sheet(wb, paymentSheet, "Payment_Modes");
   
@@ -168,6 +184,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
     { wch: 15 }, // country
     { wch: 12 }, // passport_id
     { wch: 25 }, // course_title
+    { wch: 18 }, // batch_id
     { wch: 12 }, // join_date
     { wch: 15 }, // class_start_date
     { wch: 20 }, // status
@@ -191,6 +208,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   courseSheet['!cols'] = [
     { wch: 15 }, { wch: 30 }, { wch: 40 }, { wch: 10 }, { wch: 15 }
   ];
+  batchSheet['!cols'] = [{ wch: 25 }];
   statusSheet['!cols'] = [{ wch: 20 }];
   paymentSheet['!cols'] = [{ wch: 20 }];
 
