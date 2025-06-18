@@ -75,6 +75,8 @@ const ManageStudent = () => {
         advance_payment_method: updatedStudent.advance_payment_method || '',
         referral_payment_amount: 0,
         notes: updatedStudent.notes || '',
+        // Ensure country is properly set from the student data
+        country: updatedStudent.country || 'India',
       });
     }
   }, [isEditing, currentStudent]);

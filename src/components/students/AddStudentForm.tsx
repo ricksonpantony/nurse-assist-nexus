@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -63,6 +62,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         ...updatedStudent,
         advance_payment_method: updatedStudent.advance_payment_method || '',
         notes: updatedStudent.notes || '',
+        // Ensure country is properly set from student data
+        country: updatedStudent.country || 'India',
       });
     }
   }, [student]);
