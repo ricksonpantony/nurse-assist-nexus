@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +16,6 @@ import { CourseDistributionChart } from "@/components/dashboard/CourseDistributi
 import { StatusDistributionChart } from "@/components/dashboard/StatusDistributionChart";
 import { MarketingLeadOverview } from "@/components/dashboard/MarketingLeadOverview";
 import { StudentsByCourseChart } from "@/components/dashboard/StudentsByCourseChart";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 
 const Index = () => {
   const { user } = useAuth();
@@ -68,62 +65,55 @@ const Index = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
-            {/* Header Section */}
-            <div className="mb-8 p-6 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 rounded-xl shadow-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-white mb-2">
-                    Welcome back, {getDisplayName()}
-                  </h1>
-                  <p className="text-lg text-blue-100 mb-4">
-                    Educational Management Dashboard
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-3 py-1">
-                      <GraduationCap className="w-4 h-4 mr-1" />
-                      Administrator
-                    </Badge>
-                    <Badge variant="outline" className="border-white/30 text-white px-3 py-1">
-                      Full Access
-                    </Badge>
-                  </div>
-                </div>
-                <QuickActions />
-              </div>
-            </div>
-
-            {/* Dashboard Stats */}
-            <DashboardStats 
-              totalStudents={totalStudents}
-              totalCourses={totalCourses}
-              passedStudents={passedStudents}
-              monthlyEnrollments={monthlyEnrollments}
-              loading={loading}
-            />
-
-            {/* Marketing Leads & Exam Overview Section */}
-            <MarketingLeadOverview students={students} leads={leads} loading={loading} />
-
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <CourseDistributionChart students={students} courses={courses} loading={loading} />
-              <StatusDistributionChart students={students} loading={loading} />
-            </div>
-
-            {/* Students by Course and Pass vs Fail Charts Side by Side */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-              <StudentsByCourseChart students={students} courses={courses} loading={loading} />
-              <EnrollmentChart students={students} loading={loading} />
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50/30">
+      {/* Header Section */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 rounded-xl shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Welcome back, {getDisplayName()}
+            </h1>
+            <p className="text-lg text-blue-100 mb-4">
+              Educational Management Dashboard
+            </p>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-3 py-1">
+                <GraduationCap className="w-4 h-4 mr-1" />
+                Administrator
+              </Badge>
+              <Badge variant="outline" className="border-white/30 text-white px-3 py-1">
+                Full Access
+              </Badge>
             </div>
           </div>
-        </SidebarInset>
+          <QuickActions />
+        </div>
       </div>
-    </SidebarProvider>
+
+      {/* Dashboard Stats */}
+      <DashboardStats 
+        totalStudents={totalStudents}
+        totalCourses={totalCourses}
+        passedStudents={passedStudents}
+        monthlyEnrollments={monthlyEnrollments}
+        loading={loading}
+      />
+
+      {/* Marketing Leads & Exam Overview Section */}
+      <MarketingLeadOverview students={students} leads={leads} loading={loading} />
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <CourseDistributionChart students={students} courses={courses} loading={loading} />
+        <StatusDistributionChart students={students} loading={loading} />
+      </div>
+
+      {/* Students by Course and Pass vs Fail Charts Side by Side */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+        <StudentsByCourseChart students={students} courses={courses} loading={loading} />
+        <EnrollmentChart students={students} loading={loading} />
+      </div>
+    </div>
   );
 };
 

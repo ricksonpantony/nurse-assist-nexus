@@ -1,151 +1,189 @@
 
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Upload, Users, BookOpen, TrendingUp, GraduationCap } from "lucide-react";
+import { Plus, Upload, Download } from "lucide-react";
 import { StudentsTable } from "@/components/students/StudentsTable";
 import { StudentsFilter } from "@/components/students/StudentsFilter";
-import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
-import { AddStudentForm } from "@/components/students/AddStudentForm";
-import { DeleteConfirmationModal } from "@/components/students/DeleteConfirmationModal";
-import { StudentDetailsView } from "@/components/students/StudentDetailsView";
+import { StudentsPrintView } from "@/components/students/StudentsPrintView";
 import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
-import { useStudents } from "@/hooks/useStudents";
+import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { useCourses } from "@/hooks/useCourses";
+import { useStudents } from "@/hooks/useStudents";
+import { exportStudentsToExcel } from "@/utils/excelUtils";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import type { Student } from "@/hooks/useStudents";
 
 const Students = () => {
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [showStudentDetails, setShowStudentDetails] = useState(false);
+  const navigate = useNavigate();
+  const { courses } = useCourses();
+  const { students, loading, deleteStudent, refetch } = useStudents();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
+  const [paymentUpdateStudent, setPaymentUpdateStudent] = useState(null);
+  const { toast } = useToast();
+
+  // Filter and sort states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [batchFilter, setBatchFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("full_name");
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const { students, loading, addStudent, updateStudent, deleteStudent } = useStudents();
-  const { courses, loading: coursesLoading } = useCourses();
-  const { toast } = useToast();
+  const [sortBy, setSortBy] = useState("join_date");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
-  const filteredStudents = useMemo(() => {
+  // Get unique countries and batches for filters
+  const { countries, batches } = useMemo(() => {
+    const uniqueCountries = [...new Set(students.filter(s => s.country).map(s => s.country))].sort();
+    const uniqueBatches = [...new Set(students.filter(s => s.batch_id).map(s => s.batch_id))].sort();
+    return { 
+      countries: uniqueCountries as string[], 
+      batches: uniqueBatches as string[] 
+    };
+  }, [students]);
+
+  // Filter and sort students
+  const filteredAndSortedStudents = useMemo(() => {
     let filtered = [...students];
 
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(student =>
+        student.full_name.toLowerCase().includes(searchLower) ||
+        student.email.toLowerCase().includes(searchLower) ||
+        student.phone.includes(searchTerm) ||
+        student.id.toLowerCase().includes(searchLower) ||
+        (student.passport_id && student.passport_id.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(student => student.status === statusFilter);
     }
 
+    // Apply course filter
     if (courseFilter !== "all") {
       filtered = filtered.filter(student => student.course_id === courseFilter);
     }
 
-    if (searchTerm) {
-      const lowerSearchQuery = searchTerm.toLowerCase();
-      filtered = filtered.filter(student =>
-        student.full_name.toLowerCase().includes(lowerSearchQuery) ||
-        student.email.toLowerCase().includes(lowerSearchQuery)
-      );
+    // Apply country filter
+    if (countryFilter !== "all") {
+      filtered = filtered.filter(student => student.country === countryFilter);
     }
+
+    // Apply batch filter
+    if (batchFilter !== "all") {
+      filtered = filtered.filter(student => student.batch_id === batchFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortBy) {
+        case 'full_name':
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+          break;
+        case 'join_date':
+          aValue = new Date(a.join_date);
+          bValue = new Date(b.join_date);
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'total_course_fee':
+          aValue = a.total_course_fee;
+          bValue = b.total_course_fee;
+          break;
+        case 'country':
+          aValue = a.country || '';
+          bValue = b.country || '';
+          break;
+        case 'id':
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        default:
+          aValue = a[sortBy as keyof Student];
+          bValue = b[sortBy as keyof Student];
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
     return filtered;
-  }, [students, statusFilter, courseFilter, searchTerm]);
+  }, [students, searchTerm, statusFilter, courseFilter, countryFilter, batchFilter, sortBy, sortOrder]);
 
-  // Get unique countries and batches from students
-  const countries = [...new Set(students.map(s => s.country).filter(Boolean))];
-  const batches = [...new Set(students.map(s => s.batch_id).filter(Boolean))];
+  // Get selected students for printing
+  const selectedStudentsForPrint = useMemo(() => {
+    return filteredAndSortedStudents.filter(student => selectedStudents.includes(student.id));
+  }, [filteredAndSortedStudents, selectedStudents]);
 
-  const handleAddStudent = async (studentData: any) => {
-    try {
-      await addStudent(studentData);
-      setShowAddForm(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add student. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleAddStudent = () => {
+    navigate('/students/manage');
   };
 
-  const handleUpdateStudent = async (student: any) => {
-    try {
-      await updateStudent(student.id, student);
-      toast({
-        title: "Success",
-        description: "Student updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update student. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleEditStudent = (student: any) => {
+    console.log('Editing student:', student);
+    navigate(`/students/manage/${student.id}`);
   };
 
   const handleDeleteStudent = async (studentId: string) => {
     try {
       await deleteStudent(studentId);
-      toast({
-        title: "Success",
-        description: "Student deleted successfully.",
-      });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete student. Please try again.",
-        variant: "destructive",
-      });
+      // Error is handled in the hook
     }
   };
 
-  const handleDeleteMultiple = async (studentIds: string[]) => {
+  const handleDeleteMultipleStudents = async (studentIds: string[]) => {
     try {
+      // Delete students one by one (could be optimized with batch delete)
       for (const studentId of studentIds) {
         await deleteStudent(studentId);
       }
-      setSelectedStudents([]);
+      
       toast({
         title: "Success",
-        description: `${studentIds.length} students deleted successfully.`,
+        description: `Successfully deleted ${studentIds.length} student${studentIds.length > 1 ? 's' : ''}`,
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete students. Please try again.",
+        description: "Failed to delete some students",
         variant: "destructive",
       });
     }
   };
 
   const handleViewStudent = (student: any) => {
-    setSelectedStudent(student);
-    setShowStudentDetails(true);
+    navigate(`/students/preview/${student.id}`);
   };
 
   const handleUpdatePayment = (student: any) => {
-    setSelectedStudent(student);
+    setPaymentUpdateStudent(student);
     setShowPaymentModal(true);
   };
 
-  const handleOpenDeleteConfirmation = () => {
-    setShowDeleteConfirmation(true);
-  };
-
-  const handleCloseDeleteConfirmation = () => {
-    setShowDeleteConfirmation(false);
+  const handlePaymentAdded = () => {
+    refetch();
   };
 
   const handleExportStudents = () => {
-    if (students.length === 0) {
+    const studentsToExport = filteredAndSortedStudents.length > 0 ? filteredAndSortedStudents : students;
+    
+    if (studentsToExport.length === 0) {
       toast({
         title: "No Data to Export",
         description: "There are no students to export",
@@ -154,11 +192,16 @@ const Students = () => {
       return;
     }
 
-    // Implementation for CSV export would go here
+    exportStudentsToExcel(studentsToExport, courses);
     toast({
       title: "Export Successful",
-      description: "Students data has been exported",
+      description: `${studentsToExport.length} student records exported to Excel`,
     });
+  };
+
+  const handleImportComplete = () => {
+    refetch();
+    setShowImportModal(false);
   };
 
   const handleClearFilters = () => {
@@ -167,223 +210,155 @@ const Students = () => {
     setCourseFilter("all");
     setCountryFilter("all");
     setBatchFilter("all");
+    setSortBy("join_date");
+    setSortOrder("desc");
+    setSelectedStudents([]);
   };
 
   const handlePrintSelected = () => {
-    // Implementation for printing selected students
-    toast({
-      title: "Print Feature",
-      description: "Print functionality will be implemented",
-    });
+    if (selectedStudents.length === 0) {
+      toast({
+        title: "No Students Selected",
+        description: "Please select students to print",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowPrintView(true);
+    // Use setTimeout to ensure the component is rendered before printing
+    setTimeout(() => {
+      window.print();
+      setShowPrintView(false);
+    }, 100);
   };
 
-  const handleImportComplete = () => {
-    // Refresh students data after import
-    window.location.reload();
+  const handleStudentSelection = (studentIds: string[]) => {
+    setSelectedStudents(studentIds);
   };
 
-  if (loading || coursesLoading) {
+  if (loading) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar />
-          <SidebarInset className="flex-1">
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-              <div className="flex items-center justify-center h-64">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <div className="text-lg text-blue-600 font-medium">Loading students...</div>
-                </div>
-              </div>
-            </div>
-          </SidebarInset>
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-blue-600">Loading students...</div>
         </div>
-      </SidebarProvider>
+      </div>
+    );
+  }
+
+  if (showPrintView) {
+    return (
+      <StudentsPrintView 
+        students={selectedStudentsForPrint} 
+        courses={courses}
+      />
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-            {/* Header */}
-            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-white/80 backdrop-blur-lg px-6 shadow-sm">
-              <div className="flex-1">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 via-indigo-800 to-purple-800 bg-clip-text text-transparent">
-                  Student Management
-                </h1>
-                <p className="text-sm text-blue-600/80">Manage student records and track enrollments</p>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
-                  onClick={handleExportStudents}
-                >
-                  <Download className="h-4 w-4" />
-                  Export
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="gap-2 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 transition-all duration-200"
-                  onClick={() => setShowImportModal(true)}
-                >
-                  <Upload className="h-4 w-4" />
-                  Import
-                </Button>
-                <Button 
-                  onClick={() => setShowAddForm(true)}
-                  className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Student
-                </Button>
-              </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="flex-1 p-6 space-y-6">
-              {/* Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card className="bg-white/70 backdrop-blur-sm border-blue-200/50 shadow-lg hover:shadow-xl transition-all duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-blue-800">Total Students</CardTitle>
-                    <Users className="h-4 w-4 text-blue-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      {students.length}
-                    </div>
-                    <p className="text-xs text-blue-600/70 mt-1">Registered students</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/70 backdrop-blur-sm border-green-200/50 shadow-lg hover:shadow-xl transition-all duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-green-800">Active Enrollments</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                      {students.filter(s => s.status === 'Pass').length}
-                    </div>
-                    <p className="text-xs text-green-600/70 mt-1">Currently enrolled</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/70 backdrop-blur-sm border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-200">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-purple-800">Graduated</CardTitle>
-                    <GraduationCap className="h-4 w-4 text-purple-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      {students.filter(s => s.status === 'Pass').length}
-                    </div>
-                    <p className="text-xs text-purple-600/70 mt-1">Successfully completed</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Filters */}
-              <StudentsFilter
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
-                courseFilter={courseFilter}
-                onCourseFilterChange={setCourseFilter}
-                countryFilter={countryFilter}
-                onCountryFilterChange={setCountryFilter}
-                batchFilter={batchFilter}
-                onBatchFilterChange={setBatchFilter}
-                sortBy={sortBy}
-                onSortByChange={setSortBy}
-                sortOrder={sortOrder}
-                onSortOrderChange={setSortOrder}
-                onClearFilters={handleClearFilters}
-                onPrintSelected={handlePrintSelected}
-                courses={courses}
-                countries={countries}
-                batches={batches}
-                selectedStudentsCount={selectedStudents.length}
-              />
-
-              {/* Students Table */}
-              <StudentsTable
-                students={filteredStudents}
-                courses={courses}
-                onEdit={handleUpdateStudent}
-                onDelete={handleDeleteStudent}
-                onDeleteMultiple={handleDeleteMultiple}
-                onView={handleViewStudent}
-                onUpdatePayment={handleUpdatePayment}
-                onPrintSelected={handlePrintSelected}
-                selectedStudents={selectedStudents}
-                onStudentSelection={setSelectedStudents}
-              />
-            </main>
-
-            {/* Import Students Modal */}
-            {showImportModal && (
-              <ImportStudentsModal
-                isOpen={showImportModal}
-                onClose={() => setShowImportModal(false)}
-                courses={courses}
-                onImportComplete={handleImportComplete}
-              />
-            )}
-
-            {/* Add Student Form Modal */}
-            {showAddForm && (
-              <AddStudentForm
-                onClose={() => setShowAddForm(false)}
-                onSave={handleAddStudent}
-                courses={courses}
-              />
-            )}
-
-            {/* Student Details Modal */}
-            {showStudentDetails && selectedStudent && (
-              <StudentDetailsView
-                student={selectedStudent}
-                courses={courses}
-                onClose={() => {
-                  setShowStudentDetails(false);
-                  setSelectedStudent(null);
-                }}
-                onEdit={handleUpdateStudent}
-              />
-            )}
-
-            {/* Payment Update Modal */}
-            {showPaymentModal && selectedStudent && (
-              <PaymentUpdateModal
-                student={selectedStudent}
-                onClose={() => {
-                  setShowPaymentModal(false);
-                  setSelectedStudent(null);
-                }}
-                onUpdate={handleUpdateStudent}
-              />
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirmation && (
-              <DeleteConfirmationModal
-                isOpen={showDeleteConfirmation}
-                onClose={handleCloseDeleteConfirmation}
-                onConfirm={() => handleDeleteMultiple(selectedStudents)}
-                count={selectedStudents.length}
-                studentNames={students.filter(s => selectedStudents.includes(s.id)).map(s => s.full_name)}
-              />
-            )}
+    <div className="w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <div className="flex flex-col h-full">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/20 bg-gradient-to-r from-white via-blue-50 to-white px-6 shadow-lg backdrop-blur-sm">
+          <div className="flex-1">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Student Management</h1>
+            <p className="text-sm text-blue-600">Manage student enrollment and course assignments</p>
           </div>
-        </SidebarInset>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              className="gap-2"
+              onClick={() => setShowImportModal(true)}
+            >
+              <Upload className="h-4 w-4" />
+              Import Template
+            </Button>
+            <Button 
+              variant="outline"
+              className="gap-2"
+              onClick={handleExportStudents}
+            >
+              <Download className="h-4 w-4" />
+              Export {filteredAndSortedStudents.length !== students.length && `(${filteredAndSortedStudents.length})`}
+            </Button>
+            <Button 
+              onClick={handleAddStudent}
+              className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+            >
+              <Plus className="h-4 w-4" />
+              Add Student
+            </Button>
+          </div>
+        </header>
+
+        <main className="flex-1 p-6">
+          <StudentsFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            courseFilter={courseFilter}
+            onCourseFilterChange={setCourseFilter}
+            countryFilter={countryFilter}
+            onCountryFilterChange={setCountryFilter}
+            batchFilter={batchFilter}
+            onBatchFilterChange={setBatchFilter}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            onClearFilters={handleClearFilters}
+            onPrintSelected={handlePrintSelected}
+            courses={courses}
+            countries={countries}
+            batches={batches}
+            selectedStudentsCount={selectedStudents.length}
+          />
+
+          <StudentsTable
+            students={filteredAndSortedStudents}
+            courses={courses}
+            onEdit={handleEditStudent}
+            onDelete={handleDeleteStudent}
+            onDeleteMultiple={handleDeleteMultipleStudents}
+            onView={handleViewStudent}
+            onUpdatePayment={handleUpdatePayment}
+            onPrintSelected={handlePrintSelected}
+            selectedStudents={selectedStudents}
+            onStudentSelection={handleStudentSelection}
+          />
+
+          {filteredAndSortedStudents.length === 0 && students.length > 0 && (
+            <div className="mt-8 text-center text-gray-500">
+              <p className="text-lg">No students match your search criteria</p>
+              <p className="text-sm">Try adjusting your filters or search terms</p>
+            </div>
+          )}
+        </main>
       </div>
-    </SidebarProvider>
+
+      {/* Payment Update Modal */}
+      {showPaymentModal && paymentUpdateStudent && (
+        <PaymentUpdateModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentUpdateStudent(null);
+          }}
+          student={paymentUpdateStudent}
+          onPaymentAdded={handlePaymentAdded}
+        />
+      )}
+
+      {/* Import Students Modal */}
+      {showImportModal && (
+        <ImportStudentsModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          courses={courses}
+          onImportComplete={handleImportComplete}
+        />
+      )}
+    </div>
   );
 };
 

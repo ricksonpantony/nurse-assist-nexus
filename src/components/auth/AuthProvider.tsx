@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -71,7 +70,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -81,36 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const logout = async () => {
-    try {
-      console.log('Starting logout process...');
-      
-      // Clear local state first
-      setUser(null);
-      setSession(null);
-      
-      // Clear any local storage items
-      localStorage.removeItem('supabase.auth.token');
-      sessionStorage.clear();
-      
-      // Attempt to sign out from Supabase
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      if (error) {
-        console.error('Supabase signOut error:', error);
-        // Don't throw error, just log it since we've already cleared local state
-      }
-      
-      console.log('Logout completed successfully');
-      
-      // Force a page reload to ensure clean state
-      window.location.reload();
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if there's an error, clear local state and reload
-      setUser(null);
-      setSession(null);
-      window.location.reload();
-    }
+    await supabase.auth.signOut();
   };
 
   const value = {
