@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,9 +31,19 @@ export const ImportPreviewModal = ({
   onConfirmImport, 
   onCancelImport 
 }: ImportPreviewModalProps) => {
-  const [editableData, setEditableData] = useState<StudentImportData[]>(importData);
+  const [editableData, setEditableData] = useState<StudentImportData[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [validationErrors, setValidationErrors] = useState<{[key: number]: string[]}>({});
+
+  // Initialize editableData when importData changes
+  useEffect(() => {
+    console.log('ImportPreviewModal received data:', importData);
+    if (importData && importData.length > 0) {
+      setEditableData([...importData]);
+      // Clear previous validation errors
+      setValidationErrors({});
+    }
+  }, [importData]);
 
   const statusOptions = [
     'Attended Online', 'Attend sessions', 'Attended F2F', 
@@ -115,13 +125,18 @@ export const ImportPreviewModal = ({
 
   const hasErrors = Object.keys(validationErrors).length > 0;
 
+  // Debug logging
+  console.log('EditableData:', editableData);
+  console.log('ImportData length:', importData?.length || 0);
+  console.log('EditableData length:', editableData?.length || 0);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Check className="h-5 w-5" />
-            Import Preview - Review & Edit Data
+            Import Preview - Review & Edit Data ({editableData.length} records)
           </DialogTitle>
         </DialogHeader>
 
@@ -149,6 +164,16 @@ export const ImportPreviewModal = ({
             </CardContent>
           </Card>
 
+          {/* Show message if no data */}
+          {editableData.length === 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                No data found to preview. Please check your Excel file and try again.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Error Alert */}
           {hasErrors && (
             <Alert>
@@ -159,279 +184,281 @@ export const ImportPreviewModal = ({
             </Alert>
           )}
 
-          {/* Data Table */}
-          <div className="flex-1">
-            <Tabs defaultValue="basic" className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic Information</TabsTrigger>
-                <TabsTrigger value="course">Course & Status</TabsTrigger>
-                <TabsTrigger value="payments">Payment Details</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic" className="flex-1">
-                <ScrollArea className="h-96">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">Edit</TableHead>
-                        <TableHead>Full Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {editableData.map((row, index) => (
-                        <TableRow key={index} className={validationErrors[index] ? "bg-red-50" : ""}>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="ghost" onClick={() => handleSaveRow(index)}>
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button size="sm" variant="ghost" onClick={() => handleEditRow(index)}>
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.full_name}
-                                onChange={(e) => handleFieldChange(index, 'full_name', e.target.value)}
-                                className="w-full"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.full_name}
-                                {validationErrors[index]?.some(e => e.includes('Full name')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.email}
-                                onChange={(e) => handleFieldChange(index, 'email', e.target.value)}
-                                className="w-full"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.email}
-                                {validationErrors[index]?.some(e => e.includes('email')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.phone}
-                                onChange={(e) => handleFieldChange(index, 'phone', e.target.value)}
-                                className="w-full"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.phone}
-                                {validationErrors[index]?.some(e => e.includes('Phone')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.country || ''}
-                                onChange={(e) => handleFieldChange(index, 'country', e.target.value)}
-                                className="w-full"
-                              />
-                            ) : (
-                              row.country || 'N/A'
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Select
-                                value={row.status}
-                                onValueChange={(value) => handleFieldChange(index, 'status', value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {statusOptions.map(status => (
-                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.status}
-                                {validationErrors[index]?.some(e => e.includes('status')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
+          {/* Data Table - Only show if we have data */}
+          {editableData.length > 0 && (
+            <div className="flex-1">
+              <Tabs defaultValue="basic" className="h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="basic">Basic Information</TabsTrigger>
+                  <TabsTrigger value="course">Course & Status</TabsTrigger>
+                  <TabsTrigger value="payments">Payment Details</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="basic" className="flex-1">
+                  <ScrollArea className="h-96">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Edit</TableHead>
+                          <TableHead>Full Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Country</TableHead>
+                          <TableHead>Status</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </TabsContent>
+                      </TableHeader>
+                      <TableBody>
+                        {editableData.map((row, index) => (
+                          <TableRow key={index} className={validationErrors[index] ? "bg-red-50" : ""}>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <div className="flex gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => handleSaveRow(index)}>
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button size="sm" variant="ghost" onClick={() => handleEditRow(index)}>
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.full_name || ''}
+                                  onChange={(e) => handleFieldChange(index, 'full_name', e.target.value)}
+                                  className="w-full"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.full_name || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('Full name')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.email || ''}
+                                  onChange={(e) => handleFieldChange(index, 'email', e.target.value)}
+                                  className="w-full"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.email || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('email')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.phone || ''}
+                                  onChange={(e) => handleFieldChange(index, 'phone', e.target.value)}
+                                  className="w-full"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.phone || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('Phone')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.country || ''}
+                                  onChange={(e) => handleFieldChange(index, 'country', e.target.value)}
+                                  className="w-full"
+                                />
+                              ) : (
+                                row.country || 'N/A'
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Select
+                                  value={row.status || ''}
+                                  onValueChange={(value) => handleFieldChange(index, 'status', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {statusOptions.map(status => (
+                                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.status || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('status')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </TabsContent>
 
-              <TabsContent value="course" className="flex-1">
-                <ScrollArea className="h-96">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">Edit</TableHead>
-                        <TableHead>Full Name</TableHead>
-                        <TableHead>Course Title</TableHead>
-                        <TableHead>Batch ID</TableHead>
-                        <TableHead>Join Date</TableHead>
-                        <TableHead>Class Start Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {editableData.map((row, index) => (
-                        <TableRow key={index} className={validationErrors[index] ? "bg-red-50" : ""}>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="ghost" onClick={() => handleSaveRow(index)}>
-                                  <Check className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button size="sm" variant="ghost" onClick={() => handleEditRow(index)}>
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </TableCell>
-                          <TableCell>{row.full_name}</TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Select
-                                value={row.course_title || ''}
-                                onValueChange={(value) => handleFieldChange(index, 'course_title', value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select course" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {courses.map(course => (
-                                    <SelectItem key={course.id} value={course.title}>{course.title}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.course_title || 'N/A'}
-                                {validationErrors[index]?.some(e => e.includes('Course')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.batch_id || ''}
-                                onChange={(e) => handleFieldChange(index, 'batch_id', e.target.value)}
-                                className="w-full"
-                              />
-                            ) : (
-                              row.batch_id || 'N/A'
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.join_date}
-                                onChange={(e) => handleFieldChange(index, 'join_date', e.target.value)}
-                                placeholder="DD/MM/YYYY"
-                                className="w-full"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {row.join_date}
-                                {validationErrors[index]?.some(e => e.includes('Join date')) && (
-                                  <Badge variant="destructive" className="text-xs">Error</Badge>
-                                )}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {editingIndex === index ? (
-                              <Input
-                                value={row.class_start_date || ''}
-                                onChange={(e) => handleFieldChange(index, 'class_start_date', e.target.value)}
-                                placeholder="DD/MM/YYYY"
-                                className="w-full"
-                              />
-                            ) : (
-                              row.class_start_date || 'N/A'
-                            )}
-                          </TableCell>
+                <TabsContent value="course" className="flex-1">
+                  <ScrollArea className="h-96">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">Edit</TableHead>
+                          <TableHead>Full Name</TableHead>
+                          <TableHead>Course Title</TableHead>
+                          <TableHead>Batch ID</TableHead>
+                          <TableHead>Join Date</TableHead>
+                          <TableHead>Class Start Date</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </TabsContent>
+                      </TableHeader>
+                      <TableBody>
+                        {editableData.map((row, index) => (
+                          <TableRow key={index} className={validationErrors[index] ? "bg-red-50" : ""}>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <div className="flex gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => handleSaveRow(index)}>
+                                    <Check className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button size="sm" variant="ghost" onClick={() => handleEditRow(index)}>
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </TableCell>
+                            <TableCell>{row.full_name || 'N/A'}</TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Select
+                                  value={row.course_title || ''}
+                                  onValueChange={(value) => handleFieldChange(index, 'course_title', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select course" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {courses.map(course => (
+                                      <SelectItem key={course.id} value={course.title}>{course.title}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.course_title || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('Course')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.batch_id || ''}
+                                  onChange={(e) => handleFieldChange(index, 'batch_id', e.target.value)}
+                                  className="w-full"
+                                />
+                              ) : (
+                                row.batch_id || 'N/A'
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.join_date || ''}
+                                  onChange={(e) => handleFieldChange(index, 'join_date', e.target.value)}
+                                  placeholder="DD/MM/YYYY"
+                                  className="w-full"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {row.join_date || 'N/A'}
+                                  {validationErrors[index]?.some(e => e.includes('Join date')) && (
+                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                  )}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {editingIndex === index ? (
+                                <Input
+                                  value={row.class_start_date || ''}
+                                  onChange={(e) => handleFieldChange(index, 'class_start_date', e.target.value)}
+                                  placeholder="DD/MM/YYYY"
+                                  className="w-full"
+                                />
+                              ) : (
+                                row.class_start_date || 'N/A'
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </TabsContent>
 
-              <TabsContent value="payments" className="flex-1">
-                <ScrollArea className="h-96">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Total Fee</TableHead>
-                        <TableHead>Advance</TableHead>
-                        <TableHead>Second</TableHead>
-                        <TableHead>Third</TableHead>
-                        <TableHead>Final</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {editableData.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{row.full_name}</TableCell>
-                          <TableCell>${row.total_course_fee || 0}</TableCell>
-                          <TableCell>
-                            {row.advance_payment_amount ? `$${row.advance_payment_amount} (${row.advance_payment_mode})` : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            {row.second_payment_amount ? `$${row.second_payment_amount} (${row.second_payment_mode})` : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            {row.third_payment_amount ? `$${row.third_payment_amount} (${row.third_payment_mode})` : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            {row.final_payment_amount ? `$${row.final_payment_amount} (${row.final_payment_mode})` : 'N/A'}
-                          </TableCell>
+                <TabsContent value="payments" className="flex-1">
+                  <ScrollArea className="h-96">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student</TableHead>
+                          <TableHead>Total Fee</TableHead>
+                          <TableHead>Advance</TableHead>
+                          <TableHead>Second</TableHead>
+                          <TableHead>Third</TableHead>
+                          <TableHead>Final</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          </div>
+                      </TableHeader>
+                      <TableBody>
+                        {editableData.map((row, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{row.full_name || 'N/A'}</TableCell>
+                            <TableCell>${row.total_course_fee || 0}</TableCell>
+                            <TableCell>
+                              {row.advance_payment_amount ? `$${row.advance_payment_amount} (${row.advance_payment_mode || 'N/A'})` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {row.second_payment_amount ? `$${row.second_payment_amount} (${row.second_payment_mode || 'N/A'})` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {row.third_payment_amount ? `$${row.third_payment_amount} (${row.third_payment_mode || 'N/A'})` : 'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {row.final_payment_amount ? `$${row.final_payment_amount} (${row.final_payment_mode || 'N/A'})` : 'N/A'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
 
           {/* Error Details */}
           {hasErrors && (
@@ -443,7 +470,7 @@ export const ImportPreviewModal = ({
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {Object.entries(validationErrors).map(([index, errors]) => (
                     <div key={index} className="text-sm">
-                      <strong>Row {parseInt(index) + 1} ({editableData[parseInt(index)].full_name}):</strong>
+                      <strong>Row {parseInt(index) + 1} ({editableData[parseInt(index)]?.full_name || 'Unknown'}):</strong>
                       <ul className="ml-4 list-disc text-red-600">
                         {errors.map((error, i) => <li key={i}>{error}</li>)}
                       </ul>
@@ -461,7 +488,7 @@ export const ImportPreviewModal = ({
             </Button>
             <Button 
               onClick={handleConfirmImport}
-              disabled={hasErrors}
+              disabled={hasErrors || editableData.length === 0}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Confirm Import ({editableData.length - Object.keys(validationErrors).length} records)

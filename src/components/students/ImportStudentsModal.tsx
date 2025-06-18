@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -88,10 +89,24 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     }
 
     try {
+      console.log('Starting to parse Excel file:', file.name);
       const data = await parseExcelFile(file);
+      console.log('Parsed Excel data:', data);
+      
+      if (!data || data.length === 0) {
+        toast({
+          title: "No Data Found",
+          description: "The Excel file appears to be empty or contains no valid data rows.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setPreviewData(data);
       setShowPreview(true);
+      console.log('Setting preview data and showing preview modal');
     } catch (error) {
+      console.error('Excel parsing error:', error);
       toast({
         title: "File Parsing Failed",
         description: error instanceof Error ? error.message : "Failed to parse Excel file",
