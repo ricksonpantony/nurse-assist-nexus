@@ -31,6 +31,9 @@ export interface StudentImportData {
   second_payment_amount?: number;
   second_payment_mode?: string;
   second_payment_date?: string;
+  third_payment_amount?: number;
+  third_payment_mode?: string;
+  third_payment_date?: string;
   final_payment_amount?: number;
   final_payment_mode?: string;
   final_payment_date?: string;
@@ -64,8 +67,11 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       second_payment_amount: 1500,
       second_payment_mode: "Bank Transfer",
       second_payment_date: "15/02/2024",
-      final_payment_amount: 2500,
-      final_payment_mode: "Credit Card",
+      third_payment_amount: 1000,
+      third_payment_mode: "Credit Card",
+      third_payment_date: "15/03/2024",
+      final_payment_amount: 1500,
+      final_payment_mode: "Bank Transfer",
       final_payment_date: "15/04/2024",
       notes: "Student prefers online sessions"
     },
@@ -90,9 +96,12 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       second_payment_amount: 2500,
       second_payment_mode: "Credit Card",
       second_payment_date: "20/02/2024",
-      final_payment_amount: 2500,
-      final_payment_mode: "Bank Transfer",
-      final_payment_date: "20/03/2024",
+      third_payment_amount: 1500,
+      third_payment_mode: "Bank Transfer",
+      third_payment_date: "20/03/2024",
+      final_payment_amount: 1000,
+      final_payment_mode: "Credit Card",
+      final_payment_date: "20/04/2024",
       notes: "Needs flexible schedule"
     },
     {
@@ -113,9 +122,12 @@ export const generateSampleExcel = (courses: Course[] = []) => {
       advance_payment_amount: 1500,
       advance_payment_mode: "Cash",
       advance_payment_date: "25/01/2024",
-      final_payment_amount: 3000,
-      final_payment_mode: "Bank Transfer",
-      final_payment_date: "25/02/2024",
+      second_payment_amount: 1500,
+      second_payment_mode: "Bank Transfer",
+      second_payment_date: "25/02/2024",
+      final_payment_amount: 1500,
+      final_payment_mode: "Credit Card",
+      final_payment_date: "25/03/2024",
       notes: "Previous IT experience"
     }
   ];
@@ -175,7 +187,7 @@ export const generateSampleExcel = (courses: Course[] = []) => {
   XLSX.utils.book_append_sheet(wb, statusSheet, "Status_Options");
   XLSX.utils.book_append_sheet(wb, paymentSheet, "Payment_Modes");
   
-  // Set column widths for better readability
+  // Set column widths for better readability (updated for new payment column)
   const colWidths = [
     { wch: 30 }, // full_name
     { wch: 30 }, // email
@@ -197,6 +209,9 @@ export const generateSampleExcel = (courses: Course[] = []) => {
     { wch: 20 }, // second_payment_amount
     { wch: 20 }, // second_payment_mode
     { wch: 20 }, // second_payment_date
+    { wch: 20 }, // third_payment_amount
+    { wch: 20 }, // third_payment_mode
+    { wch: 20 }, // third_payment_date
     { wch: 20 }, // final_payment_amount
     { wch: 20 }, // final_payment_mode
     { wch: 20 }, // final_payment_date

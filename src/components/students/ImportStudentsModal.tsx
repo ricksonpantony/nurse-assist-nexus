@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Download, FileText, AlertCircle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { parseExcelFile, generateSampleExcel, parseDateFromExcel, StudentImportData } from "@/utils/excelUtils";
+import { ImportPreviewModal } from "./ImportPreviewModal";
 import { Course } from "@/hooks/useCourses";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,6 +39,8 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<StudentImportData[]>([]);
   const { toast } = useToast();
 
   const statusOptions = [
@@ -70,8 +73,31 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     generateSampleExcel(courses);
     toast({
       title: "Template Downloaded",
-      description: "Student import template with batch details and sample data has been downloaded. Please delete sample rows before importing.",
+      description: "Student import template with enhanced payment stages and batch details has been downloaded. Please delete sample rows before importing.",
     });
+  };
+
+  const handlePreviewImport = async () => {
+    if (!file) {
+      toast({
+        title: "No File Selected",
+        description: "Please select an Excel file to import",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const data = await parseExcelFile(file);
+      setPreviewData(data);
+      setShowPreview(true);
+    } catch (error) {
+      toast({
+        title: "File Parsing Failed",
+        description: error instanceof Error ? error.message : "Failed to parse Excel file",
+        variant: "destructive",
+      });
+    }
   };
 
   const generateStudentId = async () => {
@@ -175,17 +201,9 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     return !error && data !== null;
   };
 
-  const handleImport = async () => {
-    if (!file) {
-      toast({
-        title: "No File Selected",
-        description: "Please select an Excel file to import",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleConfirmImport = async (data: StudentImportData[]) => {
     setIsProcessing(true);
+    setShowPreview(false);
     const errors: ImportError[] = [];
     const failedStudents: string[] = [];
     let successCount = 0;
@@ -193,39 +211,13 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     let skippedCount = 0;
 
     try {
-      const data = await parseExcelFile(file);
-      
       for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const rowNumber = i + 2; // Excel rows start from 2 (after header)
+        const rowNumber = i + 2;
         const studentName = row.full_name || 'Unknown Student';
         const studentEmail = row.email || 'No Email';
         
         try {
-          // Skip sample data (already filtered in parseExcelFile)
-          if (row.full_name?.includes('(SAMPLE - DELETE THIS ROW)')) {
-            continue;
-          }
-
-          // Validate required fields
-          if (!row.full_name || !row.email || !row.phone || !row.join_date) {
-            const missingFields = [];
-            if (!row.full_name) missingFields.push('full_name');
-            if (!row.email) missingFields.push('email');
-            if (!row.phone) missingFields.push('phone');
-            if (!row.join_date) missingFields.push('join_date');
-            
-            errors.push({
-              rowNumber,
-              studentName,
-              email: studentEmail,
-              error: `Missing required fields: ${missingFields.join(', ')}`,
-              rawData: row
-            });
-            failedStudents.push(studentName);
-            continue;
-          }
-
           // Check for duplicate email
           const emailExists = await checkEmailExists(row.email);
           if (emailExists) {
@@ -262,19 +254,6 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             }
           }
 
-          // Validate status
-          if (row.status && !statusOptions.includes(row.status)) {
-            errors.push({
-              rowNumber,
-              studentName,
-              email: studentEmail,
-              error: `Invalid status "${row.status}". Valid options: ${statusOptions.join(', ')}`,
-              rawData: row
-            });
-            failedStudents.push(studentName);
-            continue;
-          }
-
           // Handle referral
           let referralId = null;
           try {
@@ -295,7 +274,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
           // Generate student ID automatically
           const studentId = await generateStudentId();
 
-          // Prepare student data with batch_id
+          // Prepare student data
           const studentData = {
             id: studentId,
             full_name: row.full_name,
@@ -345,7 +324,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             continue;
           }
 
-          // Process payments
+          // Process payments with new third payment stage
           const payments = [];
           
           if (row.advance_payment_amount && row.advance_payment_amount > 0) {
@@ -365,6 +344,16 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               amount: row.second_payment_amount,
               payment_mode: paymentModes.includes(row.second_payment_mode || '') ? row.second_payment_mode : 'Bank Transfer',
               payment_date: row.second_payment_date ? parseDateFromExcel(row.second_payment_date) : parseDateFromExcel(row.join_date),
+            });
+          }
+
+          if (row.third_payment_amount && row.third_payment_amount > 0) {
+            payments.push({
+              student_id: studentId,
+              stage: 'Third',
+              amount: row.third_payment_amount,
+              payment_mode: paymentModes.includes(row.third_payment_mode || '') ? row.third_payment_mode : 'Bank Transfer',
+              payment_date: row.third_payment_date ? parseDateFromExcel(row.third_payment_date) : parseDateFromExcel(row.join_date),
             });
           }
 
@@ -459,212 +448,231 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     }
   };
 
+  const handleCancelImport = () => {
+    setShowPreview(false);
+    setPreviewData([]);
+  };
+
   const handleClose = () => {
     setFile(null);
     setImportResults(null);
+    setShowPreview(false);
+    setPreviewData([]);
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-blue-800 flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Import Students - Enhanced Template with Batch Details
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen && !showPreview} onOpenChange={handleClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-blue-800 flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Import Students - Enhanced Template with Additional Payment Stage
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Download Template Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Download Enhanced Template
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 mb-3">
-                Download the enhanced student import template with batch details, improved date format (DD/MM/YYYY) and duplicate prevention.
-              </p>
-              <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
-                <FileText className="h-4 w-4" />
-                Download Template
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Template Information */}
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Enhanced Template Features:</strong>
-              <div className="mt-2 text-sm space-y-1">
-                <div>• <strong>Date Format:</strong> Use DD/MM/YYYY format (e.g., 15/01/2024)</div>
-                <div>• <strong>Batch Details:</strong> Add batch_id column for organizing students into groups</div>
-                <div>• <strong>Duplicate Prevention:</strong> System will skip rows with existing email addresses</div>
-                <div>• <strong>Sample Data:</strong> Delete all sample rows before importing your data</div>
-                <div>• <strong>Email Validation:</strong> Each email must be unique in your import file</div>
-                <div>• <strong>Batch Examples:</strong> Check the "Batch_Examples" sheet for format suggestions</div>
-              </div>
-            </AlertDescription>
-          </Alert>
-
-          {/* Course Information */}
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Available Courses:</strong>
-              <div className="mt-2 space-y-1 text-sm">
-                {courses.length > 0 ? (
-                  courses.map(course => (
-                    <div key={course.id}>
-                      • <strong>{course.title}</strong> - ${course.fee} ({course.period_months} months)
-                      {course.description && <div className="ml-4 text-gray-600">{course.description}</div>}
-                    </div>
-                  ))
-                ) : (
-                  <div>No courses available. Please add courses first.</div>
-                )}
-              </div>
-            </AlertDescription>
-          </Alert>
-
-          {/* File Upload Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Upload Excel File</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label htmlFor="excel-file">Select Excel File (.xlsx)</Label>
-                <Input
-                  id="excel-file"
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleFileChange}
-                  className="mt-1"
-                />
-              </div>
-              
-              {file && (
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Important Guidelines */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Import Guidelines:</strong>
-              <ul className="mt-2 space-y-1 text-sm">
-                <li>• Course title must exactly match one from your course list</li>
-                <li>• Student ID is auto-generated, don't include it in import data</li>
-                <li>• Sample data rows are automatically excluded from import</li>
-                <li>• New referral accounts created for unrecognized referrer names</li>
-                <li>• Course fee auto-populated from course selection</li>
-                <li>• Empty payment amounts won't create payment records</li>
-                <li>• Required fields: full_name, email, phone, course_title, join_date</li>
-                <li>• Duplicate emails will be skipped and reported</li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-
-          {/* Enhanced Import Results */}
-          {importResults && (
+          <div className="space-y-6">
+            {/* Download Template Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Detailed Import Results</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Download Enhanced Template
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {/* Summary */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="font-semibold text-green-800">Successfully Imported</div>
-                      <div className="text-2xl font-bold text-green-600">{importResults.success}</div>
-                    </div>
-                    <div className="bg-red-50 p-3 rounded-lg">
-                      <div className="font-semibold text-red-800">Failed</div>
-                      <div className="text-2xl font-bold text-red-600">{importResults.errors.length}</div>
-                    </div>
-                    <div className="bg-yellow-50 p-3 rounded-lg">
-                      <div className="font-semibold text-yellow-800">Skipped (Duplicates)</div>
-                      <div className="text-2xl font-bold text-yellow-600">{importResults.skipped}</div>
-                    </div>
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="font-semibold text-blue-800">Referrals Created</div>
-                      <div className="text-2xl font-bold text-blue-600">{importResults.referralsCreated}</div>
-                    </div>
-                  </div>
-
-                  {/* Failed Students List */}
-                  {importResults.failedStudents.length > 0 && (
-                    <div className="bg-red-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-red-800 mb-2">Students Not Imported:</h4>
-                      <div className="text-sm text-red-700">
-                        {importResults.failedStudents.join(', ')}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Detailed Error List */}
-                  {importResults.errors.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-red-800 mb-3">Detailed Error Report:</h4>
-                      <div className="max-h-60 overflow-y-auto space-y-3">
-                        {importResults.errors.map((error, index) => (
-                          <div key={index} className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <div className="font-semibold text-red-800">
-                                  Row {error.rowNumber}: {error.studentName}
-                                </div>
-                                <div className="text-sm text-red-600">Email: {error.email}</div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-red-700 mb-2">
-                              <strong>Error:</strong> {error.error}
-                            </div>
-                            <details className="text-xs">
-                              <summary className="cursor-pointer text-red-600 hover:text-red-800">
-                                View Raw Data
-                              </summary>
-                              <pre className="mt-2 bg-gray-100 p-2 rounded overflow-x-auto text-gray-700">
-                                {JSON.stringify(error.rawData, null, 2)}
-                              </pre>
-                            </details>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Download the enhanced student import template with additional payment stage (Third Payment) and comprehensive preview functionality.
+                </p>
+                <Button onClick={handleDownloadSample} variant="outline" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Download Template
+                </Button>
               </CardContent>
             </Card>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={handleClose}>
-              Close
-            </Button>
-            <Button 
-              onClick={handleImport} 
-              disabled={!file || isProcessing}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isProcessing ? "Processing..." : "Import Students"}
-            </Button>
+            {/* Template Information */}
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Enhanced Template Features:</strong>
+                <div className="mt-2 text-sm space-y-1">
+                  <div>• <strong>Additional Payment Stage:</strong> Third payment stage added between second and final payments</div>
+                  <div>• <strong>Data Preview:</strong> Review and edit all data before importing to database</div>
+                  <div>• <strong>Error Correction:</strong> Fix validation errors directly in the preview window</div>
+                  <div>• <strong>Payment Stages:</strong> Advance → Second → Third → Final payment structure</div>
+                  <div>• <strong>Batch Organization:</strong> Group students using batch_id field</div>
+                  <div>• <strong>Duplicate Prevention:</strong> System will skip rows with existing email addresses</div>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            {/* File Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Upload Excel File</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="excel-file">Select Excel File (.xlsx)</Label>
+                  <Input
+                    id="excel-file"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleFileChange}
+                    className="mt-1"
+                  />
+                </div>
+                
+                {file && (
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Course Information */}
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Available Courses:</strong>
+                <div className="mt-2 space-y-1 text-sm">
+                  {courses.length > 0 ? (
+                    courses.map(course => (
+                      <div key={course.id}>
+                        • <strong>{course.title}</strong> - ${course.fee} ({course.period_months} months)
+                        {course.description && <div className="ml-4 text-gray-600">{course.description}</div>}
+                      </div>
+                    ))
+                  ) : (
+                    <div>No courses available. Please add courses first.</div>
+                  )}
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            {/* Important Guidelines */}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Import Guidelines:</strong>
+                <ul className="mt-2 space-y-1 text-sm">
+                  <li>• Course title must exactly match one from your course list</li>
+                  <li>• Student ID is auto-generated, don't include it in import data</li>
+                  <li>• Sample data rows are automatically excluded from import</li>
+                  <li>• New referral accounts created for unrecognized referrer names</li>
+                  <li>• Course fee auto-populated from course selection</li>
+                  <li>• Empty payment amounts won't create payment records</li>
+                  <li>• Required fields: full_name, email, phone, course_title, join_date</li>
+                  <li>• Duplicate emails will be skipped and reported</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+
+            {/* Enhanced Import Results */}
+            {importResults && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Detailed Import Results</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="font-semibold text-green-800">Successfully Imported</div>
+                        <div className="text-2xl font-bold text-green-600">{importResults.success}</div>
+                      </div>
+                      <div className="bg-red-50 p-3 rounded-lg">
+                        <div className="font-semibold text-red-800">Failed</div>
+                        <div className="text-2xl font-bold text-red-600">{importResults.errors.length}</div>
+                      </div>
+                      <div className="bg-yellow-50 p-3 rounded-lg">
+                        <div className="font-semibold text-yellow-800">Skipped (Duplicates)</div>
+                        <div className="text-2xl font-bold text-yellow-600">{importResults.skipped}</div>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="font-semibold text-blue-800">Referrals Created</div>
+                        <div className="text-2xl font-bold text-blue-600">{importResults.referralsCreated}</div>
+                      </div>
+                    </div>
+
+                    {/* Failed Students List */}
+                    {importResults.failedStudents.length > 0 && (
+                      <div className="bg-red-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-red-800 mb-2">Students Not Imported:</h4>
+                        <div className="text-sm text-red-700">
+                          {importResults.failedStudents.join(', ')}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Detailed Error List */}
+                    {importResults.errors.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-red-800 mb-3">Detailed Error Report:</h4>
+                        <div className="max-h-60 overflow-y-auto space-y-3">
+                          {importResults.errors.map((error, index) => (
+                            <div key={index} className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <div className="font-semibold text-red-800">
+                                    Row {error.rowNumber}: {error.studentName}
+                                  </div>
+                                  <div className="text-sm text-red-600">Email: {error.email}</div>
+                                </div>
+                              </div>
+                              <div className="text-sm text-red-700 mb-2">
+                                <strong>Error:</strong> {error.error}
+                              </div>
+                              <details className="text-xs">
+                                <summary className="cursor-pointer text-red-600 hover:text-red-800">
+                                  View Raw Data
+                                </summary>
+                                <pre className="mt-2 bg-gray-100 p-2 rounded overflow-x-auto text-gray-700">
+                                  {JSON.stringify(error.rawData, null, 2)}
+                                </pre>
+                              </details>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={handleClose}>
+                Close
+              </Button>
+              <Button 
+                onClick={handlePreviewImport} 
+                disabled={!file || isProcessing}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isProcessing ? "Processing..." : "Preview Import"}
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Modal */}
+      <ImportPreviewModal
+        isOpen={showPreview}
+        onClose={handleCancelImport}
+        importData={previewData}
+        courses={courses}
+        onConfirmImport={handleConfirmImport}
+        onCancelImport={handleCancelImport}
+      />
+    </>
   );
 };
