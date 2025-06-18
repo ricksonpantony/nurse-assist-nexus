@@ -4,7 +4,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
 import { Users, GraduationCap, CreditCard, TrendingUp } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
 const chartConfig = {
   students: {
@@ -34,16 +34,16 @@ export const ReportsDashboard = () => {
   const totalCompletedStudents = passedStudents + failedStudents;
   const passRate = totalCompletedStudents > 0 ? Math.round((passedStudents / totalCompletedStudents) * 100) : 0;
 
-  // Status distribution - updated to use new status values
+  // Status distribution - updated to use new status values with enhanced colors
   const statusData = [
-    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
-    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
-    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
-    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
-    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
-    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
-    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
-  ];
+    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6', hoverColor: '#2563eb' },
+    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981', hoverColor: '#059669' },
+    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b', hoverColor: '#d97706' },
+    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444', hoverColor: '#dc2626' },
+    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6', hoverColor: '#7c3aed' },
+    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e', hoverColor: '#16a34a' },
+    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444', hoverColor: '#dc2626' },
+  ].filter(item => item.value > 0); // Only show statuses with data
 
   // Monthly enrollment data based on actual student join dates
   const monthlyData = [];
@@ -77,6 +77,46 @@ export const ReportsDashboard = () => {
       );
     }
     return null;
+  };
+
+  // Enhanced custom tooltip for status distribution
+  const StatusTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      const percentage = totalStudents > 0 ? ((data.value / totalStudents) * 100).toFixed(1) : '0';
+      return (
+        <div className="bg-white/95 backdrop-blur-sm p-4 border border-gray-200 rounded-xl shadow-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <div 
+              className="w-4 h-4 rounded-full shadow-sm" 
+              style={{ backgroundColor: data.payload.color }}
+            />
+            <p className="font-semibold text-gray-800">{data.payload.name}</p>
+          </div>
+          <p className="text-sm text-gray-600">
+            Students: <span className="font-bold text-blue-600">{data.value}</span>
+          </p>
+          <p className="text-sm text-gray-600">
+            Percentage: <span className="font-bold text-purple-600">{percentage}%</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Enhanced pie chart cell component with hover effects
+  const InteractiveCell = ({ index, ...props }: any) => {
+    return (
+      <Cell 
+        {...props}
+        className="cursor-pointer transition-all duration-300 hover:brightness-110 hover:scale-105"
+        style={{
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+          transformOrigin: 'center'
+        }}
+      />
+    );
   };
 
   return (
@@ -172,33 +212,67 @@ export const ReportsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Student Status Distribution */}
+      {/* Enhanced Interactive Student Status Distribution */}
       <Card className="col-span-full lg:col-span-2 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-gray-800">Student Status Distribution</CardTitle>
+          <CardTitle className="text-gray-800 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
+            Interactive Student Status Distribution
+          </CardTitle>
+          <p className="text-sm text-gray-600">Hover over sections for detailed information</p>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {statusData.length > 0 ? (
+            <div className="h-[300px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={90}
+                    innerRadius={30}
+                    fill="#8884d8"
+                    dataKey="value"
+                    animationBegin={0}
+                    animationDuration={1000}
+                    className="outline-none"
+                  >
+                    {statusData.map((entry, index) => (
+                      <InteractiveCell 
+                        key={`cell-${index}`} 
+                        fill={entry.color}
+                        index={index}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<StatusTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              
+              {/* Status Legend */}
+              <div className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-2 mt-4">
+                {statusData.map((status, index) => (
+                  <div key={index} className="flex items-center gap-1 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: status.color }}
+                    />
+                    <span className="text-gray-700">{status.name}: {status.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              <div className="text-center">
+                <TrendingUp className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No status data available</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
