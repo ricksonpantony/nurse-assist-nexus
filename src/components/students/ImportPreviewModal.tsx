@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,12 @@ export const ImportPreviewModal = ({
   useEffect(() => {
     console.log('ImportPreviewModal received data:', importData);
     if (importData && importData.length > 0) {
-      setEditableData([...importData]);
+      // Convert phone numbers to strings if they're numbers
+      const processedData = importData.map(row => ({
+        ...row,
+        phone: typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '')
+      }));
+      setEditableData(processedData);
       // Clear previous validation errors
       setValidationErrors({});
     }
@@ -57,12 +61,25 @@ export const ImportPreviewModal = ({
   const validateRow = (row: StudentImportData, index: number): string[] => {
     const errors: string[] = [];
     
-    if (!row.full_name?.trim()) errors.push('Full name is required');
-    if (!row.email?.trim()) errors.push('Email is required');
-    if (!row.phone?.trim()) errors.push('Phone is required');
-    if (!row.join_date?.trim()) errors.push('Join date is required');
+    if (!row.full_name || (typeof row.full_name === 'string' && !row.full_name.trim())) {
+      errors.push('Full name is required');
+    }
     
-    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+    if (!row.email || (typeof row.email === 'string' && !row.email.trim())) {
+      errors.push('Email is required');
+    }
+    
+    // Handle phone as either string or number
+    const phoneStr = typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '');
+    if (!phoneStr || !phoneStr.trim()) {
+      errors.push('Phone is required');
+    }
+    
+    if (!row.join_date || (typeof row.join_date === 'string' && !row.join_date.trim())) {
+      errors.push('Join date is required');
+    }
+    
+    if (row.email && typeof row.email === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
       errors.push('Invalid email format');
     }
     
@@ -261,13 +278,13 @@ export const ImportPreviewModal = ({
                             <TableCell>
                               {editingIndex === index ? (
                                 <Input
-                                  value={row.phone || ''}
+                                  value={typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '')}
                                   onChange={(e) => handleFieldChange(index, 'phone', e.target.value)}
                                   className="w-full"
                                 />
                               ) : (
                                 <div className="flex items-center gap-2">
-                                  {row.phone || 'N/A'}
+                                  {typeof row.phone === 'number' ? row.phone.toString() : (row.phone || 'N/A')}
                                   {validationErrors[index]?.some(e => e.includes('Phone')) && (
                                     <Badge variant="destructive" className="text-xs">Error</Badge>
                                   )}
