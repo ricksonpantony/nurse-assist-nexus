@@ -50,6 +50,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
   useEffect(() => {
     if (student) {
       console.log('Loading student data for editing:', student);
+      console.log('Student country from data:', student.country);
+      
       // Format dates for input fields
       const updatedStudent = { ...student };
       if (updatedStudent.join_date) {
@@ -62,9 +64,11 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         ...updatedStudent,
         advance_payment_method: updatedStudent.advance_payment_method || '',
         notes: updatedStudent.notes || '',
-        // Ensure country is properly set from student data
-        country: updatedStudent.country || 'India',
+        // Properly set country from student data, ensuring it's not undefined, null or empty string
+        country: updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India',
       });
+      
+      console.log('Form data country set to:', updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India');
     }
   }, [student]);
 
