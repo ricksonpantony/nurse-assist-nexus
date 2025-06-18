@@ -18,10 +18,26 @@ interface ImportStudentsModalProps {
   onImportComplete: () => void;
 }
 
+interface ImportError {
+  rowNumber: number;
+  studentName: string;
+  email: string;
+  error: string;
+  rawData: StudentImportData;
+}
+
+interface ImportResults {
+  success: number;
+  errors: ImportError[];
+  referralsCreated: number;
+  skipped: number;
+  failedStudents: string[];
+}
+
 export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete }: ImportStudentsModalProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [importResults, setImportResults] = useState<{ success: number; errors: string[]; referralsCreated: number; skipped: number } | null>(null);
+  const [importResults, setImportResults] = useState<ImportResults | null>(null);
   const { toast } = useToast();
 
   const statusOptions = [
@@ -170,7 +186,8 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
     }
 
     setIsProcessing(true);
-    const errors: string[] = [];
+    const errors: ImportError[] = [];
+    const failedStudents: string[] = [];
     let successCount = 0;
     let referralsCreated = 0;
     let skippedCount = 0;
@@ -180,16 +197,46 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       
       for (let i = 0; i < data.length; i++) {
         const row = data[i];
+        const rowNumber = i + 2; // Excel rows start from 2 (after header)
+        const studentName = row.full_name || 'Unknown Student';
+        const studentEmail = row.email || 'No Email';
+        
         try {
           // Skip sample data (already filtered in parseExcelFile)
           if (row.full_name?.includes('(SAMPLE - DELETE THIS ROW)')) {
             continue;
           }
 
+          // Validate required fields
+          if (!row.full_name || !row.email || !row.phone || !row.join_date) {
+            const missingFields = [];
+            if (!row.full_name) missingFields.push('full_name');
+            if (!row.email) missingFields.push('email');
+            if (!row.phone) missingFields.push('phone');
+            if (!row.join_date) missingFields.push('join_date');
+            
+            errors.push({
+              rowNumber,
+              studentName,
+              email: studentEmail,
+              error: `Missing required fields: ${missingFields.join(', ')}`,
+              rawData: row
+            });
+            failedStudents.push(studentName);
+            continue;
+          }
+
           // Check for duplicate email
           const emailExists = await checkEmailExists(row.email);
           if (emailExists) {
-            errors.push(`Row ${i + 1}: Email "${row.email}" already exists in the database`);
+            errors.push({
+              rowNumber,
+              studentName,
+              email: studentEmail,
+              error: `Email "${row.email}" already exists in the database`,
+              rawData: row
+            });
+            failedStudents.push(studentName);
             skippedCount++;
             continue;
           }
@@ -203,9 +250,29 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               courseId = course.id;
               courseFee = course.fee;
             } else {
-              errors.push(`Row ${i + 1}: Course "${row.course_title}" not found in available courses`);
+              errors.push({
+                rowNumber,
+                studentName,
+                email: studentEmail,
+                error: `Course "${row.course_title}" not found in available courses`,
+                rawData: row
+              });
+              failedStudents.push(studentName);
               continue;
             }
+          }
+
+          // Validate status
+          if (row.status && !statusOptions.includes(row.status)) {
+            errors.push({
+              rowNumber,
+              studentName,
+              email: studentEmail,
+              error: `Invalid status "${row.status}". Valid options: ${statusOptions.join(', ')}`,
+              rawData: row
+            });
+            failedStudents.push(studentName);
+            continue;
           }
 
           // Handle referral
@@ -216,7 +283,13 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               referralsCreated++;
             }
           } catch (error) {
-            errors.push(`Row ${i + 1} referral: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            errors.push({
+              rowNumber,
+              studentName,
+              email: studentEmail,
+              error: `Referral processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              rawData: row
+            });
           }
 
           // Generate student ID automatically
@@ -250,11 +323,25 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
 
           if (studentError) {
             if (studentError.message.includes('duplicate key value violates unique constraint "students_email_key"')) {
-              errors.push(`Row ${i + 1}: Email "${row.email}" already exists (duplicate detected during import)`);
+              errors.push({
+                rowNumber,
+                studentName,
+                email: studentEmail,
+                error: `Email "${row.email}" already exists (duplicate detected during import)`,
+                rawData: row
+              });
+              failedStudents.push(studentName);
               skippedCount++;
               continue;
             }
-            errors.push(`Row ${i + 1}: ${studentError.message}`);
+            errors.push({
+              rowNumber,
+              studentName,
+              email: studentEmail,
+              error: `Database error: ${studentError.message}`,
+              rawData: row
+            });
+            failedStudents.push(studentName);
             continue;
           }
 
@@ -298,7 +385,13 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               .insert(payments);
 
             if (paymentError) {
-              errors.push(`Row ${i + 1} payments: ${paymentError.message}`);
+              errors.push({
+                rowNumber,
+                studentName,
+                email: studentEmail,
+                error: `Payment processing failed: ${paymentError.message}`,
+                rawData: row
+              });
             }
           }
 
@@ -316,17 +409,36 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               }]);
 
             if (referralPaymentError) {
-              errors.push(`Row ${i + 1} referral payment: ${referralPaymentError.message}`);
+              errors.push({
+                rowNumber,
+                studentName,
+                email: studentEmail,
+                error: `Referral payment failed: ${referralPaymentError.message}`,
+                rawData: row
+              });
             }
           }
 
           successCount++;
         } catch (error) {
-          errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          errors.push({
+            rowNumber,
+            studentName,
+            email: studentEmail,
+            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            rawData: row
+          });
+          failedStudents.push(studentName);
         }
       }
 
-      setImportResults({ success: successCount, errors, referralsCreated, skipped: skippedCount });
+      setImportResults({ 
+        success: successCount, 
+        errors, 
+        referralsCreated, 
+        skipped: skippedCount,
+        failedStudents
+      });
       
       if (successCount > 0) {
         toast({
@@ -355,7 +467,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-blue-800 flex items-center gap-2">
             <Upload className="h-5 w-5" />
@@ -464,28 +576,71 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             </AlertDescription>
           </Alert>
 
-          {/* Import Results */}
+          {/* Enhanced Import Results */}
           {importResults && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Import Results</CardTitle>
+                <CardTitle className="text-sm">Detailed Import Results</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <p className="text-green-600">✓ Successfully imported: {importResults.success} students</p>
-                  {importResults.referralsCreated > 0 && (
-                    <p className="text-blue-600">✓ Created new referrals: {importResults.referralsCreated}</p>
-                  )}
-                  {importResults.skipped > 0 && (
-                    <p className="text-yellow-600">⚠ Skipped duplicates: {importResults.skipped}</p>
+                <div className="space-y-4">
+                  {/* Summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <div className="font-semibold text-green-800">Successfully Imported</div>
+                      <div className="text-2xl font-bold text-green-600">{importResults.success}</div>
+                    </div>
+                    <div className="bg-red-50 p-3 rounded-lg">
+                      <div className="font-semibold text-red-800">Failed</div>
+                      <div className="text-2xl font-bold text-red-600">{importResults.errors.length}</div>
+                    </div>
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <div className="font-semibold text-yellow-800">Skipped (Duplicates)</div>
+                      <div className="text-2xl font-bold text-yellow-600">{importResults.skipped}</div>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="font-semibold text-blue-800">Referrals Created</div>
+                      <div className="text-2xl font-bold text-blue-600">{importResults.referralsCreated}</div>
+                    </div>
+                  </div>
+
+                  {/* Failed Students List */}
+                  {importResults.failedStudents.length > 0 && (
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-2">Students Not Imported:</h4>
+                      <div className="text-sm text-red-700">
+                        {importResults.failedStudents.join(', ')}
+                      </div>
+                    </div>
                   )}
                   
+                  {/* Detailed Error List */}
                   {importResults.errors.length > 0 && (
                     <div>
-                      <p className="text-red-600 font-medium">Errors encountered:</p>
-                      <div className="max-h-40 overflow-y-auto bg-red-50 p-2 rounded mt-1">
+                      <h4 className="font-semibold text-red-800 mb-3">Detailed Error Report:</h4>
+                      <div className="max-h-60 overflow-y-auto space-y-3">
                         {importResults.errors.map((error, index) => (
-                          <p key={index} className="text-sm text-red-700">{error}</p>
+                          <div key={index} className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <div className="font-semibold text-red-800">
+                                  Row {error.rowNumber}: {error.studentName}
+                                </div>
+                                <div className="text-sm text-red-600">Email: {error.email}</div>
+                              </div>
+                            </div>
+                            <div className="text-sm text-red-700 mb-2">
+                              <strong>Error:</strong> {error.error}
+                            </div>
+                            <details className="text-xs">
+                              <summary className="cursor-pointer text-red-600 hover:text-red-800">
+                                View Raw Data
+                              </summary>
+                              <pre className="mt-2 bg-gray-100 p-2 rounded overflow-x-auto text-gray-700">
+                                {JSON.stringify(error.rawData, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
                         ))}
                       </div>
                     </div>
