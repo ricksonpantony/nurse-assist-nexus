@@ -34,31 +34,16 @@ export const ReportsDashboard = () => {
   const totalCompletedStudents = passedStudents + failedStudents;
   const passRate = totalCompletedStudents > 0 ? Math.round((passedStudents / totalCompletedStudents) * 100) : 0;
 
-  // Payment status distribution - based on balance due
-  const paymentStatusData = [];
-  let paymentDue = 0;
-  let fullyPaid = 0;
-  let overpaid = 0;
-
-  students.forEach(student => {
-    const totalFee = Number(student.total_course_fee) || 0;
-    const advancePaid = Number(student.advance_payment) || 0;
-    const balance = totalFee - advancePaid;
-
-    if (balance > 0) {
-      paymentDue++;
-    } else if (balance === 0) {
-      fullyPaid++;
-    } else {
-      overpaid++;
-    }
-  });
-
-  paymentStatusData.push(
-    { name: 'Payment Due', value: paymentDue, color: '#ef4444', percentage: totalStudents > 0 ? ((paymentDue / totalStudents) * 100).toFixed(1) : '0' },
-    { name: 'Fully Paid', value: fullyPaid, color: '#22c55e', percentage: totalStudents > 0 ? ((fullyPaid / totalStudents) * 100).toFixed(1) : '0' },
-    { name: 'Overpaid', value: overpaid, color: '#3b82f6', percentage: totalStudents > 0 ? ((overpaid / totalStudents) * 100).toFixed(1) : '0' }
-  );
+  // Status distribution - updated to use new status values
+  const statusData = [
+    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
+    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
+    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
+    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
+    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
+    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
+    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
+  ];
 
   // Monthly enrollment data based on actual student join dates
   const monthlyData = [];
@@ -92,52 +77,6 @@ export const ReportsDashboard = () => {
       );
     }
     return null;
-  };
-
-  // Custom tooltip for payment status chart
-  const PaymentStatusTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xl">
-          <p className="font-semibold text-gray-800 mb-2">{data.name}</p>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-600 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
-              Students: <span className="font-medium" style={{ color: data.color }}>{data.value}</span>
-            </p>
-            <p className="text-sm text-gray-600">
-              Percentage: <span className="font-medium">{data.percentage}%</span>
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Custom label for pie chart
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    if (percent < 0.05) return null; // Don't show label if slice is too small
-
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        fontSize="12"
-        fontWeight="bold"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
   };
 
   return (
@@ -233,70 +172,33 @@ export const ReportsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Payment Status Distribution */}
+      {/* Student Status Distribution */}
       <Card className="col-span-full lg:col-span-2 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-gray-800">Payment Status Distribution</CardTitle>
-          <p className="text-sm text-gray-600">Based on payment balance status</p>
+          <CardTitle className="text-gray-800">Student Status Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-red-600">{paymentDue}</div>
-              <div className="text-xs text-red-600">Payment Due</div>
-              <div className="text-xs text-gray-500">{paymentStatusData[0]?.percentage}%</div>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-green-600">{fullyPaid}</div>
-              <div className="text-xs text-green-600">Fully Paid</div>
-              <div className="text-xs text-gray-500">{paymentStatusData[1]?.percentage}%</div>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">{overpaid}</div>
-              <div className="text-xs text-blue-600">Overpaid</div>
-              <div className="text-xs text-gray-500">{paymentStatusData[2]?.percentage}%</div>
-            </div>
-          </div>
-
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={paymentStatusData}
+                  data={statusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius={100}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                  animationBegin={0}
-                  animationDuration={800}
                 >
-                  {paymentStatusData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color}
-                      stroke="white"
-                      strokeWidth={2}
-                      className="hover:opacity-80 transition-all duration-200 cursor-pointer"
-                    />
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<PaymentStatusTooltip />} />
+                <ChartTooltip content={<ChartTooltipContent />} />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
-
-          {students.length === 0 && (
-            <div className="flex items-center justify-center h-[300px] text-gray-500">
-              <div className="text-center">
-                <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No payment data available</p>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
