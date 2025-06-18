@@ -9,6 +9,8 @@ import { StudentsFilter } from "@/components/students/StudentsFilter";
 import { ImportStudentsModal } from "@/components/students/ImportStudentsModal";
 import { AddStudentForm } from "@/components/students/AddStudentForm";
 import { DeleteConfirmationModal } from "@/components/students/DeleteConfirmationModal";
+import { StudentDetailsView } from "@/components/students/StudentDetailsView";
+import { PaymentUpdateModal } from "@/components/students/PaymentUpdateModal";
 import { useStudents } from "@/hooks/useStudents";
 import { useCourses } from "@/hooks/useCourses";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +21,10 @@ const Students = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [showStudentDetails, setShowStudentDetails] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [courseFilter, setCourseFilter] = useState("all");
@@ -86,34 +91,57 @@ const Students = () => {
     }
   };
 
-  const handleDeleteStudent = async () => {
-    if (studentToDelete) {
-      try {
-        await deleteStudent(studentToDelete);
-        setShowDeleteConfirmation(false);
-        setStudentToDelete(null);
-        toast({
-          title: "Success",
-          description: "Student deleted successfully.",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete student. Please try again.",
-          variant: "destructive",
-        });
-      }
+  const handleDeleteStudent = async (studentId: string) => {
+    try {
+      await deleteStudent(studentId);
+      toast({
+        title: "Success",
+        description: "Student deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete student. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleOpenDeleteConfirmation = (studentId: string) => {
-    setStudentToDelete(studentId);
+  const handleDeleteMultiple = async (studentIds: string[]) => {
+    try {
+      for (const studentId of studentIds) {
+        await deleteStudent(studentId);
+      }
+      setSelectedStudents([]);
+      toast({
+        title: "Success",
+        description: `${studentIds.length} students deleted successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete students. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewStudent = (student: any) => {
+    setSelectedStudent(student);
+    setShowStudentDetails(true);
+  };
+
+  const handleUpdatePayment = (student: any) => {
+    setSelectedStudent(student);
+    setShowPaymentModal(true);
+  };
+
+  const handleOpenDeleteConfirmation = () => {
     setShowDeleteConfirmation(true);
   };
 
   const handleCloseDeleteConfirmation = () => {
     setShowDeleteConfirmation(false);
-    setStudentToDelete(null);
   };
 
   const handleExportStudents = () => {
@@ -147,6 +175,11 @@ const Students = () => {
       title: "Print Feature",
       description: "Print functionality will be implemented",
     });
+  };
+
+  const handleImportComplete = () => {
+    // Refresh students data after import
+    window.location.reload();
   };
 
   if (loading || coursesLoading) {
@@ -275,21 +308,31 @@ const Students = () => {
                 courses={courses}
                 countries={countries}
                 batches={batches}
-                selectedStudentsCount={0}
+                selectedStudentsCount={selectedStudents.length}
               />
 
               {/* Students Table */}
               <StudentsTable
                 students={filteredStudents}
+                courses={courses}
                 onEdit={handleUpdateStudent}
-                onDelete={handleOpenDeleteConfirmation}
+                onDelete={handleDeleteStudent}
+                onDeleteMultiple={handleDeleteMultiple}
+                onView={handleViewStudent}
+                onUpdatePayment={handleUpdatePayment}
+                onPrintSelected={handlePrintSelected}
+                selectedStudents={selectedStudents}
+                onStudentSelection={setSelectedStudents}
               />
             </main>
 
             {/* Import Students Modal */}
             {showImportModal && (
               <ImportStudentsModal
+                isOpen={showImportModal}
                 onClose={() => setShowImportModal(false)}
+                courses={courses}
+                onImportComplete={handleImportComplete}
               />
             )}
 
@@ -302,11 +345,39 @@ const Students = () => {
               />
             )}
 
+            {/* Student Details Modal */}
+            {showStudentDetails && selectedStudent && (
+              <StudentDetailsView
+                student={selectedStudent}
+                courses={courses}
+                onClose={() => {
+                  setShowStudentDetails(false);
+                  setSelectedStudent(null);
+                }}
+                onEdit={handleUpdateStudent}
+              />
+            )}
+
+            {/* Payment Update Modal */}
+            {showPaymentModal && selectedStudent && (
+              <PaymentUpdateModal
+                student={selectedStudent}
+                onClose={() => {
+                  setShowPaymentModal(false);
+                  setSelectedStudent(null);
+                }}
+                onUpdate={handleUpdateStudent}
+              />
+            )}
+
             {/* Delete Confirmation Modal */}
             {showDeleteConfirmation && (
               <DeleteConfirmationModal
+                isOpen={showDeleteConfirmation}
                 onClose={handleCloseDeleteConfirmation}
-                onConfirm={handleDeleteStudent}
+                onConfirm={() => handleDeleteMultiple(selectedStudents)}
+                count={selectedStudents.length}
+                studentNames={students.filter(s => selectedStudents.includes(s.id)).map(s => s.full_name)}
               />
             )}
           </div>
