@@ -166,27 +166,60 @@ export const useReferrals = () => {
         throw new Error('Referral not found');
       }
 
-      // Move to recycle bin first
+      console.log('Deleting referral with ID:', id);
+
+      // First, update all students linked to this referral to set referral_id to null (Direct)
+      const { error: updateStudentsError } = await supabase
+        .from('students')
+        .update({ referral_id: null })
+        .eq('referral_id', id);
+
+      if (updateStudentsError) {
+        console.error('Error updating students referral_id:', updateStudentsError);
+        throw updateStudentsError;
+      }
+
+      console.log('Updated students referral_id to null for referral:', id);
+
+      // Delete any referral payments associated with this referral
+      const { error: deletePaymentsError } = await supabase
+        .from('referral_payments')
+        .delete()
+        .eq('referral_id', id);
+
+      if (deletePaymentsError) {
+        console.error('Error deleting referral payments:', deletePaymentsError);
+        throw deletePaymentsError;
+      }
+
+      console.log('Deleted referral payments for referral:', id);
+
+      // Move to recycle bin
       await moveToRecycleBin('referrals', id, referralToDelete);
 
-      // Then delete from original table
-      const { error } = await supabase
+      // Then delete the referral from original table
+      const { error: deleteReferralError } = await supabase
         .from('referrals')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (deleteReferralError) {
+        console.error('Error deleting referral:', deleteReferralError);
+        throw deleteReferralError;
+      }
+
+      console.log('Successfully deleted referral:', id);
 
       setReferrals(prev => prev.filter(referral => referral.id !== id));
       toast({
         title: "Success",
-        description: "Referral moved to recycle bin",
+        description: "Referral deleted successfully. Associated students have been set to 'Direct' referral status.",
       });
     } catch (error: any) {
       console.error('Error deleting referral:', error);
       toast({
         title: "Error",
-        description: "Failed to delete referral. Please try again.",
+        description: `Failed to delete referral: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
       throw error;
@@ -200,33 +233,60 @@ export const useReferrals = () => {
         throw new Error('User not authenticated');
       }
 
-      // Move all referrals to recycle bin and delete them
-      const deletePromises = ids.map(async (id) => {
+      console.log('Deleting multiple referrals:', ids);
+
+      // Process each referral deletion
+      for (const id of ids) {
         const referralToDelete = referrals.find(ref => ref.id === id);
         if (referralToDelete) {
+          // Update students linked to this referral to set referral_id to null (Direct)
+          const { error: updateStudentsError } = await supabase
+            .from('students')
+            .update({ referral_id: null })
+            .eq('referral_id', id);
+
+          if (updateStudentsError) {
+            console.error('Error updating students for referral:', id, updateStudentsError);
+            throw updateStudentsError;
+          }
+
+          // Delete referral payments
+          const { error: deletePaymentsError } = await supabase
+            .from('referral_payments')
+            .delete()
+            .eq('referral_id', id);
+
+          if (deletePaymentsError) {
+            console.error('Error deleting payments for referral:', id, deletePaymentsError);
+            throw deletePaymentsError;
+          }
+
+          // Move to recycle bin
           await moveToRecycleBin('referrals', id, referralToDelete);
           
-          const { error } = await supabase
+          // Delete the referral
+          const { error: deleteReferralError } = await supabase
             .from('referrals')
             .delete()
             .eq('id', id);
           
-          if (error) throw error;
+          if (deleteReferralError) {
+            console.error('Error deleting referral:', id, deleteReferralError);
+            throw deleteReferralError;
+          }
         }
-      });
-
-      await Promise.all(deletePromises);
+      }
 
       setReferrals(prev => prev.filter(referral => !ids.includes(referral.id)));
       toast({
         title: "Success",
-        description: `${ids.length} referral${ids.length > 1 ? 's' : ''} moved to recycle bin`,
+        description: `${ids.length} referral${ids.length > 1 ? 's' : ''} deleted successfully. Associated students have been set to 'Direct' referral status.`,
       });
     } catch (error: any) {
       console.error('Error deleting multiple referrals:', error);
       toast({
         title: "Error",
-        description: "Failed to delete some referrals. Please try again.",
+        description: `Failed to delete some referrals: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
       throw error;

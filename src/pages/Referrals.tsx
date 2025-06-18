@@ -10,7 +10,7 @@ import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 
 const Referrals = () => {
-  const { referrals, loading, addReferral, updateReferral, deleteReferral, fetchReferralPayments } = useReferrals();
+  const { referrals, loading, addReferral, updateReferral, deleteReferral, deleteMultipleReferrals, fetchReferralPayments } = useReferrals();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [editingReferral, setEditingReferral] = useState(null);
@@ -54,7 +54,7 @@ const Referrals = () => {
   };
 
   const handleDeleteReferral = async (referralId: string) => {
-    if (window.confirm("Are you sure you want to delete this referral? This action cannot be undone.")) {
+    if (window.confirm("Are you sure you want to delete this referral? Associated students will be set to 'Direct' referral status. This action cannot be undone.")) {
       try {
         await deleteReferral(referralId);
       } catch (error) {
@@ -88,21 +88,11 @@ const Referrals = () => {
   };
 
   const handleMultiDelete = async (referralIds: string[]) => {
-    if (window.confirm(`Are you sure you want to delete ${referralIds.length} referral${referralIds.length > 1 ? 's' : ''}? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to delete ${referralIds.length} referral${referralIds.length > 1 ? 's' : ''}? Associated students will be set to 'Direct' referral status. This action cannot be undone.`)) {
       try {
-        const deletePromises = referralIds.map(id => deleteReferral(id));
-        await Promise.all(deletePromises);
-        
-        toast({
-          title: "Success",
-          description: `${referralIds.length} referral${referralIds.length > 1 ? 's' : ''} deleted successfully`,
-        });
+        await deleteMultipleReferrals(referralIds);
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Some referrals could not be deleted. Please try again.",
-          variant: "destructive",
-        });
+        // Error is handled in the hook
       }
     }
   };
