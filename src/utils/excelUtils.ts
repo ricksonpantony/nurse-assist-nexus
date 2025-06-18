@@ -7,7 +7,7 @@ export interface StudentImportData {
   // Basic Information
   full_name: string;
   email: string;
-  phone: string;
+  phone: string | number;
   address?: string;
   country?: string;
   passport_id?: string;

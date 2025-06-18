@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export const ImportPreviewModal = ({
       // Convert phone numbers to strings if they're numbers
       const processedData = importData.map(row => ({
         ...row,
-        phone: typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '')
+        phone: typeof row.phone === 'number' ? String(row.phone) : (row.phone || '')
       }));
       setEditableData(processedData);
       // Clear previous validation errors
@@ -70,7 +71,7 @@ export const ImportPreviewModal = ({
     }
     
     // Handle phone as either string or number
-    const phoneStr = typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '');
+    const phoneStr = typeof row.phone === 'number' ? String(row.phone) : (row.phone || '');
     if (!phoneStr || !phoneStr.trim()) {
       errors.push('Phone is required');
     }
@@ -278,13 +279,13 @@ export const ImportPreviewModal = ({
                             <TableCell>
                               {editingIndex === index ? (
                                 <Input
-                                  value={typeof row.phone === 'number' ? row.phone.toString() : (row.phone || '')}
+                                  value={typeof row.phone === 'number' ? String(row.phone) : (row.phone || '')}
                                   onChange={(e) => handleFieldChange(index, 'phone', e.target.value)}
                                   className="w-full"
                                 />
                               ) : (
                                 <div className="flex items-center gap-2">
-                                  {typeof row.phone === 'number' ? row.phone.toString() : (row.phone || 'N/A')}
+                                  {typeof row.phone === 'number' ? String(row.phone) : (row.phone || 'N/A')}
                                   {validationErrors[index]?.some(e => e.includes('Phone')) && (
                                     <Badge variant="destructive" className="text-xs">Error</Badge>
                                   )}
