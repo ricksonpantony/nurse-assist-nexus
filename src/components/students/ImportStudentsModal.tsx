@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -107,9 +106,10 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       console.log('Setting preview data and showing preview modal');
     } catch (error) {
       console.error('Excel parsing error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to parse Excel file";
       toast({
         title: "File Parsing Failed",
-        description: error instanceof Error ? error.message : "Failed to parse Excel file",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -277,11 +277,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               referralsCreated++;
             }
           } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             errors.push({
               rowNumber,
               studentName,
               email: studentEmail,
-              error: `Referral processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              error: `Referral processing failed: ${errorMessage}`,
               rawData: row
             });
           }
@@ -316,7 +317,8 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
             .insert([studentData]);
 
           if (studentError) {
-            if (studentError.message.includes('duplicate key value violates unique constraint "students_email_key"')) {
+            const errorMessage = studentError.message || 'Unknown database error';
+            if (errorMessage.includes && errorMessage.includes('duplicate key value violates unique constraint "students_email_key"')) {
               errors.push({
                 rowNumber,
                 studentName,
@@ -332,7 +334,7 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               rowNumber,
               studentName,
               email: studentEmail,
-              error: `Database error: ${studentError.message}`,
+              error: `Database error: ${errorMessage}`,
               rawData: row
             });
             failedStudents.push(studentName);
@@ -389,11 +391,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               .insert(payments);
 
             if (paymentError) {
+              const errorMessage = paymentError.message || 'Unknown payment error';
               errors.push({
                 rowNumber,
                 studentName,
                 email: studentEmail,
-                error: `Payment processing failed: ${paymentError.message}`,
+                error: `Payment processing failed: ${errorMessage}`,
                 rawData: row
               });
             }
@@ -413,11 +416,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
               }]);
 
             if (referralPaymentError) {
+              const errorMessage = referralPaymentError.message || 'Unknown referral payment error';
               errors.push({
                 rowNumber,
                 studentName,
                 email: studentEmail,
-                error: `Referral payment failed: ${referralPaymentError.message}`,
+                error: `Referral payment failed: ${errorMessage}`,
                 rawData: row
               });
             }
@@ -425,11 +429,12 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
 
           successCount++;
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
           errors.push({
             rowNumber,
             studentName,
             email: studentEmail,
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            error: errorMessage,
             rawData: row
           });
           failedStudents.push(studentName);
@@ -453,9 +458,10 @@ export const ImportStudentsModal = ({ isOpen, onClose, courses, onImportComplete
       }
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process file";
       toast({
         title: "Import Failed",
-        description: error instanceof Error ? error.message : "Failed to process file",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
