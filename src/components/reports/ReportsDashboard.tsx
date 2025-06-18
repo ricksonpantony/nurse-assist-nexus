@@ -2,9 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
-import { Users, GraduationCap, CreditCard, TrendingUp } from 'lucide-react';
+import { Users, GraduationCap, CreditCard, TrendingUp, Globe } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 const chartConfig = {
   students: {
@@ -14,6 +14,10 @@ const chartConfig = {
   payments: {
     label: "Payments",
     color: "hsl(var(--chart-2))",
+  },
+  countries: {
+    label: "Countries",
+    color: "hsl(var(--chart-3))",
   },
 };
 
@@ -34,16 +38,21 @@ export const ReportsDashboard = () => {
   const totalCompletedStudents = passedStudents + failedStudents;
   const passRate = totalCompletedStudents > 0 ? Math.round((passedStudents / totalCompletedStudents) * 100) : 0;
 
-  // Status distribution - updated to use new status values
-  const statusData = [
-    { name: 'Attended Online', value: students.filter(s => s.status === 'Attended Online').length, color: '#3b82f6' },
-    { name: 'Attend sessions', value: students.filter(s => s.status === 'Attend sessions').length, color: '#10b981' },
-    { name: 'Attended F2F', value: students.filter(s => s.status === 'Attended F2F').length, color: '#f59e0b' },
-    { name: 'Exam cycle', value: students.filter(s => s.status === 'Exam cycle').length, color: '#ef4444' },
-    { name: 'Awaiting results', value: students.filter(s => s.status === 'Awaiting results').length, color: '#8b5cf6' },
-    { name: 'Pass', value: students.filter(s => s.status === 'Pass').length, color: '#22c55e' },
-    { name: 'Fail', value: students.filter(s => s.status === 'Fail').length, color: '#ef4444' },
-  ];
+  // Country distribution data for bar chart
+  const countryData = students.reduce((acc, student) => {
+    const country = student.country || 'Unknown';
+    acc[country] = (acc[country] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const countryChartData = Object.entries(countryData)
+    .map(([country, count]) => ({
+      country: country.length > 15 ? country.substring(0, 15) + '...' : country,
+      fullCountry: country,
+      students: count,
+    }))
+    .sort((a, b) => b.students - a.students)
+    .slice(0, 10); // Show top 10 countries
 
   // Monthly enrollment data based on actual student join dates
   const monthlyData = [];
@@ -72,6 +81,28 @@ export const ReportsDashboard = () => {
           <p className="text-sm text-gray-600 flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
             Enrollments: <span className="font-medium text-blue-600">{payload[0].value}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Custom tooltip for country chart
+  const CountryTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xl">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-4 h-4 text-green-600" />
+            <p className="font-semibold text-gray-800">{data.fullCountry}</p>
+          </div>
+          <p className="text-sm text-gray-600">
+            Students: <span className="font-medium text-green-600">{data.students}</span>
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {((data.students / totalStudents) * 100).toFixed(1)}% of total students
           </p>
         </div>
       );
@@ -109,7 +140,7 @@ export const ReportsDashboard = () => {
       <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-purple-100">Geographic Reach – Country Count</CardTitle>
-          <CreditCard className="h-5 w-5 text-purple-200" />
+          <Globe className="h-5 w-5 text-purple-200" />
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold">{uniqueCountries}</div>
@@ -172,33 +203,63 @@ export const ReportsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Student Status Distribution */}
+      {/* Country Distribution Chart */}
       <Card className="col-span-full lg:col-span-2 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-gray-800">Student Status Distribution</CardTitle>
+          <div className="flex items-center gap-2">
+            <Globe className="w-5 h-5 text-green-600" />
+            <CardTitle className="text-gray-800">Students by Country</CardTitle>
+          </div>
+          <p className="text-sm text-gray-600">Top 10 countries with enrolled students</p>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
+              <BarChart 
+                data={countryChartData} 
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                layout="horizontal"
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.6} />
+                <XAxis 
+                  type="number"
+                  fontSize={12} 
+                  stroke="#64748b"
+                  tick={{ fill: '#64748b' }}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="country"
+                  fontSize={11} 
+                  stroke="#64748b"
+                  tick={{ fill: '#64748b' }}
+                  width={100}
+                />
+                <ChartTooltip content={<CountryTooltip />} />
+                <Bar 
+                  dataKey="students" 
+                  fill="#10b981"
+                  radius={[0, 4, 4, 0]}
+                  className="hover:opacity-80 transition-all duration-300"
                 >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {countryChartData.map((entry, index) => (
+                    <Bar
+                      key={`bar-${index}`}
+                      fill={`hsl(${120 + index * 15}, 70%, ${50 + index * 3}%)`}
+                    />
                   ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
+          {students.length === 0 && (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              <div className="text-center">
+                <Globe className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">No country data available</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
