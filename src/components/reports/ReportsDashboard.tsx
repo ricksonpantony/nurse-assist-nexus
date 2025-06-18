@@ -4,7 +4,7 @@ import { useStudents } from '@/hooks/useStudents';
 import { useCourses } from '@/hooks/useCourses';
 import { Users, GraduationCap, CreditCard, TrendingUp, Globe } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
 
 const chartConfig = {
   students: {
@@ -46,10 +46,11 @@ export const ReportsDashboard = () => {
   }, {} as Record<string, number>);
 
   const countryChartData = Object.entries(countryData)
-    .map(([country, count]) => ({
+    .map(([country, count], index) => ({
       country: country.length > 15 ? country.substring(0, 15) + '...' : country,
       fullCountry: country,
       students: count,
+      color: `hsl(${120 + index * 25}, 70%, ${50 + (index % 5) * 8}%)`,
     }))
     .sort((a, b) => b.students - a.students)
     .slice(0, 10); // Show top 10 countries
@@ -238,15 +239,11 @@ export const ReportsDashboard = () => {
                 <ChartTooltip content={<CountryTooltip />} />
                 <Bar 
                   dataKey="students" 
-                  fill="#10b981"
                   radius={[0, 4, 4, 0]}
                   className="hover:opacity-80 transition-all duration-300"
                 >
                   {countryChartData.map((entry, index) => (
-                    <Bar
-                      key={`bar-${index}`}
-                      fill={`hsl(${120 + index * 15}, 70%, ${50 + index * 3}%)`}
-                    />
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>
