@@ -44,7 +44,7 @@ export const DashboardStats = ({
       color: "from-emerald-500 to-emerald-600",
       textColor: "text-emerald-600",
       bgColor: "bg-emerald-50",
-      description: "All time graduates"
+      description: "All-Time Course Completers"
     },
     {
       title: "This Month",
