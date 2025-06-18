@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Download, Filter, Printer, Trash2, Calendar } from 'lucide-react';
 import { formatDateForExcel } from '@/utils/excelUtils';
@@ -54,6 +55,10 @@ export const PaymentReports = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [showPrintView, setShowPrintView] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   
   // Enhanced filters state
   const [filters, setFilters] = useState({
@@ -261,6 +266,36 @@ export const PaymentReports = () => {
     }));
   }, [paymentBreakdown, filters, payments, sortBy, sortOrder, students]);
 
+  // Pagination calculations
+  const totalItems = filteredBreakdown.length;
+  const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalItems / itemsPerPage);
+  const startIndex = itemsPerPage === -1 ? 0 : (currentPage - 1) * itemsPerPage;
+  const endIndex = itemsPerPage === -1 ? totalItems : startIndex + itemsPerPage;
+  const currentBreakdown = filteredBreakdown.slice(startIndex, endIndex);
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = value === "all" ? -1 : parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   // Get selected payment data for printing
   const selectedPaymentData = filteredBreakdown.filter(item => 
     selectedRows.includes(item.student_id)
@@ -322,7 +357,6 @@ export const PaymentReports = () => {
       alert('Please select payment records to print');
       return;
     }
-    // window.print();
     setShowPrintView(true);
     setTimeout(() => {
       window.print();
@@ -407,6 +441,7 @@ export const PaymentReports = () => {
     });
     setSortBy('payment_date');
     setSortOrder('desc');
+    setCurrentPage(1);
   };
 
   // Date range helper functions
@@ -417,6 +452,7 @@ export const PaymentReports = () => {
       dateFrom: today,
       dateTo: today
     }));
+    setCurrentPage(1);
   };
 
   const setYesterdayRange = () => {
@@ -428,6 +464,7 @@ export const PaymentReports = () => {
       dateFrom: yesterdayStr,
       dateTo: yesterdayStr
     }));
+    setCurrentPage(1);
   };
 
   const isAllSelected = filteredBreakdown.length > 0 && selectedRows.length === filteredBreakdown.length;
@@ -808,6 +845,31 @@ export const PaymentReports = () => {
         </Card>
       </div>)}
 
+      {/* Pagination Controls Top */}
+      {!showPrintView && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Show:</span>
+            <Select value={itemsPerPage === -1 ? "all" : itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="200">200</SelectItem>
+                <SelectItem value="500">500</SelectItem>
+                <SelectItem value="1000">1000</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-gray-600">
+              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} payment records
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Selection Actions */}
       {selectedRows.length > 0 && (
         <Card className="shadow-lg bg-gradient-to-r from-green-50 to-blue-50">
@@ -886,7 +948,7 @@ export const PaymentReports = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBreakdown.map((item) => (
+                {currentBreakdown.map((item) => (
                   <TableRow 
                     key={item.student_id}
                     className={selectedRows.includes(item.student_id) ? 'bg-blue-50' : ''}
