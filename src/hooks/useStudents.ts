@@ -56,12 +56,14 @@ export const useStudents = () => {
 
       if (error) throw error;
       
-      // Transform the data to ensure proper typing
+      // Transform the data to ensure proper typing and trim country values
       const transformedData: Student[] = (data || []).map(item => ({
         ...item,
         status: isValidStatus(item.status) ? item.status : 'Pass',
         advance_payment_method: item.advance_payment_method || null,
-        notes: item.notes || null
+        notes: item.notes || null,
+        // Trim country to remove trailing spaces
+        country: item.country ? item.country.trim() : null
       }));
       
       setStudents(transformedData);
@@ -147,6 +149,9 @@ export const useStudents = () => {
     }
     if (cleanData.country === '') {
       cleanData.country = null;
+    } else if (cleanData.country) {
+      // Trim country to remove trailing spaces
+      cleanData.country = cleanData.country.trim();
     }
     if (cleanData.class_start_date === '') {
       cleanData.class_start_date = null;
@@ -229,7 +234,9 @@ export const useStudents = () => {
         ...data,
         status: isValidStatus(data.status) ? data.status : 'Pass',
         advance_payment_method: data.advance_payment_method || null,
-        notes: data.notes || null
+        notes: data.notes || null,
+        // Trim country
+        country: data.country ? data.country.trim() : null
       };
       
       setStudents(prev => [transformedData, ...prev]);
@@ -308,7 +315,9 @@ export const useStudents = () => {
         ...data,
         status: isValidStatus(data.status) ? data.status : 'Pass',
         advance_payment_method: data.advance_payment_method || null,
-        notes: data.notes || null
+        notes: data.notes || null,
+        // Trim country
+        country: data.country ? data.country.trim() : null
       };
       
       setStudents(prev => prev.map(student => student.id === id ? transformedData : student));

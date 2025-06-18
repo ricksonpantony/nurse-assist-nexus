@@ -60,15 +60,19 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
       if (updatedStudent.class_start_date) {
         updatedStudent.class_start_date = new Date(updatedStudent.class_start_date).toISOString().split('T')[0];
       }
+      
+      // Clean and trim the country value
+      const cleanCountry = updatedStudent.country ? updatedStudent.country.trim() : '';
+      
       setFormData({
         ...updatedStudent,
         advance_payment_method: updatedStudent.advance_payment_method || '',
         notes: updatedStudent.notes || '',
-        // Properly set country from student data, ensuring it's not undefined, null or empty string
-        country: updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India',
+        // Properly set country from student data, ensuring it's trimmed and not empty
+        country: cleanCountry !== '' ? cleanCountry : 'India',
       });
       
-      console.log('Form data country set to:', updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India');
+      console.log('Form data country set to:', cleanCountry !== '' ? cleanCountry : 'India');
     }
   }, [student]);
 
@@ -162,6 +166,8 @@ export const AddStudentForm = ({ student = null, courses = [], onClose, onSave }
         advance_payment_method: formData.advance_payment_method || null,
         // Handle notes
         notes: formData.notes || null,
+        // Trim country to avoid trailing spaces
+        country: formData.country ? formData.country.trim() : null,
       };
 
       console.log('Processed form data before save:', processedData);

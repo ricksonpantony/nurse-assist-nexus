@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,9 +33,13 @@ const Students = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("desc");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
-  // Get unique countries and batches for filters
+  // Get unique countries and batches for filters - trim countries to avoid duplicates
   const { countries, batches } = useMemo(() => {
-    const uniqueCountries = [...new Set(students.filter(s => s.country).map(s => s.country))].sort();
+    const uniqueCountries = [...new Set(students
+      .filter(s => s.country)
+      .map(s => s.country.trim()) // Trim to remove trailing spaces
+      .filter(country => country !== '') // Remove empty strings
+    )].sort();
     const uniqueBatches = [...new Set(students.filter(s => s.batch_id).map(s => s.batch_id))].sort();
     return { 
       countries: uniqueCountries as string[], 
@@ -70,9 +73,9 @@ const Students = () => {
       filtered = filtered.filter(student => student.course_id === courseFilter);
     }
 
-    // Apply country filter
+    // Apply country filter - trim country for comparison
     if (countryFilter !== "all") {
-      filtered = filtered.filter(student => student.country === countryFilter);
+      filtered = filtered.filter(student => student.country && student.country.trim() === countryFilter);
     }
 
     // Apply batch filter
@@ -103,8 +106,9 @@ const Students = () => {
           bValue = b.total_course_fee;
           break;
         case 'country':
-          aValue = a.country || '';
-          bValue = b.country || '';
+          // Trim countries for sorting
+          aValue = (a.country || '').trim();
+          bValue = (b.country || '').trim();
           break;
         case 'id':
           aValue = a.id;

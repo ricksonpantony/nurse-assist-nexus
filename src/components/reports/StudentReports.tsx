@@ -49,6 +49,17 @@ export const StudentReports = () => {
     return studentBatches;
   }, [students]);
 
+  // Get unique countries from students for the filter dropdown - trim to avoid duplicates
+  const uniqueCountries = useMemo(() => {
+    const studentCountries = students
+      .map(student => student.country)
+      .filter(country => country && country.trim() !== '')
+      .map(country => country.trim()) // Trim to remove trailing spaces
+      .filter((country, index, array) => array.indexOf(country) === index)
+      .sort();
+    return studentCountries;
+  }, [students]);
+
   // Filter and sort students based on criteria
   const filteredStudents = useMemo(() => {
     let filtered = [...students];
@@ -89,9 +100,9 @@ export const StudentReports = () => {
       filtered = filtered.filter(student => student.batch_id === filters.batch);
     }
 
-    // Filter by country
+    // Filter by country - trim for comparison
     if (filters.country && filters.country !== 'all') {
-      filtered = filtered.filter(student => student.country === filters.country);
+      filtered = filtered.filter(student => student.country && student.country.trim() === filters.country);
     }
 
     // Sort students
@@ -112,8 +123,9 @@ export const StudentReports = () => {
           bValue = b.status;
           break;
         case 'country':
-          aValue = (a.country || '').toLowerCase();
-          bValue = (b.country || '').toLowerCase();
+          // Trim countries for sorting
+          aValue = (a.country || '').trim().toLowerCase();
+          bValue = (b.country || '').trim().toLowerCase();
           break;
         default:
           aValue = a[sortBy as keyof typeof a];
@@ -199,16 +211,6 @@ export const StudentReports = () => {
       setShowPrintView(false);
     }, 100);
   };
-
-  // Get unique countries from students for the filter dropdown
-  const uniqueCountries = useMemo(() => {
-    const studentCountries = students
-      .map(student => student.country)
-      .filter(country => country && country.trim() !== '')
-      .filter((country, index, array) => array.indexOf(country) === index)
-      .sort();
-    return studentCountries;
-  }, [students]);
 
   const isAllSelected = filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length;
   const isPartialSelected = selectedStudents.length > 0 && selectedStudents.length < filteredStudents.length;
@@ -342,7 +344,7 @@ export const StudentReports = () => {
                   </span>
                 </td>
                 <td>${student.total_course_fee.toLocaleString()}</td>
-                <td>{student.country || 'N/A'}</td>
+                <td>{student.country ? student.country.trim() : 'N/A'}</td>
               </tr>
             ))}
           </tbody>
@@ -689,7 +691,7 @@ export const StudentReports = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>${student.total_course_fee.toLocaleString()}</TableCell>
-                      <TableCell>{student.country || 'N/A'}</TableCell>
+                      <TableCell>{student.country ? student.country.trim() : 'N/A'}</TableCell>
                     </TableRow>
                   );
                 })}
