@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,9 @@ const Students = () => {
   const filteredAndSortedStudents = useMemo(() => {
     let filtered = [...students];
 
+    console.log('Total students before filtering:', filtered.length);
+    console.log('Course filter value:', courseFilter);
+
     // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -68,9 +72,29 @@ const Students = () => {
       filtered = filtered.filter(student => student.status === statusFilter);
     }
 
-    // Apply course filter
+    // Apply course filter - improved logic to handle null/undefined course_id
     if (courseFilter !== "all") {
-      filtered = filtered.filter(student => student.course_id === courseFilter);
+      console.log('Filtering by course:', courseFilter);
+      const beforeCourseFilter = filtered.length;
+      
+      filtered = filtered.filter(student => {
+        // Handle both null and string course_id values
+        const studentCourseId = student.course_id;
+        const matches = studentCourseId === courseFilter;
+        
+        if (!matches) {
+          console.log('Student filtered out:', {
+            name: student.full_name,
+            studentCourseId,
+            expectedCourseId: courseFilter,
+            match: matches
+          });
+        }
+        
+        return matches;
+      });
+      
+      console.log(`Course filter: ${beforeCourseFilter} -> ${filtered.length} students`);
     }
 
     // Apply country filter - trim country for comparison
@@ -126,6 +150,7 @@ const Students = () => {
       }
     });
 
+    console.log('Final filtered students count:', filtered.length);
     return filtered;
   }, [students, searchTerm, statusFilter, courseFilter, countryFilter, batchFilter, sortBy, sortOrder]);
 
@@ -239,6 +264,11 @@ const Students = () => {
   const handleStudentSelection = (studentIds: string[]) => {
     setSelectedStudents(studentIds);
   };
+
+  // Get selected students for printing
+  const selectedStudentsForPrint = useMemo(() => {
+    return filteredAndSortedStudents.filter(student => selectedStudents.includes(student.id));
+  }, [filteredAndSortedStudents, selectedStudents]);
 
   if (loading) {
     return (

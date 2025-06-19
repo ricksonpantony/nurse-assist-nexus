@@ -64,6 +64,9 @@ export const StudentReports = () => {
   const filteredStudents = useMemo(() => {
     let filtered = [...students];
 
+    console.log('StudentReports - Total students before filtering:', filtered.length);
+    console.log('StudentReports - Course filter value:', filters.course);
+
     // Filter by join date range
     if (filters.dateFrom) {
       filtered = filtered.filter(student => 
@@ -90,9 +93,29 @@ export const StudentReports = () => {
       filtered = filtered.filter(student => student.status === filters.status);
     }
 
-    // Filter by course
+    // Filter by course - improved logic to handle null/undefined course_id
     if (filters.course && filters.course !== 'all') {
-      filtered = filtered.filter(student => student.course_id === filters.course);
+      console.log('StudentReports - Filtering by course:', filters.course);
+      const beforeCourseFilter = filtered.length;
+      
+      filtered = filtered.filter(student => {
+        // Handle both null and string course_id values
+        const studentCourseId = student.course_id;
+        const matches = studentCourseId === filters.course;
+        
+        if (!matches) {
+          console.log('StudentReports - Student filtered out:', {
+            name: student.full_name,
+            studentCourseId,
+            expectedCourseId: filters.course,
+            match: matches
+          });
+        }
+        
+        return matches;
+      });
+      
+      console.log(`StudentReports - Course filter: ${beforeCourseFilter} -> ${filtered.length} students`);
     }
 
     // Filter by batch
@@ -139,6 +162,7 @@ export const StudentReports = () => {
       }
     });
 
+    console.log('StudentReports - Final filtered students count:', filtered.length);
     return filtered;
   }, [students, filters, sortBy, sortOrder]);
 
