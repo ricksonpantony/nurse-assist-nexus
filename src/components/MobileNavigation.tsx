@@ -46,7 +46,7 @@ export const MobileNavigation = () => {
         <div className="flex items-center gap-2">
           <div className="h-8 w-10 flex items-center justify-center">
             <img 
-              src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+              src="/uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
               alt="Nurse Assist International Logo" 
               className="w-full h-full object-contain"
             />
@@ -69,7 +69,7 @@ export const MobileNavigation = () => {
                 <SheetTitle className="flex items-center gap-3 text-white">
                   <div className="h-8 w-10 flex items-center justify-center">
                     <img 
-                      src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+                      src="/uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
                       alt="Nurse Assist International Logo" 
                       className="w-full h-full object-contain"
                     />

@@ -98,7 +98,7 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
               <div className="flex justify-center mb-6">
                 <div className="w-32 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm p-4">
                   <img 
-                    src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+                    src="/uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
                     alt="Nurse Assist International Logo" 
                     className="w-full h-full object-contain"
                   />
@@ -146,7 +146,7 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
             <div className="flex justify-center">
               <div className="w-20 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center p-2">
                 <img 
-                  src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+                  src="/uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
                   alt="Nurse Assist International Logo" 
                   className="w-full h-full object-contain"
                 />

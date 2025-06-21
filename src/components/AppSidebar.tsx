@@ -111,7 +111,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-white to-blue-50 shadow-lg p-2">
             <img 
-              src="/lovable-uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
+              src="/uploads/abd1d232-3384-4cf5-8d05-3b3c8c7153f7.png" 
               alt="Nurse Assist International Logo" 
               className="w-full h-full object-contain"
             />
