@@ -61,6 +61,8 @@ const ManageStudent = () => {
   useEffect(() => {
     if (isEditing && currentStudent) {
       console.log('Loading student data for editing:', currentStudent);
+      console.log('Student country from data:', currentStudent.country);
+      
       const updatedStudent = { ...currentStudent };
       if (updatedStudent.join_date) {
         updatedStudent.join_date = new Date(updatedStudent.join_date).toISOString().split('T')[0];
@@ -68,6 +70,7 @@ const ManageStudent = () => {
       if (updatedStudent.class_start_date) {
         updatedStudent.class_start_date = new Date(updatedStudent.class_start_date).toISOString().split('T')[0];
       }
+      
       setFormData({
         ...updatedStudent,
         course_id: updatedStudent.course_id || '',
@@ -75,7 +78,11 @@ const ManageStudent = () => {
         advance_payment_method: updatedStudent.advance_payment_method || '',
         referral_payment_amount: 0,
         notes: updatedStudent.notes || '',
+        // Properly set country from student data, ensuring it's not undefined or null
+        country: updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India',
       });
+      
+      console.log('Form data country set to:', updatedStudent.country && updatedStudent.country.trim() !== '' ? updatedStudent.country : 'India');
     }
   }, [isEditing, currentStudent]);
 
